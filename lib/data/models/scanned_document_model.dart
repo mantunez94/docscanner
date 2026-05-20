@@ -6,6 +6,7 @@ class ScannedDocumentModel {
   final String thumbnailPath;
   final DateTime createdAt;
   final int pageCount;
+  final String name;
 
   ScannedDocumentModel({
     required this.id,
@@ -13,6 +14,7 @@ class ScannedDocumentModel {
     required this.thumbnailPath,
     required this.createdAt,
     this.pageCount = 1,
+    required this.name,
   });
 
   factory ScannedDocumentModel.fromEntity(ScannedDocument entity) {
@@ -22,6 +24,7 @@ class ScannedDocumentModel {
       thumbnailPath: entity.thumbnailPath,
       createdAt: entity.createdAt,
       pageCount: entity.pageCount,
+      name: entity.name,
     );
   }
 
@@ -32,6 +35,7 @@ class ScannedDocumentModel {
       thumbnailPath: thumbnailPath,
       createdAt: createdAt,
       pageCount: pageCount,
+      name: name,
     );
   }
 
@@ -42,6 +46,7 @@ class ScannedDocumentModel {
       'thumbnailPath': thumbnailPath,
       'createdAt': createdAt.toIso8601String(),
       'pageCount': pageCount,
+      'name': name,
     };
   }
 
@@ -52,6 +57,7 @@ class ScannedDocumentModel {
       thumbnailPath: json['thumbnailPath'],
       createdAt: DateTime.parse(json['createdAt']),
       pageCount: json['pageCount'] ?? 1,
+      name: json['name'] ?? '',
     );
   }
 }

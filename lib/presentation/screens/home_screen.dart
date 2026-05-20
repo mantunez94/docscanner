@@ -58,6 +58,7 @@ class HomeScreen extends ConsumerWidget {
                     document: doc,
                     onDelete: () => _deleteDocument(ref, doc),
                     onShare: () => _shareDocument(doc),
+                    onRename: () => _renameDocument(context, ref, doc),
                   );
                 },
               ),
@@ -99,6 +100,44 @@ class HomeScreen extends ConsumerWidget {
 
   void _shareDocument(ScannedDocument doc) {
     Share.shareXFiles([XFile(doc.filePath)]);
+  }
+
+  void _renameDocument(BuildContext context, WidgetRef ref, ScannedDocument doc) {
+    final controller = TextEditingController(text: doc.name);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rename document'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Document name',
+            border: OutlineInputBorder(),
+          ),
+          onSubmitted: (value) {
+            final trimmed = value.trim();
+            if (trimmed.isNotEmpty) {
+              ref.read(documentListProvider.notifier).rename(doc.id, trimmed);
+            }
+            Navigator.pop(ctx);
+          },
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              final trimmed = controller.text.trim();
+              if (trimmed.isNotEmpty) {
+                ref.read(documentListProvider.notifier).rename(doc.id, trimmed);
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Rename'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _deleteDocument(WidgetRef ref, ScannedDocument doc) {

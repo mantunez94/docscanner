@@ -8,6 +8,7 @@ import '../../domain/repositories/document_repository.dart';
 import '../../domain/usecases/delete_document.dart';
 import '../../domain/usecases/export_to_pdf.dart';
 import '../../domain/usecases/get_all_documents.dart';
+import '../../domain/usecases/rename_document.dart';
 import '../../domain/usecases/scan_document.dart';
 
 final _repositoryProvider = Provider<DocumentRepository>((ref) {
@@ -24,6 +25,10 @@ final _getAllDocumentsProvider = Provider<GetAllDocuments>((ref) {
 
 final _deleteDocumentProvider = Provider<DeleteDocument>((ref) {
   return DeleteDocument(ref.watch(_repositoryProvider));
+});
+
+final _renameDocumentProvider = Provider<RenameDocument>((ref) {
+  return RenameDocument(ref.watch(_repositoryProvider));
 });
 
 final _exportToPdfProvider = Provider<ExportToPdf>((ref) {
@@ -54,6 +59,12 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
   Future<void> delete(String id) async {
     final delete = ref.watch(_deleteDocumentProvider);
     await delete(id);
+    ref.invalidateSelf();
+  }
+
+  Future<void> rename(String id, String newName) async {
+    final rename = ref.watch(_renameDocumentProvider);
+    await rename(id, newName);
     ref.invalidateSelf();
   }
 

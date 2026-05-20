@@ -25,4 +25,10 @@ class DocumentRepositoryImpl implements DocumentRepository {
   Future<void> delete(String id) async {
     await dataSource.delete(id);
   }
+
+  @override
+  Future<ScannedDocument> rename(String id, String newName) async {
+    final model = await dataSource.rename(id, newName);
+    return model.toEntity();
+  }
 }

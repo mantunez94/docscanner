@@ -1,18 +1,19 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../domain/entities/scanned_document.dart';
 
 class DocumentCard extends StatelessWidget {
   final ScannedDocument document;
   final VoidCallback onDelete;
   final VoidCallback onShare;
+  final VoidCallback onRename;
 
   const DocumentCard({
     super.key,
     required this.document,
     required this.onDelete,
     required this.onShare,
+    required this.onRename,
   });
 
   @override
@@ -39,10 +40,24 @@ class DocumentCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  DateFormat('MMM d, yyyy').format(document.createdAt),
-                  style: Theme.of(context).textTheme.bodySmall,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        document.name,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: onRename,
+                      child: const Icon(Icons.edit, size: 14, color: Colors.grey),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 2),
                 Row(
                   children: [
                     Text(

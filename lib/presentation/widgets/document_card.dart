@@ -6,11 +6,13 @@ import '../../domain/entities/scanned_document.dart';
 class DocumentCard extends StatelessWidget {
   final ScannedDocument document;
   final VoidCallback onDelete;
+  final VoidCallback onShare;
 
   const DocumentCard({
     super.key,
     required this.document,
     required this.onDelete,
+    required this.onShare,
   });
 
   @override
@@ -41,11 +43,20 @@ class DocumentCard extends StatelessWidget {
                   DateFormat('MMM d, yyyy').format(document.createdAt),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
-                Text(
-                  '${document.pageCount} page${document.pageCount > 1 ? 's' : ''}',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Colors.grey,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      '${document.pageCount} page${document.pageCount > 1 ? 's' : ''}',
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const Spacer(),
+                    InkWell(
+                      onTap: onShare,
+                      child: const Icon(Icons.share, size: 16, color: Colors.grey),
+                    ),
+                  ],
                 ),
               ],
             ),

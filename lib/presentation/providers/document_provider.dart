@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/datasources/local_datasource.dart';
@@ -5,6 +6,7 @@ import '../../data/repositories/document_repository_impl.dart';
 import '../../domain/entities/scanned_document.dart';
 import '../../domain/repositories/document_repository.dart';
 import '../../domain/usecases/delete_document.dart';
+import '../../domain/usecases/export_to_pdf.dart';
 import '../../domain/usecases/get_all_documents.dart';
 import '../../domain/usecases/scan_document.dart';
 
@@ -22,6 +24,10 @@ final _getAllDocumentsProvider = Provider<GetAllDocuments>((ref) {
 
 final _deleteDocumentProvider = Provider<DeleteDocument>((ref) {
   return DeleteDocument(ref.watch(_repositoryProvider));
+});
+
+final _exportToPdfProvider = Provider<ExportToPdf>((ref) {
+  return ExportToPdf();
 });
 
 final documentListProvider =
@@ -49,5 +55,12 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
     final delete = ref.watch(_deleteDocumentProvider);
     await delete(id);
     ref.invalidateSelf();
+  }
+
+  Future<File> exportToPdf() async {
+    final docs = state.valueOrNull ?? [];
+    if (docs.isEmpty) throw Exception('No documents to export');
+    final export = ref.watch(_exportToPdfProvider);
+    return export(docs);
   }
 }

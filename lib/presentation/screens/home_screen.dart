@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart' show Share, XFile;
 import '../../domain/entities/scanned_document.dart';
 import '../providers/document_provider.dart';
 import '../widgets/document_card.dart';
@@ -17,6 +18,14 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('DocScanner'),
         centerTitle: true,
+        actions: [
+          if (documents.valueOrNull != null && documents.valueOrNull!.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf),
+              onPressed: () => _exportPdf(context, ref),
+              tooltip: 'Export PDF',
+            ),
+        ],
       ),
       body: documents.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -48,6 +57,7 @@ class HomeScreen extends ConsumerWidget {
                   return DocumentCard(
                     document: doc,
                     onDelete: () => _deleteDocument(ref, doc),
+                    onShare: () => _shareDocument(doc),
                   );
                 },
               ),
@@ -67,6 +77,28 @@ class HomeScreen extends ConsumerWidget {
     if (result != null && context.mounted) {
       ref.read(documentListProvider.notifier).scanFromBytes(result);
     }
+  }
+
+  Future<void> _exportPdf(BuildContext context, WidgetRef ref) async {
+    try {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(const SnackBar(content: Text('Generating PDF...')));
+      final pdfFile = await ref.read(documentListProvider.notifier).exportToPdf();
+      if (context.mounted) {
+        messenger.hideCurrentSnackBar();
+        await Share.shareXFiles([XFile(pdfFile.path)]);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  void _shareDocument(ScannedDocument doc) {
+    Share.shareXFiles([XFile(doc.filePath)]);
   }
 
   void _deleteDocument(WidgetRef ref, ScannedDocument doc) {

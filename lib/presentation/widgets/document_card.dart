@@ -7,6 +7,7 @@ class DocumentCard extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onShare;
   final VoidCallback onRename;
+  final VoidCallback onAddPage;
 
   const DocumentCard({
     super.key,
@@ -14,6 +15,7 @@ class DocumentCard extends StatelessWidget {
     required this.onDelete,
     required this.onShare,
     required this.onRename,
+    required this.onAddPage,
   });
 
   @override
@@ -67,6 +69,11 @@ class DocumentCard extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
+                    InkWell(
+                      onTap: onAddPage,
+                      child: const Icon(Icons.add_circle_outline, size: 16, color: Colors.grey),
+                    ),
+                    const SizedBox(width: 8),
                     InkWell(
                       onTap: onShare,
                       child: const Icon(Icons.share, size: 16, color: Colors.grey),

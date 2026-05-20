@@ -31,4 +31,10 @@ class DocumentRepositoryImpl implements DocumentRepository {
     final model = await dataSource.rename(id, newName);
     return model.toEntity();
   }
+
+  @override
+  Future<ScannedDocument> addPages(String id, List<String> pagePaths) async {
+    final model = await dataSource.addPages(id, pagePaths);
+    return model.toEntity();
+  }
 }

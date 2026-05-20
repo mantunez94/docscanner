@@ -5,6 +5,7 @@ import '../../data/datasources/local_datasource.dart';
 import '../../data/repositories/document_repository_impl.dart';
 import '../../domain/entities/scanned_document.dart';
 import '../../domain/repositories/document_repository.dart';
+import '../../domain/usecases/add_pages_to_document.dart';
 import '../../domain/usecases/delete_document.dart';
 import '../../domain/usecases/export_to_pdf.dart';
 import '../../domain/usecases/get_all_documents.dart';
@@ -35,6 +36,10 @@ final _exportToPdfProvider = Provider<ExportToPdf>((ref) {
   return ExportToPdf();
 });
 
+final _addPagesToDocumentProvider = Provider<AddPagesToDocument>((ref) {
+  return AddPagesToDocument(ref.watch(_repositoryProvider));
+});
+
 final documentListProvider =
     AsyncNotifierProvider<DocumentListNotifier, List<ScannedDocument>>(
   DocumentListNotifier.new,
@@ -54,6 +59,12 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
       await scan(bytes);
       return ref.read(_getAllDocumentsProvider).call();
     });
+  }
+
+  Future<void> addPageToDocument(String documentId, Uint8List bytes) async {
+    final addPages = ref.watch(_addPagesToDocumentProvider);
+    await addPages(documentId, bytes);
+    ref.invalidateSelf();
   }
 
   Future<void> delete(String id) async {

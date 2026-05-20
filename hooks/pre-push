@@ -1,17 +1,33 @@
 #!/bin/sh
+set -e
 
 echo "🔍 Verificando commits firmados..."
-git log origin/main..HEAD --format="%H %G?" 2>/dev/null | while read hash status; do
-  if [ "$status" != "G" ]; then
-    echo "❌ Commit $hash no está firmado o no está verificado"
-    exit 1
+remote="$1"
+url="$2"
+z40=0000000000000000000000000000000000000000
+
+while read local_ref local_sha remote_ref remote_sha; do
+  if [ "$local_sha" = "$z40" ]; then
+    continue
   fi
-done && echo "✅ Todos los commits firmados"
+  if [ "$remote_sha" = "$z40" ]; then
+    range="$local_sha"
+  else
+    range="$remote_sha..$local_sha"
+  fi
+
+  for sha in $(git log "$range" --format="%H"); do
+    status=$(git log -1 --format="%G?" "$sha")
+    if [ "$status" != "G" ]; then
+      echo "❌ Commit $sha no está firmado (status=$status)"
+      exit 1
+    fi
+  done
+done
+
+echo "✅ Todos los commits firmados"
 
 echo "🔍 Verificando lint..."
+cd "$(git rev-parse --show-toplevel)"
 flutter analyze --no-fatal-infos --no-fatal-warnings 2>/dev/null
-if [ $? -ne 0 ]; then
-  echo "❌ flutter analyze falló. Corrige los errores antes de push."
-  exit 1
-fi
 echo "✅ flutter analyze OK"

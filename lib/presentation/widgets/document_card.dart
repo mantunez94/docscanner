@@ -4,79 +4,71 @@ import '../../domain/entities/scanned_document.dart';
 
 class DocumentCard extends StatelessWidget {
   final ScannedDocument document;
-  final VoidCallback onDelete;
-  final VoidCallback onShare;
-  final VoidCallback onRename;
+  final VoidCallback onTap;
 
   const DocumentCard({
     super.key,
     required this.document,
-    required this.onDelete,
-    required this.onShare,
-    required this.onRename,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: InkWell(
-              onLongPress: onDelete,
+      elevation: 2,
+      shadowColor: theme.colorScheme.shadow,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
               child: Image.file(
                 File(document.thumbnailPath),
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Center(
-                  child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                errorBuilder: (_, __, ___) => Container(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  child: Center(
+                    child: Icon(Icons.broken_image, size: 40, color: Colors.grey.shade400),
+                  ),
                 ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        document.name,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    document.name,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.description, size: 12, color: Colors.grey.shade400),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${document.pageCount} page${document.pageCount > 1 ? 's' : ''}',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: Colors.grey.shade500,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    InkWell(
-                      onTap: onRename,
-                      child: const Icon(Icons.edit, size: 14, color: Colors.grey),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Text(
-                      '${document.pageCount} page${document.pageCount > 1 ? 's' : ''}',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const Spacer(),
-                    InkWell(
-                      onTap: onShare,
-                      child: const Icon(Icons.share, size: 16, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

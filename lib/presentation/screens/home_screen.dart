@@ -59,25 +59,33 @@ class HomeScreen extends ConsumerWidget {
                     onDelete: () => _deleteDocument(ref, doc),
                     onShare: () => _shareDocument(doc),
                     onRename: () => _renameDocument(context, ref, doc),
+                    onAddPage: () => _addPage(context, ref, doc),
                   );
                 },
               ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _openScanner(context, ref),
+        onPressed: () => _openScanner(context, ref, null),
         child: const Icon(Icons.camera_alt),
       ),
     );
   }
 
-  Future<void> _openScanner(BuildContext context, WidgetRef ref) async {
+  Future<void> _openScanner(BuildContext context, WidgetRef ref, String? documentId) async {
     final result = await Navigator.push<Uint8List>(
       context,
       MaterialPageRoute(builder: (_) => const ScannerScreen()),
     );
-    if (result != null && context.mounted) {
+    if (result == null || !context.mounted) return;
+    if (documentId != null) {
+      ref.read(documentListProvider.notifier).addPageToDocument(documentId, result);
+    } else {
       ref.read(documentListProvider.notifier).scanFromBytes(result);
     }
+  }
+
+  Future<void> _addPage(BuildContext context, WidgetRef ref, ScannedDocument doc) async {
+    await _openScanner(context, ref, doc.id);
   }
 
   Future<void> _exportPdf(BuildContext context, WidgetRef ref) async {

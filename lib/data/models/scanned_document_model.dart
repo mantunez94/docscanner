@@ -3,17 +3,19 @@ import '../../domain/entities/scanned_document.dart';
 class ScannedDocumentModel {
   final String id;
   final String filePath;
+  final List<String> pages;
   final String thumbnailPath;
   final DateTime createdAt;
-  final int pageCount;
   final String name;
+
+  int get pageCount => pages.length;
 
   ScannedDocumentModel({
     required this.id,
     required this.filePath,
+    required this.pages,
     required this.thumbnailPath,
     required this.createdAt,
-    this.pageCount = 1,
     required this.name,
   });
 
@@ -21,9 +23,9 @@ class ScannedDocumentModel {
     return ScannedDocumentModel(
       id: entity.id,
       filePath: entity.filePath,
+      pages: entity.pages,
       thumbnailPath: entity.thumbnailPath,
       createdAt: entity.createdAt,
-      pageCount: entity.pageCount,
       name: entity.name,
     );
   }
@@ -31,10 +33,9 @@ class ScannedDocumentModel {
   ScannedDocument toEntity() {
     return ScannedDocument(
       id: id,
-      filePath: filePath,
+      pages: pages,
       thumbnailPath: thumbnailPath,
       createdAt: createdAt,
-      pageCount: pageCount,
       name: name,
     );
   }
@@ -43,6 +44,7 @@ class ScannedDocumentModel {
     return {
       'id': id,
       'filePath': filePath,
+      'pages': pages,
       'thumbnailPath': thumbnailPath,
       'createdAt': createdAt.toIso8601String(),
       'pageCount': pageCount,
@@ -51,12 +53,13 @@ class ScannedDocumentModel {
   }
 
   factory ScannedDocumentModel.fromJson(Map<String, dynamic> json) {
+    final pages = (json['pages'] as List?)?.cast<String>() ?? [json['filePath'] as String];
     return ScannedDocumentModel(
       id: json['id'],
-      filePath: json['filePath'],
+      filePath: pages.first,
+      pages: pages,
       thumbnailPath: json['thumbnailPath'],
       createdAt: DateTime.parse(json['createdAt']),
-      pageCount: json['pageCount'] ?? 1,
       name: json['name'] ?? '',
     );
   }

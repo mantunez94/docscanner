@@ -31,13 +31,32 @@ class LocalDataSource {
   Future<ScannedDocumentModel> rename(String id, String newName) async {
     final index = _cache.indexWhere((d) => d.id == id);
     if (index == -1) throw Exception('Document not found');
+    final existing = _cache[index];
     final updated = ScannedDocumentModel(
-      id: _cache[index].id,
-      filePath: _cache[index].filePath,
-      thumbnailPath: _cache[index].thumbnailPath,
-      createdAt: _cache[index].createdAt,
-      pageCount: _cache[index].pageCount,
+      id: existing.id,
+      filePath: existing.filePath,
+      pages: existing.pages,
+      thumbnailPath: existing.thumbnailPath,
+      createdAt: existing.createdAt,
       name: newName,
+    );
+    _cache[index] = updated;
+    await _persist();
+    return updated;
+  }
+
+  Future<ScannedDocumentModel> addPages(String id, List<String> newPages) async {
+    final index = _cache.indexWhere((d) => d.id == id);
+    if (index == -1) throw Exception('Document not found');
+    final existing = _cache[index];
+    final allPages = [...existing.pages, ...newPages];
+    final updated = ScannedDocumentModel(
+      id: existing.id,
+      filePath: allPages.first,
+      pages: allPages,
+      thumbnailPath: existing.thumbnailPath,
+      createdAt: existing.createdAt,
+      name: existing.name,
     );
     _cache[index] = updated;
     await _persist();

@@ -13,15 +13,17 @@ class ExportToPdf {
     final pdf = pw.Document();
 
     for (final doc in documents) {
-      final imageBytes = await File(doc.filePath).readAsBytes();
-      final image = pw.MemoryImage(imageBytes);
+      for (final pagePath in doc.pages) {
+        final imageBytes = await File(pagePath).readAsBytes();
+        final image = pw.MemoryImage(imageBytes);
 
-      pdf.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          build: (_) => pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain)),
-        ),
-      );
+        pdf.addPage(
+          pw.Page(
+            pageFormat: PdfPageFormat.a4,
+            build: (_) => pw.Center(child: pw.Image(image, fit: pw.BoxFit.contain)),
+          ),
+        );
+      }
     }
 
     final outputPath = '${pdfDir.path}/documents_${DateTime.now().millisecondsSinceEpoch}.pdf';

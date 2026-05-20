@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'preview_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -70,7 +72,21 @@ class _ScannerScreenState extends State<ScannerScreen> {
       final file = await _controller!.takePicture();
       final dir = await getTemporaryDirectory();
       final copy = await File(file.path).copy('${dir.path}/temp_scan.jpg');
-      if (mounted) Navigator.pop(context, copy.path);
+      if (!mounted) return;
+
+      final result = await Navigator.push<Uint8List>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PreviewScreen(imagePath: copy.path),
+        ),
+      );
+
+      if (!mounted) return;
+      if (result is Uint8List) {
+        Navigator.pop(context, result);
+      } else {
+        _capture();
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

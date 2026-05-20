@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/datasources/local_datasource.dart';
 import '../../data/repositories/document_repository_impl.dart';
@@ -35,11 +36,11 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
     return getAll();
   }
 
-  Future<void> scan(String imagePath) async {
+  Future<void> scanFromBytes(Uint8List bytes) async {
     state = const AsyncLoading();
     final scan = ref.watch(_scanDocumentProvider);
     state = await AsyncValue.guard(() async {
-      await scan(imagePath);
+      await scan(bytes);
       return ref.read(_getAllDocumentsProvider).call();
     });
   }

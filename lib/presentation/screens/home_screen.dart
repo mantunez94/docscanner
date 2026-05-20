@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/scanned_document.dart';
@@ -59,12 +60,12 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Future<void> _openScanner(BuildContext context, WidgetRef ref) async {
-    final imagePath = await Navigator.push<String>(
+    final result = await Navigator.push<Uint8List>(
       context,
       MaterialPageRoute(builder: (_) => const ScannerScreen()),
     );
-    if (imagePath != null && context.mounted) {
-      ref.read(documentListProvider.notifier).scan(imagePath);
+    if (result != null && context.mounted) {
+      ref.read(documentListProvider.notifier).scanFromBytes(result);
     }
   }
 

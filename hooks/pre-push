@@ -1,0 +1,17 @@
+#!/bin/sh
+
+echo "🔍 Verificando commits firmados..."
+git log origin/main..HEAD --format="%H %G?" 2>/dev/null | while read hash status; do
+  if [ "$status" != "G" ]; then
+    echo "❌ Commit $hash no está firmado o no está verificado"
+    exit 1
+  fi
+done && echo "✅ Todos los commits firmados"
+
+echo "🔍 Verificando lint..."
+flutter analyze --no-fatal-infos --no-fatal-warnings 2>/dev/null
+if [ $? -ne 0 ]; then
+  echo "❌ flutter analyze falló. Corrige los errores antes de push."
+  exit 1
+fi
+echo "✅ flutter analyze OK"

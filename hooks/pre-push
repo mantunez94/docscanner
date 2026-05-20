@@ -2,8 +2,6 @@
 set -e
 
 echo "🔍 Checking signed commits..."
-remote="$1"
-url="$2"
 z40=0000000000000000000000000000000000000000
 
 while read local_ref local_sha remote_ref remote_sha; do
@@ -17,6 +15,9 @@ while read local_ref local_sha remote_ref remote_sha; do
   fi
 
   for sha in $(git log "$range" --format="%H"); do
+    if git merge-base --is-ancestor "$sha" refs/remotes/origin/main 2>/dev/null; then
+      continue
+    fi
     status=$(git log -1 --format="%G?" "$sha")
     if [ "$status" != "G" ]; then
       echo "❌ Commit $sha is not signed (status=$status)"
@@ -25,7 +26,7 @@ while read local_ref local_sha remote_ref remote_sha; do
   done
 done
 
-echo "✅ All commits signed"
+echo "✅ All new commits signed"
 
 echo "🔍 Running flutter analyze..."
 cd "$(git rev-parse --show-toplevel)"

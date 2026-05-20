@@ -1,16 +1,16 @@
-## Descripción
+## Description
 
-<!-- Explica qué hace este PR -->
+<!-- Explain what this PR does -->
 
-## Tipo de cambio
+## Change type
 
-- [ ] feat: nueva funcionalidad
-- [ ] fix: corrección de bug
-- [ ] chore: tarea técnica
-- [ ] docs: documentación
+- [ ] feat: new feature
+- [ ] fix: bug fix
+- [ ] chore: technical task
+- [ ] docs: documentation
 
 ## Checklist
 
-- [ ] Commits firmados con GPG
-- [ ] `flutter analyze` pasa sin errores
-- [ ] Probado en dispositivo físico
+- [ ] GPG-signed commits
+- [ ] `flutter analyze` passes with no errors
+- [ ] Tested on a physical device

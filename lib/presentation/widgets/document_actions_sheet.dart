@@ -5,6 +5,7 @@ Future<void> showDocumentActionsSheet(
   BuildContext context,
   ScannedDocument doc, {
   required VoidCallback onRename,
+  required VoidCallback onAddPage,
   required VoidCallback onShare,
   required VoidCallback onDelete,
 }) {
@@ -27,6 +28,11 @@ Future<void> showDocumentActionsSheet(
             icon: Icons.edit_outlined,
             label: 'Rename',
             onTap: () { Navigator.pop(ctx); onRename(); },
+          ),
+          _ActionTile(
+            icon: Icons.add_circle_outline,
+            label: 'Add page',
+            onTap: () { Navigator.pop(ctx); onAddPage(); },
           ),
           _ActionTile(
             icon: Icons.share_outlined,

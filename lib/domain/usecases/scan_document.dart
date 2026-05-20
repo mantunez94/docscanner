@@ -28,7 +28,7 @@ class ScanDocument {
 
     final doc = ScannedDocument(
       id: id,
-      filePath: outputPath,
+      pages: [outputPath],
       thumbnailPath: thumbPath,
       createdAt: DateTime.now(),
     );

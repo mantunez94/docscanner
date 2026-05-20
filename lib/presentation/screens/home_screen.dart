@@ -48,17 +48,17 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
         data: (docs) => docs.isEmpty
-            ? _EmptyState(onScan: () => _openScanner(context, ref))
+            ? _EmptyState(onScan: () => _openScanner(context, ref, null))
             : _DocumentGrid(docs: docs),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _openScanner(context, ref),
+        onPressed: () => _openScanner(context, ref, null),
         child: const Icon(Icons.camera_alt),
       ),
     );
   }
 
-  Future<void> _openScanner(BuildContext context, WidgetRef ref) async {
+  Future<void> _openScanner(BuildContext context, WidgetRef ref, String? documentId) async {
     final result = await Navigator.push<Uint8List>(
       context,
       PageRouteBuilder(
@@ -73,7 +73,10 @@ class HomeScreen extends ConsumerWidget {
             ),
       ),
     );
-    if (result != null && context.mounted) {
+    if (result == null || !context.mounted) return;
+    if (documentId != null) {
+      ref.read(documentListProvider.notifier).addPageToDocument(documentId, result);
+    } else {
       ref.read(documentListProvider.notifier).scanFromBytes(result);
     }
   }
@@ -128,9 +131,33 @@ class _DocumentGrid extends ConsumerWidget {
       context,
       doc,
       onRename: () => _rename(context, ref, doc),
+      onAddPage: () => _openScanner(context, ref, doc.id),
       onShare: () => _share(doc),
       onDelete: () => _delete(context, ref, doc),
     );
+  }
+
+  Future<void> _openScanner(BuildContext context, WidgetRef ref, String? documentId) async {
+    final result = await Navigator.push<Uint8List>(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const ScannerScreen(),
+        transitionsBuilder: (_, animation, __, child) =>
+            SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 1),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut)),
+              child: child,
+            ),
+      ),
+    );
+    if (result == null || !context.mounted) return;
+    if (documentId != null) {
+      ref.read(documentListProvider.notifier).addPageToDocument(documentId, result);
+    } else {
+      ref.read(documentListProvider.notifier).scanFromBytes(result);
+    }
   }
 
   void _share(ScannedDocument doc) {

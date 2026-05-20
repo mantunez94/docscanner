@@ -28,6 +28,22 @@ class LocalDataSource {
     await _persist();
   }
 
+  Future<ScannedDocumentModel> rename(String id, String newName) async {
+    final index = _cache.indexWhere((d) => d.id == id);
+    if (index == -1) throw Exception('Document not found');
+    final updated = ScannedDocumentModel(
+      id: _cache[index].id,
+      filePath: _cache[index].filePath,
+      thumbnailPath: _cache[index].thumbnailPath,
+      createdAt: _cache[index].createdAt,
+      pageCount: _cache[index].pageCount,
+      name: newName,
+    );
+    _cache[index] = updated;
+    await _persist();
+    return updated;
+  }
+
   Future<void> delete(String id) async {
     _cache.removeWhere((d) => d.id == id);
     await _persist();

@@ -77,7 +77,15 @@ class HomeScreen extends ConsumerWidget {
     if (documentId != null) {
       ref.read(documentListProvider.notifier).addPageToDocument(documentId, result);
     } else {
-      ref.read(documentListProvider.notifier).scanFromBytes(result);
+      await ref.read(documentListProvider.notifier).scanFromBytes(result);
+    }
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(documentId != null ? 'Page added' : 'Document saved'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -154,9 +162,17 @@ class _DocumentGrid extends ConsumerWidget {
     );
     if (result == null || !context.mounted) return;
     if (documentId != null) {
-      ref.read(documentListProvider.notifier).addPageToDocument(documentId, result);
+      await ref.read(documentListProvider.notifier).addPageToDocument(documentId, result);
     } else {
-      ref.read(documentListProvider.notifier).scanFromBytes(result);
+      await ref.read(documentListProvider.notifier).scanFromBytes(result);
+    }
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(documentId != null ? 'Page added' : 'Document saved'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
 

@@ -32,8 +32,15 @@ Examples:
 - Every commit must be GPG-signed (`git commit -S`)
 - The pre-push hook verifies this automatically
 
+## Tests
+- Every new feature must include unit tests
+- Run `flutter test` before pushing — all tests must pass
+- Tests live in `test/` mirroring `lib/` structure
+- Use `mocktail` for mocking dependencies
+
 ## Before a PR
 1. `git pull --rebase origin main`
 2. Resolve any conflicts
 3. `flutter analyze` with no errors
-4. Push branch and create PR
+4. `flutter test` — all tests passing
+5. Push branch and create PR

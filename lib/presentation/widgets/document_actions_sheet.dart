@@ -67,7 +67,8 @@ class _ActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isDestructive ? Colors.red : null;
+    final theme = Theme.of(context);
+    final color = isDestructive ? theme.colorScheme.error : null;
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(label, style: color != null ? TextStyle(color: color) : null),

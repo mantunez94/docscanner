@@ -33,7 +33,7 @@ class DocumentCard extends StatelessWidget {
                 errorBuilder: (_, __, ___) => Container(
                   color: theme.colorScheme.surfaceContainerHighest,
                   child: Center(
-                    child: Icon(Icons.broken_image, size: 40, color: Colors.grey.shade400),
+                    child: Icon(Icons.broken_image, size: 40, color: theme.colorScheme.onSurface.withAlpha(100)),
                   ),
                 ),
               ),
@@ -54,12 +54,12 @@ class DocumentCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.description, size: 12, color: Colors.grey.shade400),
+                      Icon(Icons.description, size: 12, color: theme.colorScheme.onSurface.withAlpha(120)),
                       const SizedBox(width: 4),
                       Text(
                         '${document.pageCount} page${document.pageCount > 1 ? 's' : ''}',
                         style: theme.textTheme.labelSmall?.copyWith(
-                          color: Colors.grey.shade500,
+                          color: theme.colorScheme.onSurface.withAlpha(150),
                         ),
                       ),
                     ],

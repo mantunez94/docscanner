@@ -21,6 +21,12 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   bool _ocrLoading = false;
   bool _saving = false;
   List<cv.Point>? _corners;
+  int _imgW = 0;
+  int _imgH = 0;
+  Rect _imageRect = Rect.zero;
+  int _draggingIndex = -1;
+  Offset _dragLocalPos = Offset.zero;
+  final _stackKey = GlobalKey();
 
   @override
   void initState() {
@@ -31,15 +37,25 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   Future<void> _loadImage() async {
     final bytes = await File(widget.imagePath).readAsBytes();
     if (!mounted) return;
-    _corners = _detectDocument(bytes);
+    final src = cv.imdecode(bytes, cv.IMREAD_COLOR);
+    _imgW = src.cols;
+    _imgH = src.rows;
+    _corners = _detectDocumentFromMat(src);
+    if (_corners == null && _imgW > 0 && _imgH > 0) {
+      final m = 0.1;
+      _corners = [
+        cv.Point((_imgW * m).round(), (_imgH * m).round()),
+        cv.Point((_imgW * (1 - m)).round(), (_imgH * m).round()),
+        cv.Point((_imgW * (1 - m)).round(), (_imgH * (1 - m)).round()),
+        cv.Point((_imgW * m).round(), (_imgH * (1 - m)).round()),
+      ];
+    }
     setState(() => _displayBytes = bytes);
   }
 
-  List<cv.Point>? _detectDocument(Uint8List imageBytes) {
+  List<cv.Point>? _detectDocumentFromMat(cv.Mat src) {
     try {
-      final src = cv.imdecode(imageBytes, cv.IMREAD_COLOR);
       if (src.rows == 0 || src.cols == 0) return null;
-
       final scale = 320.0 / src.cols;
       final dstW = 320;
       final dstH = (src.rows * scale).round();
@@ -103,6 +119,20 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     return null;
   }
 
+  cv.Mat _enhanceScan(cv.Mat bgr) {
+    final gray = cv.cvtColor(bgr, cv.COLOR_BGR2GRAY);
+    final denoised = cv.bilateralFilter(gray, 9, 50, 50);
+    final clahe = cv.createCLAHE(clipLimit: 3.0, tileGridSize: (8, 8));
+    final equalized = clahe.apply(denoised);
+    final kernel = cv.Mat.fromList(3, 3, cv.MatType.CV_32FC1, [
+      0.0, -1.0, 0.0,
+      -1.0, 5.0, -1.0,
+      0.0, -1.0, 0.0,
+    ]);
+    final sharpened = cv.filter2D(equalized, -1, kernel);
+    return cv.cvtColor(sharpened, cv.COLOR_GRAY2BGR);
+  }
+
   List<cv.Point> _orderCorners(List<cv.Point> pts) {
     final cx = pts.map((p) => p.x).reduce((a, b) => a + b) / pts.length;
     final cy = pts.map((p) => p.y).reduce((a, b) => a + b) / pts.length;
@@ -119,6 +149,51 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     return pts;
   }
 
+  Offset _imageToScreen(cv.Point p) {
+    if (_imageRect.isEmpty || _imgW == 0 || _imgH == 0) return Offset.zero;
+    final scaleX = _imageRect.width / _imgW;
+    final scaleY = _imageRect.height / _imgH;
+    return Offset(
+      _imageRect.left + p.x * scaleX,
+      _imageRect.top + p.y * scaleY,
+    );
+  }
+
+  void _onHandleDragStart(int index, DragStartDetails details) {
+    setState(() => _draggingIndex = index);
+    _updateDragPos(details.globalPosition);
+  }
+
+  void _onHandleDragUpdate(int index, DragUpdateDetails details) {
+    _onHandleDrag(index, details.delta);
+    _updateDragPos(details.globalPosition);
+  }
+
+  void _onHandleDragEnd(_) {
+    setState(() => _draggingIndex = -1);
+  }
+
+  void _updateDragPos(Offset globalPos) {
+    final box = _stackKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box != null) {
+      _dragLocalPos = box.globalToLocal(globalPos);
+    }
+  }
+
+  void _onHandleDrag(int index, Offset delta) {
+    if (_corners == null || _imageRect.isEmpty || _imgW == 0 || _imgH == 0) return;
+    final scaleX = _imageRect.width / _imgW;
+    final scaleY = _imageRect.height / _imgH;
+    final dx = (delta.dx / scaleX).round();
+    final dy = (delta.dy / scaleY).round();
+    final updated = List<cv.Point>.from(_corners!);
+    updated[index] = cv.Point(
+      (updated[index].x + dx).clamp(0, _imgW - 1),
+      (updated[index].y + dy).clamp(0, _imgH - 1),
+    );
+    setState(() => _corners = updated);
+  }
+
   Future<void> _runOcr() async {
     setState(() => _ocrLoading = true);
     try {
@@ -131,7 +206,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       if (!mounted) return;
       setState(() => _ocrLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('OCR failed: $e')),
+        SnackBar(content: Text('Text extraction failed: $e')),
       );
     }
   }
@@ -221,14 +296,80 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Adjust & Confirm')),
-      body: ClipRect(
-        child: Stack(
-          children: [
-            Center(
-              child: Image.memory(_displayBytes!, fit: BoxFit.contain),
-            ),
-          ],
-        ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (_imgW > 0 && _imgH > 0) {
+            final scale = math.min(
+              constraints.maxWidth / _imgW,
+              constraints.maxHeight / _imgH,
+            );
+            final rW = _imgW * scale;
+            final rH = _imgH * scale;
+            _imageRect = Rect.fromLTWH(
+              (constraints.maxWidth - rW) / 2,
+              (constraints.maxHeight - rH) / 2,
+              rW,
+              rH,
+            );
+          }
+
+          return Stack(
+            key: _stackKey,
+            children: [
+              Center(
+                child: Image.memory(_displayBytes!, fit: BoxFit.contain),
+              ),
+              if (_imageRect != Rect.zero)
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _CropOverlayPainter(
+                      corners: _corners?.map(_imageToScreen).toList(),
+                      imageRect: _imageRect,
+                    ),
+                  ),
+                ),
+              if (_corners != null && _imageRect != Rect.zero)
+                for (var i = 0; i < _corners!.length; i++)
+                  Positioned(
+                    left: _imageToScreen(_corners![i]).dx - 14,
+                    top: _imageToScreen(_corners![i]).dy - 14,
+                    child: GestureDetector(
+                      onPanStart: (d) => _onHandleDragStart(i, d),
+                      onPanUpdate: (d) => _onHandleDragUpdate(i, d),
+                      onPanEnd: _onHandleDragEnd,
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: Colors.cyan,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2.5),
+                        ),
+                        child: const Icon(Icons.drag_handle,
+                            color: Colors.white, size: 14),
+                      ),
+                    ),
+                  ),
+              if (_draggingIndex >= 0)
+                Positioned(
+                  left: _dragLocalPos.dx - 50,
+                  top: _dragLocalPos.dy - 110,
+                  child: IgnorePointer(
+                    child: RawMagnifier(
+                      size: const Size(100, 100),
+                      magnificationScale: 2.5,
+                      decoration: MagnifierDecoration(
+                        shape: const CircleBorder(),
+                        shadows: const [
+                          BoxShadow(blurRadius: 10, color: Colors.black26),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
       bottomNavigationBar: Container(
         color: Colors.black87,
@@ -248,7 +389,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                       )
                     : const Icon(Icons.text_snippet, size: 18),
                 label: Text(
-                  _ocrLoading ? 'OCR...' : 'OCR',
+                  _ocrLoading ? 'Extracting...' : 'Extract Text',
                   style: const TextStyle(fontSize: 14),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -319,10 +460,11 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
 
           final M = cv.getPerspectiveTransform2f(srcPts, dstPts);
           final warped = cv.warpPerspective(src, M, (dstW, dstH));
+          final enhanced = _enhanceScan(warped);
 
           final (success, encoded) = cv.imencode(
             '.jpg',
-            warped,
+            enhanced,
             params: cv.VecI32.fromList([cv.IMWRITE_JPEG_QUALITY, 92]),
           );
           if (!success) throw Exception('Failed to encode');
@@ -344,4 +486,49 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       if (bytes != null) Navigator.pop(context, bytes);
     }
   }
+}
+
+class _CropOverlayPainter extends CustomPainter {
+  final List<Offset>? corners;
+  final Rect imageRect;
+
+  _CropOverlayPainter({required this.corners, required this.imageRect});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (corners == null || corners!.length < 4) {
+      final paint = Paint()
+        ..color = Colors.cyan.withAlpha(80)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+      final rect = Rect.fromCenter(
+        center: imageRect.center,
+        width: imageRect.width * 0.8,
+        height: imageRect.height * 0.8,
+      );
+      canvas.drawRect(rect, paint);
+      return;
+    }
+
+    final overlayPaint = Paint()
+      ..color = Colors.black.withAlpha(100);
+    final path = Path()..addRect(Offset.zero & size);
+    final cropPath = Path()
+      ..moveTo(corners![0].dx, corners![0].dy)
+      ..lineTo(corners![1].dx, corners![1].dy)
+      ..lineTo(corners![2].dx, corners![2].dy)
+      ..lineTo(corners![3].dx, corners![3].dy)
+      ..close();
+    path.addPath(cropPath, Offset.zero);
+    canvas.drawPath(path, overlayPaint);
+
+    final linePaint = Paint()
+      ..color = Colors.cyan
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawPath(cropPath, linePaint);
+  }
+
+  @override
+  bool shouldRepaint(_CropOverlayPainter old) => true;
 }

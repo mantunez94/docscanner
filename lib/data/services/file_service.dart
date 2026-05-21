@@ -39,16 +39,25 @@ class FileService {
     return path;
   }
 
+  PdfPageFormat _pageFormatForBytes(Uint8List imageBytes) {
+    final decoded = img.decodeImage(imageBytes);
+    if (decoded == null) return PdfPageFormat.a4;
+    final aspect = decoded.width / decoded.height;
+    final baseWidth = PdfPageFormat.a4.width;
+    return PdfPageFormat(baseWidth, baseWidth / aspect);
+  }
+
   Future<String> generatePdf(String documentId, List<String> pagePaths) async {
     final dir = await _documentsDir;
     final path = '$dir/$documentId.pdf';
     final pdf = pw.Document();
     for (final pagePath in pagePaths) {
       final imageBytes = await File(pagePath).readAsBytes();
+      final pageFormat = _pageFormatForBytes(imageBytes);
       pdf.addPage(
         pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          build: (_) => pw.Center(child: pw.Image(pw.MemoryImage(imageBytes), fit: pw.BoxFit.contain)),
+          pageFormat: pageFormat,
+          build: (_) => pw.Image(pw.MemoryImage(imageBytes), fit: pw.BoxFit.fill),
         ),
       );
     }
@@ -63,10 +72,11 @@ class FileService {
     final pdf = pw.Document();
     for (final pagePath in allPagePaths) {
       final imageBytes = await File(pagePath).readAsBytes();
+      final pageFormat = _pageFormatForBytes(imageBytes);
       pdf.addPage(
         pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          build: (_) => pw.Center(child: pw.Image(pw.MemoryImage(imageBytes), fit: pw.BoxFit.contain)),
+          pageFormat: pageFormat,
+          build: (_) => pw.Image(pw.MemoryImage(imageBytes), fit: pw.BoxFit.fill),
         ),
       );
     }

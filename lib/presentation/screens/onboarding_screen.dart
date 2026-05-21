@@ -28,7 +28,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _OnboardingPage(
       icon: Icons.text_snippet_outlined,
       title: 'Extract Text',
-      description: 'Use OCR to extract text from scanned documents. Copy it with one tap.',
+      description: 'Extract text from any scanned document. Just tap and copy the result.',
     ),
     _OnboardingPage(
       icon: Icons.picture_as_pdf_outlined,

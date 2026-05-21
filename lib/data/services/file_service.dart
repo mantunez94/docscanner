@@ -17,9 +17,7 @@ class FileService {
   Future<String> savePageImage(String id, Uint8List bytes) async {
     final dir = await _documentsDir;
     final path = '$dir/$id.jpg';
-    final original = img.decodeImage(bytes);
-    if (original == null) throw Exception('Failed to decode image');
-    await File(path).writeAsBytes(img.encodeJpg(original, quality: 85));
+    await File(path).writeAsBytes(bytes);
     return path;
   }
 
@@ -27,9 +25,7 @@ class FileService {
     final dir = await _documentsDir;
     final pageId = DateTime.now().millisecondsSinceEpoch.toString();
     final path = '$dir/${documentId}_$pageId.jpg';
-    final original = img.decodeImage(bytes);
-    if (original == null) throw Exception('Failed to decode image');
-    await File(path).writeAsBytes(img.encodeJpg(original, quality: 85));
+    await File(path).writeAsBytes(bytes);
     return path;
   }
 
@@ -37,7 +33,7 @@ class FileService {
     final dir = await _documentsDir;
     final path = '$dir/${id}_thumb.jpg';
     final original = img.decodeImage(bytes);
-    if (original == null) throw Exception('Failed to decode image');
+    if (original == null) throw Exception('Failed to decode thumbnail');
     final thumb = img.copyResize(original, width: 200);
     await File(path).writeAsBytes(img.encodeJpg(thumb, quality: 65));
     return path;

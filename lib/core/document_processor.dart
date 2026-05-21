@@ -13,18 +13,21 @@ class DocumentProcessor {
     }
 
     final gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY);
-    final (_, binary) = cv.threshold(gray, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
-    final denoised = cv.medianBlur(binary, 3);
-    final result = _deskew(denoised);
-
-    final (success, encoded) = cv.imencode('.jpg', result);
+    final result = _deskew(gray);
+    final color = cv.cvtColor(result, cv.COLOR_GRAY2BGR);
+    final (success, encoded) = cv.imencode(
+      '.jpg',
+      color,
+      params: cv.VecI32.fromList([cv.IMWRITE_JPEG_QUALITY, 92]),
+    );
     if (!success) throw Exception('Failed to encode enhanced image');
     return encoded;
   }
 
-  static cv.Mat _deskew(cv.Mat binary) {
+  static cv.Mat _deskew(cv.Mat gray) {
+    final (_, binary) = cv.threshold(gray, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
     final nz = cv.findNonZero(binary);
-    if (nz.total < _minNonZeroPoints) return binary;
+    if (nz.total < _minNonZeroPoints) return gray;
 
     final points = cv.VecPoint.fromMat(nz);
     final rect = cv.minAreaRect(points);
@@ -35,15 +38,15 @@ class DocumentProcessor {
     }
 
     if (angle.abs() < _minSkewDegrees || angle.abs() > _maxDeskewAngle) {
-      return binary;
+      return gray;
     }
 
-    final center = cv.Point2f(binary.cols / 2.0, binary.rows / 2.0);
+    final center = cv.Point2f(gray.cols / 2.0, gray.rows / 2.0);
     final rotMat = cv.getRotationMatrix2D(center, angle, 1.0);
     return cv.warpAffine(
-      binary,
+      gray,
       rotMat,
-      (binary.cols, binary.rows),
+      (gray.cols, gray.rows),
       flags: cv.INTER_CUBIC,
       borderMode: cv.BORDER_REPLICATE,
     );

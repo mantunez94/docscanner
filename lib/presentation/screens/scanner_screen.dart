@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -30,8 +29,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   int _imageWidth = 0;
   int _imageHeight = 0;
 
-  final List<double> _areas = [];
-  int _stableCount = 0;
+  int _detectedCount = 0;
 
   @override
   void initState() {
@@ -79,54 +77,47 @@ class _ScannerScreenState extends State<ScannerScreen> {
   void _onImage(CameraImage image) {
     if (!_streamActive) return;
     _frameCount++;
-    if (_frameCount % 3 != 0) return;
+    if (_frameCount % 10 != 0) return;
 
-    _imageWidth = image.width;
-    _imageHeight = image.height;
+    try {
+      _imageWidth = image.width;
+      _imageHeight = image.height;
 
-    final yPlane = image.planes[0];
-    final corners = _boundaryDetector.detectBoundary(
-      yPlane.bytes,
-      image.width,
-      image.height,
-      stride: yPlane.bytesPerRow,
-    );
+      final yPlane = image.planes[0];
+      final corners = _boundaryDetector.detectBoundary(
+        yPlane.bytes,
+        image.width,
+        image.height,
+        stride: yPlane.bytesPerRow,
+      );
 
-    if (mounted) {
-      setState(() => _corners = corners);
-    }
+      if (mounted) {
+        setState(() => _corners = corners);
+      }
 
-    if (widget.autoCapture && !_autoCapturing) {
-      _checkAutoCapture(corners);
+      if (widget.autoCapture && !_autoCapturing) {
+        _checkAutoCapture(corners);
+      }
+    } catch (e) {
+      debugPrint('Error processing frame: $e');
     }
   }
 
   void _checkAutoCapture(List<cv.Point>? corners) {
     if (corners == null || corners.length < 4) {
-      _areas.clear();
-      _stableCount = 0;
+      _detectedCount = 0;
       return;
     }
 
     final area = _boundaryDetector.computeAreaFraction(corners, _imageWidth, _imageHeight);
-    _areas.add(area);
-    if (_areas.length > 15) _areas.removeAt(0);
-    if (_areas.length < 15) return;
+    if (area < 0.08) {
+      _detectedCount = 0;
+      return;
+    }
 
-    final mean = _areas.reduce((a, b) => a + b) / _areas.length;
-    if (mean <= 0) return;
-
-    final variance =
-        _areas.map((a) => (a - mean) * (a - mean)).reduce((a, b) => a + b) / _areas.length;
-    final cvVal = math.sqrt(variance) / mean;
-
-    if (cvVal < 0.05) {
-      _stableCount++;
-      if (_stableCount >= 5 && mean > 0.15) {
-        _triggerAutoCapture();
-      }
-    } else {
-      _stableCount = 0;
+    _detectedCount++;
+    if (_detectedCount >= 3) {
+      _triggerAutoCapture();
     }
   }
 
@@ -265,8 +256,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         if (!context.mounted) return;
         if (confirm == true) {
           _autoCapturing = false;
-          _areas.clear();
-          _stableCount = 0;
+          _detectedCount = 0;
           _corners = null;
         } else {
           Navigator.pop(context);

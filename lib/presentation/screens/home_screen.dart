@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart' show Share, XFile;
 import '../../domain/entities/scanned_document.dart';
 import '../providers/document_provider.dart';
+import '../providers/theme_provider.dart';
+import '../theme/themes.dart';
 import '../widgets/document_actions_sheet.dart';
 import '../widgets/document_card.dart';
 import '../widgets/shimmer_grid.dart';
@@ -15,12 +17,66 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final documents = ref.watch(documentListProvider);
+    final currentTheme = ref.watch(themeProvider);
+    final currentMode = ref.watch(themeModeProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('DocScanner'),
         centerTitle: true,
         actions: [
+          PopupMenuButton<AppTheme>(
+            icon: Icon(themeIcon(currentTheme)),
+            tooltip: 'Change theme',
+            onSelected: (t) => ref.read(themeProvider.notifier).setTheme(t),
+            itemBuilder: (_) => [
+              for (final t in AppTheme.values)
+                PopupMenuItem(
+                  value: t,
+                  child: Row(
+                    children: [
+                      Icon(themeIcon(t), size: 20,
+                        color: t == currentTheme ? Theme.of(context).colorScheme.primary : null),
+                      const SizedBox(width: 10),
+                      Text(themeLabel(t),
+                        style: TextStyle(
+                          fontWeight: t == currentTheme ? FontWeight.bold : FontWeight.normal,
+                        )),
+                      if (t == currentTheme) ...[
+                        const Spacer(),
+                        Icon(Icons.check, size: 16, color: Theme.of(context).colorScheme.primary),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          PopupMenuButton<ThemeMode>(
+            icon: Icon(
+              currentMode == ThemeMode.dark ? Icons.dark_mode_outlined
+                  : currentMode == ThemeMode.light ? Icons.light_mode_outlined
+                  : Icons.brightness_auto_outlined,
+            ),
+            tooltip: 'Theme mode',
+            onSelected: (m) => ref.read(themeModeProvider.notifier).setThemeMode(m),
+            itemBuilder: (_) => [
+              for (final m in ThemeMode.values)
+                PopupMenuItem(
+                  value: m,
+                  child: Row(
+                    children: [
+                      Icon(_themeModeIcon(m), size: 20),
+                      const SizedBox(width: 10),
+                      Text(_themeModeLabel(m)),
+                      if (m == currentMode) ...[
+                        const Spacer(),
+                        const Icon(Icons.check, size: 16),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+          ),
           if (documents.valueOrNull != null && documents.valueOrNull!.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.picture_as_pdf),
@@ -232,6 +288,22 @@ class _DocumentGrid extends ConsumerWidget {
       ),
     );
   }
+}
+
+IconData _themeModeIcon(ThemeMode mode) {
+  return switch (mode) {
+    ThemeMode.system => Icons.brightness_auto_outlined,
+    ThemeMode.light => Icons.light_mode_outlined,
+    ThemeMode.dark => Icons.dark_mode_outlined,
+  };
+}
+
+String _themeModeLabel(ThemeMode mode) {
+  return switch (mode) {
+    ThemeMode.system => 'Auto',
+    ThemeMode.light => 'Light',
+    ThemeMode.dark => 'Dark',
+  };
 }
 
 class _EmptyState extends StatelessWidget {

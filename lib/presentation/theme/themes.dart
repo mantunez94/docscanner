@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 enum AppTheme { arcade, kawaii, professional }
 
-const _pixel = 'PressStart2P';
-const _body = 'VT323';
+// ── Theme fonts ───────────────────────────────────────────────────
+const _arcadeTitle = 'PressStart2P';
+const _arcadeBody = 'VT323';
+const _kawaii = 'MPLUSRounded1c';
+const _prof = 'Inter';
 
 ThemeData buildTheme(AppTheme appTheme, Brightness brightness) {
   return switch (appTheme) {
@@ -71,7 +74,7 @@ ThemeData _buildArcadeTheme(Brightness brightness) {
       elevation: 0,
       scrolledUnderElevation: 1,
       titleTextStyle: TextStyle(
-        fontFamily: _pixel, fontSize: 14,
+        fontFamily: _arcadeTitle, fontSize: 14,
         color: isDark ? const Color(0xFF00E5FF) : const Color(0xFF1A237E),
         letterSpacing: 2,
       ),
@@ -94,7 +97,7 @@ ThemeData _buildArcadeTheme(Brightness brightness) {
           side: BorderSide(color: isDark ? const Color(0xFF00E5FF) : const Color(0xFF1A237E), width: 2),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        textStyle: const TextStyle(fontFamily: _body, fontSize: 18, letterSpacing: 1.5),
+        textStyle: const TextStyle(fontFamily: _arcadeBody, fontSize: 18, letterSpacing: 1.5),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -105,19 +108,19 @@ ThemeData _buildArcadeTheme(Brightness brightness) {
           borderRadius: BorderRadius.circular(8),
           side: BorderSide(color: isDark ? const Color(0xFF2A2A50) : const Color(0xFFE0D8D0), width: 1.5),
         ),
-        textStyle: const TextStyle(fontFamily: _body, fontSize: 18, letterSpacing: 1),
+        textStyle: const TextStyle(fontFamily: _arcadeBody, fontSize: 18, letterSpacing: 1),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: isDark ? const Color(0xFF00E5FF) : null,
-        textStyle: const TextStyle(fontFamily: _body, fontSize: 18, letterSpacing: 1),
+        textStyle: const TextStyle(fontFamily: _arcadeBody, fontSize: 18, letterSpacing: 1),
       ),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: isDark ? const Color(0xFF1E1E3A) : null,
-      contentTextStyle: const TextStyle(fontFamily: _body, fontSize: 16),
+      contentTextStyle: const TextStyle(fontFamily: _arcadeBody, fontSize: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(6),
         side: BorderSide(color: isDark ? const Color(0xFF00E5FF) : const Color(0xFFE0D8D0), width: 1),
@@ -147,7 +150,7 @@ ThemeData _buildArcadeTheme(Brightness brightness) {
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide(color: isDark ? const Color(0xFF00E5FF) : const Color(0xFF1A237E), width: 2),
       ),
-      labelStyle: TextStyle(fontFamily: _body, fontSize: 16, color: isDark ? Colors.white70 : null),
+      labelStyle: TextStyle(fontFamily: _arcadeBody, fontSize: 16, color: isDark ? Colors.white70 : null),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: isDark ? const Color(0xFFFF2D95) : null,
@@ -162,23 +165,23 @@ ThemeData _buildArcadeTheme(Brightness brightness) {
       thickness: 1,
     ),
     textTheme: TextTheme(
-      titleLarge: TextStyle(fontFamily: _pixel, fontSize: 16, letterSpacing: 2,
+      titleLarge: TextStyle(fontFamily: _arcadeTitle, fontSize: 16, letterSpacing: 2,
         color: isDark ? const Color(0xFF00E5FF) : const Color(0xFF1A237E)),
-      titleMedium: TextStyle(fontFamily: _body, fontSize: 22, letterSpacing: 1,
+      titleMedium: TextStyle(fontFamily: _arcadeBody, fontSize: 22, letterSpacing: 1,
         color: isDark ? Colors.white : null),
-      titleSmall: TextStyle(fontFamily: _body, fontSize: 18, letterSpacing: 1,
+      titleSmall: TextStyle(fontFamily: _arcadeBody, fontSize: 18, letterSpacing: 1,
         color: isDark ? Colors.white70 : null),
-      bodyLarge: TextStyle(fontFamily: _body, fontSize: 20,
+      bodyLarge: TextStyle(fontFamily: _arcadeBody, fontSize: 20,
         color: isDark ? Colors.white : null),
-      bodyMedium: TextStyle(fontFamily: _body, fontSize: 18,
+      bodyMedium: TextStyle(fontFamily: _arcadeBody, fontSize: 18,
         color: isDark ? Colors.white : null),
-      bodySmall: TextStyle(fontFamily: _body, fontSize: 16,
+      bodySmall: TextStyle(fontFamily: _arcadeBody, fontSize: 16,
         color: isDark ? const Color(0xFF8888AA) : const Color(0xFF888888)),
-      labelLarge: TextStyle(fontFamily: _pixel, fontSize: 12, letterSpacing: 1.5,
+      labelLarge: TextStyle(fontFamily: _arcadeTitle, fontSize: 12, letterSpacing: 1.5,
         color: isDark ? const Color(0xFF00E5FF) : const Color(0xFF1A237E)),
-      labelMedium: TextStyle(fontFamily: _body, fontSize: 18, fontWeight: FontWeight.w600,
+      labelMedium: TextStyle(fontFamily: _arcadeBody, fontSize: 18, fontWeight: FontWeight.w600,
         color: isDark ? Colors.white : null),
-      labelSmall: TextStyle(fontFamily: _body, fontSize: 16,
+      labelSmall: TextStyle(fontFamily: _arcadeBody, fontSize: 16,
         color: isDark ? const Color(0xFF8888AA) : null),
     ),
   );
@@ -230,7 +233,7 @@ ThemeData _buildKawaiiTheme(Brightness brightness) {
       elevation: 0,
       scrolledUnderElevation: 1,
       titleTextStyle: TextStyle(
-        fontFamily: _body, fontSize: 20,
+        fontFamily: _kawaii, fontSize: 20,
         color: isDark ? const Color(0xFFFF9EB5) : const Color(0xFFE91E8C),
         letterSpacing: 1,
       ),
@@ -255,7 +258,7 @@ ThemeData _buildKawaiiTheme(Brightness brightness) {
           borderRadius: BorderRadius.circular(20),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        textStyle: const TextStyle(fontFamily: _body, fontSize: 18),
+        textStyle: const TextStyle(fontFamily: _kawaii, fontSize: 18),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -263,18 +266,18 @@ ThemeData _buildKawaiiTheme(Brightness brightness) {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        textStyle: const TextStyle(fontFamily: _body, fontSize: 18),
+        textStyle: const TextStyle(fontFamily: _kawaii, fontSize: 18),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        textStyle: const TextStyle(fontFamily: _body, fontSize: 18),
+        textStyle: const TextStyle(fontFamily: _kawaii, fontSize: 18),
       ),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: isDark ? const Color(0xFF3E224A) : const Color(0xFFE91E8C),
-      contentTextStyle: const TextStyle(fontFamily: _body, fontSize: 16, color: Colors.white),
+      contentTextStyle: const TextStyle(fontFamily: _kawaii, fontSize: 16, color: Colors.white),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -305,7 +308,7 @@ ThemeData _buildKawaiiTheme(Brightness brightness) {
           width: 2,
         ),
       ),
-      labelStyle: TextStyle(fontFamily: _body, fontSize: 16, color: isDark ? Colors.white70 : null),
+      labelStyle: TextStyle(fontFamily: _kawaii, fontSize: 16, color: isDark ? Colors.white70 : null),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: isDark ? const Color(0xFFC9B1FF) : const Color(0xFFE91E8C),
@@ -320,23 +323,23 @@ ThemeData _buildKawaiiTheme(Brightness brightness) {
       thickness: 1,
     ),
     textTheme: TextTheme(
-      titleLarge: TextStyle(fontFamily: _body, fontSize: 20, letterSpacing: 1,
+      titleLarge: TextStyle(fontFamily: _kawaii, fontSize: 20, letterSpacing: 1,
         color: isDark ? const Color(0xFFFF9EB5) : const Color(0xFFE91E8C)),
-      titleMedium: TextStyle(fontFamily: _body, fontSize: 22,
+      titleMedium: TextStyle(fontFamily: _kawaii, fontSize: 22,
         color: isDark ? Colors.white : null),
-      titleSmall: TextStyle(fontFamily: _body, fontSize: 18,
+      titleSmall: TextStyle(fontFamily: _kawaii, fontSize: 18,
         color: isDark ? Colors.white70 : null),
-      bodyLarge: TextStyle(fontFamily: _body, fontSize: 20,
+      bodyLarge: TextStyle(fontFamily: _kawaii, fontSize: 20,
         color: isDark ? Colors.white : null),
-      bodyMedium: TextStyle(fontFamily: _body, fontSize: 18,
+      bodyMedium: TextStyle(fontFamily: _kawaii, fontSize: 18,
         color: isDark ? Colors.white : null),
-      bodySmall: TextStyle(fontFamily: _body, fontSize: 16,
+      bodySmall: TextStyle(fontFamily: _kawaii, fontSize: 16,
         color: isDark ? const Color(0xFFB39DDB) : const Color(0xFF888888)),
-      labelLarge: TextStyle(fontFamily: _pixel, fontSize: 11, letterSpacing: 1.5,
+      labelLarge: TextStyle(fontFamily: _kawaii, fontSize: 11, letterSpacing: 1.5,
         color: isDark ? const Color(0xFFFF9EB5) : const Color(0xFFE91E8C)),
-      labelMedium: TextStyle(fontFamily: _body, fontSize: 18, fontWeight: FontWeight.w600,
+      labelMedium: TextStyle(fontFamily: _kawaii, fontSize: 18, fontWeight: FontWeight.w600,
         color: isDark ? Colors.white : null),
-      labelSmall: TextStyle(fontFamily: _body, fontSize: 16,
+      labelSmall: TextStyle(fontFamily: _kawaii, fontSize: 16,
         color: isDark ? const Color(0xFFB39DDB) : null),
     ),
   );
@@ -388,7 +391,7 @@ ThemeData _buildProfessionalTheme(Brightness brightness) {
       elevation: 0,
       scrolledUnderElevation: 2,
       titleTextStyle: TextStyle(
-        fontFamily: _body, fontSize: 20, fontWeight: FontWeight.w600,
+        fontFamily: _prof, fontSize: 20, fontWeight: FontWeight.w600,
         color: isDark ? const Color(0xFF4A90D9) : const Color(0xFF1A5276),
         letterSpacing: 0.5,
       ),
@@ -407,7 +410,7 @@ ThemeData _buildProfessionalTheme(Brightness brightness) {
           borderRadius: BorderRadius.circular(6),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-        textStyle: const TextStyle(fontFamily: _body, fontSize: 16, letterSpacing: 0.5),
+        textStyle: const TextStyle(fontFamily: _prof, fontSize: 16, letterSpacing: 0.5),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -415,12 +418,12 @@ ThemeData _buildProfessionalTheme(Brightness brightness) {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
         ),
-        textStyle: const TextStyle(fontFamily: _body, fontSize: 16),
+        textStyle: const TextStyle(fontFamily: _prof, fontSize: 16),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        textStyle: const TextStyle(fontFamily: _body, fontSize: 16),
+        textStyle: const TextStyle(fontFamily: _prof, fontSize: 16),
       ),
     ),
     snackBarTheme: SnackBarThemeData(
@@ -428,7 +431,7 @@ ThemeData _buildProfessionalTheme(Brightness brightness) {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(6),
       ),
-      contentTextStyle: const TextStyle(fontFamily: _body, fontSize: 15),
+      contentTextStyle: const TextStyle(fontFamily: _prof, fontSize: 15),
     ),
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: isDark ? const Color(0xFF0D1B2A) : null,
@@ -458,7 +461,7 @@ ThemeData _buildProfessionalTheme(Brightness brightness) {
           width: 2,
         ),
       ),
-      labelStyle: TextStyle(fontFamily: _body, fontSize: 16, color: isDark ? Colors.white70 : null),
+      labelStyle: TextStyle(fontFamily: _prof, fontSize: 16, color: isDark ? Colors.white70 : null),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: isDark ? const Color(0xFF4A90D9) : const Color(0xFF1A5276),
@@ -473,23 +476,23 @@ ThemeData _buildProfessionalTheme(Brightness brightness) {
       thickness: 1,
     ),
     textTheme: TextTheme(
-      titleLarge: TextStyle(fontFamily: _body, fontSize: 20, fontWeight: FontWeight.w600,
+      titleLarge: TextStyle(fontFamily: _prof, fontSize: 20, fontWeight: FontWeight.w600,
         color: isDark ? const Color(0xFF4A90D9) : const Color(0xFF1A5276)),
-      titleMedium: TextStyle(fontFamily: _body, fontSize: 22,
+      titleMedium: TextStyle(fontFamily: _prof, fontSize: 22,
         color: isDark ? Colors.white : null),
-      titleSmall: TextStyle(fontFamily: _body, fontSize: 18,
+      titleSmall: TextStyle(fontFamily: _prof, fontSize: 18,
         color: isDark ? Colors.white70 : null),
-      bodyLarge: TextStyle(fontFamily: _body, fontSize: 20,
+      bodyLarge: TextStyle(fontFamily: _prof, fontSize: 20,
         color: isDark ? Colors.white : null),
-      bodyMedium: TextStyle(fontFamily: _body, fontSize: 18,
+      bodyMedium: TextStyle(fontFamily: _prof, fontSize: 18,
         color: isDark ? Colors.white : null),
-      bodySmall: TextStyle(fontFamily: _body, fontSize: 16,
+      bodySmall: TextStyle(fontFamily: _prof, fontSize: 16,
         color: isDark ? const Color(0xFF8899AA) : const Color(0xFF6C757D)),
-      labelLarge: TextStyle(fontFamily: _body, fontSize: 14, fontWeight: FontWeight.w600,
+      labelLarge: TextStyle(fontFamily: _prof, fontSize: 14, fontWeight: FontWeight.w600,
         color: isDark ? const Color(0xFF4A90D9) : const Color(0xFF1A5276)),
-      labelMedium: TextStyle(fontFamily: _body, fontSize: 18, fontWeight: FontWeight.w500,
+      labelMedium: TextStyle(fontFamily: _prof, fontSize: 18, fontWeight: FontWeight.w500,
         color: isDark ? Colors.white : null),
-      labelSmall: TextStyle(fontFamily: _body, fontSize: 16,
+      labelSmall: TextStyle(fontFamily: _prof, fontSize: 16,
         color: isDark ? const Color(0xFF8899AA) : const Color(0xFF6C757D)),
     ),
   );

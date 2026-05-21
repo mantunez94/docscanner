@@ -1,37 +1,51 @@
-import 'package:image/image.dart' as img;
-
-enum DocumentFilter { original, grayscale, blackAndWhite, enhanced }
+import 'dart:typed_data';
+import 'package:opencv_dart/opencv_dart.dart' as cv;
 
 class DocumentProcessor {
-  static img.Image applyFilter(img.Image image, DocumentFilter filter) {
-    switch (filter) {
-      case DocumentFilter.original:
-        return image;
-      case DocumentFilter.grayscale:
-        return img.grayscale(image);
-      case DocumentFilter.blackAndWhite:
-        final gray = img.grayscale(image);
-        return _threshold(gray, 128);
-      case DocumentFilter.enhanced:
-        var result = img.grayscale(image);
-        result = img.adjustColor(result, contrast: 1.4);
-        result = img.gaussianBlur(result, radius: 1);
-        return result;
+  static const double _maxDeskewAngle = 45;
+  static const int _minNonZeroPoints = 500;
+  static const double _minSkewDegrees = 1.0;
+
+  static Uint8List autoEnhance(Uint8List imageBytes) {
+    final src = cv.imdecode(imageBytes, cv.IMREAD_COLOR);
+    if (src.rows == 0 || src.cols == 0) {
+      throw Exception('Failed to decode image');
     }
+
+    final gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY);
+    final (_, binary) = cv.threshold(gray, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
+    final denoised = cv.medianBlur(binary, 3);
+    final result = _deskew(denoised);
+
+    final (success, encoded) = cv.imencode('.jpg', result);
+    if (!success) throw Exception('Failed to encode enhanced image');
+    return encoded;
   }
 
-  static img.Image _threshold(img.Image image, int threshold) {
-    final result = img.Image.from(image);
-    for (var y = 0; y < result.height; y++) {
-      for (var x = 0; x < result.width; x++) {
-        final pixel = result.getPixel(x, y);
-        if (pixel.luminance > threshold) {
-          result.setPixelRgba(x, y, 255, 255, 255, 255);
-        } else {
-          result.setPixelRgba(x, y, 0, 0, 0, 255);
-        }
-      }
+  static cv.Mat _deskew(cv.Mat binary) {
+    final nz = cv.findNonZero(binary);
+    if (nz.total < _minNonZeroPoints) return binary;
+
+    final points = cv.VecPoint.fromMat(nz);
+    final rect = cv.minAreaRect(points);
+    var angle = rect.angle;
+
+    if (rect.size.width < rect.size.height) {
+      angle = 90 + angle;
     }
-    return result;
+
+    if (angle.abs() < _minSkewDegrees || angle.abs() > _maxDeskewAngle) {
+      return binary;
+    }
+
+    final center = cv.Point2f(binary.cols / 2.0, binary.rows / 2.0);
+    final rotMat = cv.getRotationMatrix2D(center, angle, 1.0);
+    return cv.warpAffine(
+      binary,
+      rotMat,
+      (binary.cols, binary.rows),
+      flags: cv.INTER_CUBIC,
+      borderMode: cv.BORDER_REPLICATE,
+    );
   }
 }

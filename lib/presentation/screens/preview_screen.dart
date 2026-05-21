@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image/image.dart' as img;
 import 'package:flutter_image_perspective_crop/flutter_image_perspective_crop.dart';
 import '../../core/document_processor.dart';
 import '../../domain/entities/ocr_result.dart';
@@ -18,37 +17,27 @@ class PreviewScreen extends ConsumerStatefulWidget {
 }
 
 class _PreviewScreenState extends ConsumerState<PreviewScreen> {
-  Uint8List? _originalBytes;
   Uint8List? _displayBytes;
-  DocumentFilter _selectedFilter = DocumentFilter.grayscale;
   final _controller = ImagePerspectiveCropController();
   bool _ocrLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadImage();
+    _loadAndEnhance();
   }
 
-  Future<void> _loadImage() async {
+  Future<void> _loadAndEnhance() async {
     final bytes = await File(widget.imagePath).readAsBytes();
     if (!mounted) return;
-    _originalBytes = bytes;
-    _applyFilterToDisplay(bytes, _selectedFilter);
-  }
-
-  void _applyFilterToDisplay(Uint8List originalBytes, DocumentFilter filter) {
-    final decoded = img.decodeImage(originalBytes);
-    if (decoded == null) return;
-    final processed = DocumentProcessor.applyFilter(decoded, filter);
-    _displayBytes = Uint8List.fromList(img.encodeJpg(processed, quality: 92));
-    setState(() {});
-  }
-
-  void _onFilterChanged(DocumentFilter filter) {
-    if (_originalBytes == null || filter == _selectedFilter) return;
-    _selectedFilter = filter;
-    _applyFilterToDisplay(_originalBytes!, filter);
+    try {
+      final enhanced = DocumentProcessor.autoEnhance(bytes);
+      if (!mounted) return;
+      setState(() => _displayBytes = enhanced);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _displayBytes = bytes);
+    }
   }
 
   Future<void> _runOcr() async {
@@ -197,7 +186,6 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildFilterBar(),
                 const SizedBox(height: 4),
                 Row(
                   children: [
@@ -241,47 +229,5 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
         ),
       ),
     );
-  }
-
-  Widget _buildFilterBar() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Row(
-        children: DocumentFilter.values.map((f) {
-          final isSelected = f == _selectedFilter;
-          return Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: ChoiceChip(
-              label: Text(
-                _filterLabel(f),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isSelected ? Colors.black : Colors.white70,
-                ),
-              ),
-              selected: isSelected,
-              selectedColor: const Color(0xFF00E5FF),
-              backgroundColor: Colors.white12,
-              side: BorderSide(
-                color: isSelected ? const Color(0xFF00E5FF) : Colors.white24,
-                width: 1,
-              ),
-              onSelected: (_) => _onFilterChanged(f),
-              visualDensity: VisualDensity.compact,
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  String _filterLabel(DocumentFilter f) {
-    return switch (f) {
-      DocumentFilter.original => 'Original',
-      DocumentFilter.grayscale => 'Grayscale',
-      DocumentFilter.blackAndWhite => 'B&W',
-      DocumentFilter.enhanced => 'Enhanced',
-    };
   }
 }

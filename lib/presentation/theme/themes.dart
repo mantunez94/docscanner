@@ -5,7 +5,7 @@ enum AppTheme { arcade, kawaii, professional }
 // ── Theme fonts ───────────────────────────────────────────────────
 const _arcadeTitle = 'PressStart2P';
 const _arcadeBody = 'VT323';
-const _kawaii = 'MPLUSRounded1c';
+const _kawaii = 'ShortStack';
 const _prof = 'Inter';
 
 ThemeData buildTheme(AppTheme appTheme, Brightness brightness) {

@@ -7,6 +7,7 @@ class ScannedDocumentModel {
   final String thumbnailPath;
   final DateTime createdAt;
   final String name;
+  final String? pdfPath;
 
   int get pageCount => pages.length;
 
@@ -17,6 +18,7 @@ class ScannedDocumentModel {
     required this.thumbnailPath,
     required this.createdAt,
     required this.name,
+    this.pdfPath,
   });
 
   factory ScannedDocumentModel.fromEntity(ScannedDocument entity) {
@@ -27,6 +29,7 @@ class ScannedDocumentModel {
       thumbnailPath: entity.thumbnailPath,
       createdAt: entity.createdAt,
       name: entity.name,
+      pdfPath: entity.pdfPath,
     );
   }
 
@@ -37,6 +40,27 @@ class ScannedDocumentModel {
       thumbnailPath: thumbnailPath,
       createdAt: createdAt,
       name: name,
+      pdfPath: pdfPath,
+    );
+  }
+
+  ScannedDocumentModel copyWith({
+    String? id,
+    String? filePath,
+    List<String>? pages,
+    String? thumbnailPath,
+    DateTime? createdAt,
+    String? name,
+    String? pdfPath,
+  }) {
+    return ScannedDocumentModel(
+      id: id ?? this.id,
+      filePath: filePath ?? this.filePath,
+      pages: pages ?? this.pages,
+      thumbnailPath: thumbnailPath ?? this.thumbnailPath,
+      createdAt: createdAt ?? this.createdAt,
+      name: name ?? this.name,
+      pdfPath: pdfPath ?? this.pdfPath,
     );
   }
 
@@ -49,6 +73,7 @@ class ScannedDocumentModel {
       'createdAt': createdAt.toIso8601String(),
       'pageCount': pageCount,
       'name': name,
+      if (pdfPath != null) 'pdfPath': pdfPath,
     };
   }
 
@@ -61,6 +86,7 @@ class ScannedDocumentModel {
       thumbnailPath: json['thumbnailPath'],
       createdAt: DateTime.parse(json['createdAt']),
       name: json['name'] ?? '',
+      pdfPath: json['pdfPath'] as String?,
     );
   }
 }

@@ -305,7 +305,8 @@ class HomeScreen extends ConsumerWidget {
   }
 
   void _share(ScannedDocument doc) {
-    Share.shareXFiles([XFile(doc.filePath)]);
+    final path = doc.pdfPath ?? doc.filePath;
+    Share.shareXFiles([XFile(path)]);
   }
 
   void _rename(BuildContext context, WidgetRef ref, ScannedDocument doc) {

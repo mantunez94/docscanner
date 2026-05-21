@@ -31,36 +31,34 @@ class LocalDataSource {
   Future<ScannedDocumentModel> rename(String id, String newName) async {
     final index = _cache.indexWhere((d) => d.id == id);
     if (index == -1) throw Exception('Document not found');
-    final existing = _cache[index];
-    final updated = ScannedDocumentModel(
-      id: existing.id,
-      filePath: existing.filePath,
-      pages: existing.pages,
-      thumbnailPath: existing.thumbnailPath,
-      createdAt: existing.createdAt,
-      name: newName,
-    );
-    _cache[index] = updated;
+    _cache[index] = _cache[index].copyWith(name: newName);
     await _persist();
-    return updated;
+    return _cache[index];
   }
 
-  Future<ScannedDocumentModel> addPages(String id, List<String> newPages) async {
+  Future<ScannedDocumentModel> addPages(
+    String id,
+    List<String> newPages, [
+    String? pdfPath,
+  ]) async {
     final index = _cache.indexWhere((d) => d.id == id);
     if (index == -1) throw Exception('Document not found');
     final existing = _cache[index];
     final allPages = [...existing.pages, ...newPages];
-    final updated = ScannedDocumentModel(
-      id: existing.id,
+    _cache[index] = existing.copyWith(
       filePath: allPages.first,
       pages: allPages,
-      thumbnailPath: existing.thumbnailPath,
-      createdAt: existing.createdAt,
-      name: existing.name,
+      pdfPath: pdfPath,
     );
-    _cache[index] = updated;
     await _persist();
-    return updated;
+    return _cache[index];
+  }
+
+  Future<void> updatePdfPath(String id, String pdfPath) async {
+    final index = _cache.indexWhere((d) => d.id == id);
+    if (index == -1) throw Exception('Document not found');
+    _cache[index] = _cache[index].copyWith(pdfPath: pdfPath);
+    await _persist();
   }
 
   Future<void> delete(String id) async {

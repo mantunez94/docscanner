@@ -6,6 +6,7 @@ class ScannedDocument {
   final String thumbnailPath;
   final DateTime createdAt;
   final String name;
+  final String? pdfPath;
 
   String get filePath => pages.first;
   int get pageCount => pages.length;
@@ -16,6 +17,7 @@ class ScannedDocument {
     required this.thumbnailPath,
     required this.createdAt,
     String? name,
+    this.pdfPath,
   }) : name = name ?? DateFormat('MMM d, yyyy').format(createdAt);
 
   ScannedDocument copyWith({
@@ -24,6 +26,7 @@ class ScannedDocument {
     String? thumbnailPath,
     DateTime? createdAt,
     String? name,
+    String? pdfPath,
   }) {
     return ScannedDocument(
       id: id ?? this.id,
@@ -31,6 +34,7 @@ class ScannedDocument {
       thumbnailPath: thumbnailPath ?? this.thumbnailPath,
       createdAt: createdAt ?? this.createdAt,
       name: name ?? this.name,
+      pdfPath: pdfPath ?? this.pdfPath,
     );
   }
 }

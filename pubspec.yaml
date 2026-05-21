@@ -41,6 +41,7 @@ dependencies:
   shared_preferences: ^2.3.5
   pdf: ^3.11.3
   google_mlkit_text_recognition: ^0.14.0
+  gal: ^2.3.0
 
 dependency_overrides:
   image: 4.8.0

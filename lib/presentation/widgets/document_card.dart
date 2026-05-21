@@ -4,38 +4,70 @@ import '../../domain/entities/scanned_document.dart';
 
 class DocumentCard extends StatelessWidget {
   final ScannedDocument document;
+  final bool? selected;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   const DocumentCard({
     super.key,
     required this.document,
+    this.selected,
     required this.onTap,
+    this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isSelected = selected == true;
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      elevation: 2,
-      shadowColor: theme.colorScheme.shadow,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: isSelected ? 4 : 2,
+      shadowColor: isSelected ? theme.colorScheme.primary : theme.colorScheme.shadow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: isSelected
+            ? BorderSide(color: theme.colorScheme.primary, width: 2)
+            : BorderSide.none,
+      ),
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: Image.file(
-                File(document.thumbnailPath),
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  child: Center(
-                    child: Icon(Icons.broken_image, size: 40, color: theme.colorScheme.onSurface.withAlpha(100)),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.file(
+                    File(document.thumbnailPath),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      child: Center(
+                        child: Icon(Icons.broken_image, size: 40, color: theme.colorScheme.onSurface.withAlpha(100)),
+                      ),
+                    ),
                   ),
-                ),
+                  if (selected != null)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isSelected ? theme.colorScheme.primary : Colors.black38,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          isSelected ? Icons.check_circle : Icons.circle_outlined,
+                          size: 24,
+                          color: isSelected ? theme.colorScheme.onPrimary : Colors.white70,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             Padding(

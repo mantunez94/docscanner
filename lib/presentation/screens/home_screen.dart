@@ -11,81 +11,123 @@ import '../widgets/document_card.dart';
 import '../widgets/shimmer_grid.dart';
 import 'scanner_screen.dart';
 
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+final batchModeProvider = StateProvider<bool>((ref) => false);
+
+final selectedIdsProvider = StateProvider<Set<String>>((ref) => {});
+
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final documents = ref.watch(documentListProvider);
+    final documentsAsync = ref.watch(documentListProvider);
     final currentTheme = ref.watch(themeProvider);
     final currentMode = ref.watch(themeModeProvider);
+    final searchQuery = ref.watch(searchQueryProvider);
+    final batchMode = ref.watch(batchModeProvider);
+    final selectedIds = ref.watch(selectedIdsProvider);
+
+    final documents = documentsAsync.valueOrNull ?? [];
+
+    final filtered = searchQuery.isEmpty
+        ? documents
+        : documents.where((d) =>
+            d.name.toLowerCase().contains(searchQuery.toLowerCase())).toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('DocScanner'),
+        title: batchMode
+            ? Text('${selectedIds.length} selected')
+            : const Text('DocScanner'),
         centerTitle: true,
+        leading: batchMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  ref.read(batchModeProvider.notifier).state = false;
+                  ref.read(selectedIdsProvider.notifier).state = {};
+                },
+              )
+            : null,
         actions: [
-          PopupMenuButton<AppTheme>(
-            icon: Icon(themeIcon(currentTheme)),
-            tooltip: 'Change theme',
-            onSelected: (t) => ref.read(themeProvider.notifier).setTheme(t),
-            itemBuilder: (_) => [
-              for (final t in AppTheme.values)
-                PopupMenuItem(
-                  value: t,
-                  child: Row(
-                    children: [
-                      Icon(themeIcon(t), size: 20,
-                        color: t == currentTheme ? Theme.of(context).colorScheme.primary : null),
-                      const SizedBox(width: 10),
-                      Text(themeLabel(t),
-                        style: TextStyle(
-                          fontWeight: t == currentTheme ? FontWeight.bold : FontWeight.normal,
-                        )),
-                      if (t == currentTheme) ...[
-                        const Spacer(),
-                        Icon(Icons.check, size: 16, color: Theme.of(context).colorScheme.primary),
-                      ],
-                    ],
-                  ),
-                ),
-            ],
-          ),
-          PopupMenuButton<ThemeMode>(
-            icon: Icon(
-              currentMode == ThemeMode.dark ? Icons.dark_mode_outlined
-                  : currentMode == ThemeMode.light ? Icons.light_mode_outlined
-                  : Icons.brightness_auto_outlined,
-            ),
-            tooltip: 'Theme mode',
-            onSelected: (m) => ref.read(themeModeProvider.notifier).setThemeMode(m),
-            itemBuilder: (_) => [
-              for (final m in ThemeMode.values)
-                PopupMenuItem(
-                  value: m,
-                  child: Row(
-                    children: [
-                      Icon(_themeModeIcon(m), size: 20),
-                      const SizedBox(width: 10),
-                      Text(_themeModeLabel(m)),
-                      if (m == currentMode) ...[
-                        const Spacer(),
-                        const Icon(Icons.check, size: 16),
-                      ],
-                    ],
-                  ),
-                ),
-            ],
-          ),
-          if (documents.valueOrNull != null && documents.valueOrNull!.isNotEmpty)
+          if (batchMode && selectedIds.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.picture_as_pdf),
-              onPressed: () => _exportPdf(context, ref),
-              tooltip: 'Export PDF',
+              icon: Icon(Icons.delete_outline,
+                  color: Theme.of(context).colorScheme.error),
+              onPressed: () => _deleteSelected(context, ref, selectedIds),
+              tooltip: 'Delete selected',
             ),
+          if (!batchMode) ...[
+            PopupMenuButton<AppTheme>(
+              icon: Icon(themeIcon(currentTheme)),
+              tooltip: 'Change theme',
+              onSelected: (t) => ref.read(themeProvider.notifier).setTheme(t),
+              itemBuilder: (_) => [
+                for (final t in AppTheme.values)
+                  PopupMenuItem(
+                    value: t,
+                    child: Row(
+                      children: [
+                        Icon(themeIcon(t), size: 20,
+                          color: t == currentTheme ? Theme.of(context).colorScheme.primary : null),
+                        const SizedBox(width: 10),
+                        Text(themeLabel(t),
+                          style: TextStyle(
+                            fontWeight: t == currentTheme ? FontWeight.bold : FontWeight.normal,
+                          )),
+                        if (t == currentTheme) ...[
+                          const Spacer(),
+                          Icon(Icons.check, size: 16, color: Theme.of(context).colorScheme.primary),
+                        ],
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            PopupMenuButton<ThemeMode>(
+              icon: Icon(
+                currentMode == ThemeMode.dark ? Icons.dark_mode_outlined
+                    : currentMode == ThemeMode.light ? Icons.light_mode_outlined
+                    : Icons.brightness_auto_outlined,
+              ),
+              tooltip: 'Theme mode',
+              onSelected: (m) => ref.read(themeModeProvider.notifier).setThemeMode(m),
+              itemBuilder: (_) => [
+                for (final m in ThemeMode.values)
+                  PopupMenuItem(
+                    value: m,
+                    child: Row(
+                      children: [
+                        Icon(_themeModeIcon(m), size: 20),
+                        const SizedBox(width: 10),
+                        Text(_themeModeLabel(m)),
+                        if (m == currentMode) ...[
+                          const Spacer(),
+                          const Icon(Icons.check, size: 16),
+                        ],
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            if (documents.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.checklist),
+                onPressed: () => ref.read(batchModeProvider.notifier).state = true,
+                tooltip: 'Select documents',
+              ),
+            if (documents.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.picture_as_pdf),
+                onPressed: () => _exportPdf(context, ref),
+                tooltip: 'Export PDF',
+              ),
+          ],
         ],
       ),
-      body: documents.when(
+      body: documentsAsync.when(
         loading: () => const ShimmerGrid(),
         error: (e, _) => Center(
           child: Padding(
@@ -103,13 +145,119 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
         ),
-        data: (docs) => docs.isEmpty
+        data: (_) => documents.isEmpty && searchQuery.isEmpty
             ? _EmptyState(onScan: () => _openScanner(context, ref, null))
-            : _DocumentGrid(docs: docs, onOpenScanner: () => _openScanner(context, ref, null)),
+            : Column(
+                children: [
+                  if (documents.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                      child: TextField(
+                        onChanged: (v) => ref.read(searchQueryProvider.notifier).state = v,
+                        decoration: InputDecoration(
+                          hintText: 'Search documents...',
+                          prefixIcon: const Icon(Icons.search, size: 20),
+                          suffixIcon: searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 18),
+                                  onPressed: () => ref.read(searchQueryProvider.notifier).state = '',
+                                )
+                              : null,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  Expanded(
+                    child: filtered.isEmpty && searchQuery.isNotEmpty
+                        ? Center(
+                            child: Text('No documents match "$searchQuery"',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface.withAlpha(150))),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: () async {
+                              ref.invalidate(documentListProvider);
+                            },
+                            child: GridView.builder(
+                              padding: const EdgeInsets.all(12),
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                                childAspectRatio: 0.7,
+                              ),
+                              itemCount: filtered.length,
+                              itemBuilder: (_, index) {
+                                final doc = filtered[index];
+                                return DocumentCard(
+                                  document: doc,
+                                  selected: batchMode ? selectedIds.contains(doc.id) : null,
+                                  onTap: () {
+                                    if (batchMode) {
+                                      final ids = {...ref.read(selectedIdsProvider)};
+                                      if (ids.contains(doc.id)) {
+                                        ids.remove(doc.id);
+                                      } else {
+                                        ids.add(doc.id);
+                                      }
+                                      ref.read(selectedIdsProvider.notifier).state = ids;
+                                    } else {
+                                      _showActions(context, ref, doc);
+                                    }
+                                  },
+                                  onLongPress: !batchMode
+                                      ? () {
+                                          ref.read(batchModeProvider.notifier).state = true;
+                                          ref.read(selectedIdsProvider.notifier).state = {doc.id};
+                                        }
+                                      : null,
+                                );
+                              },
+                            ),
+                          ),
+                  ),
+                ],
+              ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openScanner(context, ref, null),
-        child: const Icon(Icons.camera_alt),
+      floatingActionButton: batchMode
+          ? null
+          : FloatingActionButton(
+              onPressed: () => _openScanner(context, ref, null),
+              child: const Icon(Icons.camera_alt),
+            ),
+    );
+  }
+
+  void _deleteSelected(BuildContext context, WidgetRef ref, Set<String> ids) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete documents'),
+        content: Text('Delete ${ids.length} document${ids.length > 1 ? 's' : ''}?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              for (final id in ids) {
+                ref.read(documentListProvider.notifier).delete(id);
+              }
+              ref.read(batchModeProvider.notifier).state = false;
+              ref.read(selectedIdsProvider.notifier).state = {};
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('${ids.length} document${ids.length > 1 ? 's' : ''} deleted')),
+                );
+              }
+            },
+            child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          ),
+        ],
       ),
     );
   }
@@ -145,60 +293,14 @@ class HomeScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _exportPdf(BuildContext context, WidgetRef ref) async {
-    try {
-      final messenger = ScaffoldMessenger.of(context);
-      messenger.showSnackBar(const SnackBar(content: Text('Generating PDF...')));
-      final pdfFile = await ref.read(documentListProvider.notifier).exportToPdf();
-      if (context.mounted) {
-        messenger.hideCurrentSnackBar();
-        await Share.shareXFiles([XFile(pdfFile.path)]);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
-    }
-  }
-}
-
-class _DocumentGrid extends ConsumerWidget {
-  final List<ScannedDocument> docs;
-  final VoidCallback onOpenScanner;
-
-  const _DocumentGrid({required this.docs, required this.onOpenScanner});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.7,
-      ),
-      itemCount: docs.length,
-      itemBuilder: (_, index) {
-        final doc = docs[index];
-        return DocumentCard(
-          document: doc,
-          onTap: () => _showActions(context, ref, doc),
-        );
-      },
-    );
-  }
-
   void _showActions(BuildContext context, WidgetRef ref, ScannedDocument doc) {
     showDocumentActionsSheet(
       context,
       doc,
       onRename: () => _rename(context, ref, doc),
-      onAddPage: () => HomeScreen._openScanner(context, ref, doc.id),
+      onAddPage: () => _openScanner(context, ref, doc.id),
       onShare: () => _share(doc),
-      onDelete: () => _delete(context, ref, doc),
+      onDelete: () => _deleteOne(context, ref, doc),
     );
   }
 
@@ -244,7 +346,7 @@ class _DocumentGrid extends ConsumerWidget {
     );
   }
 
-  void _delete(BuildContext context, WidgetRef ref, ScannedDocument doc) {
+  void _deleteOne(BuildContext context, WidgetRef ref, ScannedDocument doc) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -255,20 +357,9 @@ class _DocumentGrid extends ConsumerWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              final deletedDoc = ref.read(documentListProvider.notifier).getDocument(doc.id);
               ref.read(documentListProvider.notifier).delete(doc.id);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('"${doc.name}" deleted'),
-                  action: SnackBarAction(
-                    label: 'Undo',
-                    onPressed: () {
-                      if (deletedDoc != null) {
-                        ref.read(documentListProvider.notifier).restore(deletedDoc);
-                      }
-                    },
-                  ),
-                ),
+                SnackBar(content: Text('"${doc.name}" deleted')),
               );
             },
             child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
@@ -276,6 +367,24 @@ class _DocumentGrid extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _exportPdf(BuildContext context, WidgetRef ref) async {
+    try {
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(const SnackBar(content: Text('Generating PDF...')));
+      final pdfFile = await ref.read(documentListProvider.notifier).exportToPdf();
+      if (context.mounted) {
+        messenger.hideCurrentSnackBar();
+        await Share.shareXFiles([XFile(pdfFile.path)]);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
   }
 }
 

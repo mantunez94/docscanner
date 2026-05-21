@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
+import 'package:gal/gal.dart';
 import '../entities/scanned_document.dart';
 import '../repositories/document_repository.dart';
 
@@ -22,9 +23,14 @@ class ScanDocument {
     final outputPath = '${docDir.path}/$id.jpg';
     final thumbPath = '${docDir.path}/${id}_thumb.jpg';
 
-    await File(outputPath).writeAsBytes(img.encodeJpg(original, quality: 90));
+    await File(outputPath).writeAsBytes(img.encodeJpg(original, quality: 85));
     final thumb = img.copyResize(original, width: 200);
-    await File(thumbPath).writeAsBytes(img.encodeJpg(thumb, quality: 70));
+    await File(thumbPath).writeAsBytes(img.encodeJpg(thumb, quality: 65));
+
+    try {
+      await Gal.putImage(outputPath, album: 'DocScanner');
+    } catch (_) {
+    }
 
     final doc = ScannedDocument(
       id: id,

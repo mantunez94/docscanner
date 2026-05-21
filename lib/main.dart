@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/onboarding_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +24,26 @@ class DocScannerApp extends ConsumerWidget {
       theme: theme,
       darkTheme: darkTheme,
       themeMode: themeMode,
-      home: const HomeScreen(),
+      home: FutureBuilder<bool>(
+        future: shouldShowOnboarding(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
+          if (snapshot.data == true) {
+            return OnboardingScreen(
+              onComplete: () => _replaceWithHome(context),
+            );
+          }
+          return const HomeScreen();
+        },
+      ),
+    );
+  }
+
+  void _replaceWithHome(BuildContext context) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
     );
   }
 }

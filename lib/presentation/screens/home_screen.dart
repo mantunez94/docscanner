@@ -42,7 +42,7 @@ class HomeScreen extends ConsumerWidget {
                 Text('Something went wrong', style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Text('$e', textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey)),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurface.withAlpha(150))),
               ],
             ),
           ),
@@ -250,7 +250,7 @@ class _EmptyState extends StatelessWidget {
             Text(
               'Scan your first document\nto get started',
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withAlpha(150)),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(

@@ -27,6 +27,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   int _draggingIndex = -1;
   Offset _dragLocalPos = Offset.zero;
   final _stackKey = GlobalKey();
+  cv.Mat? _imageMat;
 
   @override
   void initState() {
@@ -37,7 +38,8 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   Future<void> _loadImage() async {
     final bytes = await File(widget.imagePath).readAsBytes();
     if (!mounted) return;
-    final src = cv.imdecode(bytes, cv.IMREAD_COLOR);
+    _imageMat = cv.imdecode(bytes, cv.IMREAD_COLOR);
+    final src = _imageMat!;
     _imgW = src.cols;
     _imgH = src.rows;
     _corners = _detectDocumentFromMat(src);
@@ -121,15 +123,14 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
 
   cv.Mat _enhanceScan(cv.Mat bgr) {
     final gray = cv.cvtColor(bgr, cv.COLOR_BGR2GRAY);
-    final denoised = cv.bilateralFilter(gray, 9, 50, 50);
-    final clahe = cv.createCLAHE(clipLimit: 3.0, tileGridSize: (8, 8));
-    final equalized = clahe.apply(denoised);
+    cv.normalize(gray, gray, alpha: 0, beta: 255, normType: cv.NORM_MINMAX);
+    final adjusted = cv.convertScaleAbs(gray, alpha: 1.2, beta: 10);
     final kernel = cv.Mat.fromList(3, 3, cv.MatType.CV_32FC1, [
       0.0, -1.0, 0.0,
       -1.0, 5.0, -1.0,
       0.0, -1.0, 0.0,
     ]);
-    final sharpened = cv.filter2D(equalized, -1, kernel);
+    final sharpened = cv.filter2D(adjusted, -1, kernel);
     return cv.cvtColor(sharpened, cv.COLOR_GRAY2BGR);
   }
 
@@ -319,7 +320,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
               Center(
                 child: Image.memory(_displayBytes!, fit: BoxFit.contain),
               ),
-              if (_imageRect != Rect.zero)
+              if (_imageRect != Rect.zero && _draggingIndex < 0)
                 Positioned.fill(
                   child: CustomPaint(
                     painter: _CropOverlayPainter(
@@ -341,27 +342,34 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(
-                          color: Colors.cyan,
+                          color: _draggingIndex == i
+                              ? Colors.cyan.withAlpha(80)
+                              : Colors.cyan,
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2.5),
                         ),
-                        child: const Icon(Icons.drag_handle,
-                            color: Colors.white, size: 14),
+                        child: Icon(
+                          _draggingIndex == i ? Icons.circle : Icons.drag_handle,
+                          color: Colors.white, size: 14,
+                        ),
                       ),
                     ),
                   ),
               if (_draggingIndex >= 0)
                 Positioned(
                   left: _dragLocalPos.dx - 50,
-                  top: _dragLocalPos.dy - 110,
+                  top: _dragLocalPos.dy - 120,
                   child: IgnorePointer(
                     child: RawMagnifier(
                       size: const Size(100, 100),
                       magnificationScale: 2.5,
+                      focalPointOffset: const Offset(50, 100),
                       decoration: MagnifierDecoration(
-                        shape: const CircleBorder(),
+                        shape: const CircleBorder(
+                          side: BorderSide(color: Colors.white, width: 2),
+                        ),
                         shadows: const [
-                          BoxShadow(blurRadius: 10, color: Colors.black26),
+                          BoxShadow(blurRadius: 12, color: Colors.black38),
                         ],
                       ),
                     ),
@@ -377,44 +385,40 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
         child: SafeArea(
           top: false,
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              const Spacer(),
-              ElevatedButton.icon(
-                onPressed: _ocrLoading ? null : _runOcr,
-                icon: _ocrLoading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.text_snippet, size: 18),
-                label: Text(
-                  _ocrLoading ? 'Extracting...' : 'Extract Text',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              Tooltip(
+                message: 'Extract text from this page',
+                child: IconButton(
+                  onPressed: _ocrLoading ? null : _runOcr,
+                  icon: _ocrLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.text_snippet, color: Colors.white, size: 26),
                 ),
               ),
-              const SizedBox(width: 4),
-              ElevatedButton.icon(
-                onPressed: () => Navigator.pop(context, 'retake'),
-                icon: const Icon(Icons.camera_alt, size: 18),
-                label: const Text('Retake', style: TextStyle(fontSize: 14)),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              Tooltip(
+                message: 'Take photo again',
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context, 'retake'),
+                  icon: const Icon(Icons.camera_alt, color: Colors.white, size: 26),
                 ),
               ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: _saving
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Icon(Icons.check, color: Colors.white, size: 28),
-                onPressed: _saving ? null : _onConfirm,
+              Tooltip(
+                message: 'Save scan',
+                child: IconButton(
+                  icon: _saving
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.check_circle, color: Colors.white, size: 30),
+                  onPressed: _saving ? null : _onConfirm,
+                ),
               ),
             ],
           ),

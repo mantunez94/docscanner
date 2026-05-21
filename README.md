@@ -1,6 +1,6 @@
 # DocScanner
 
-Multi-theme document scanner for Android with OCR, PDF export, and automatic image enhancement.
+Multi-theme document scanner for Android with real-time boundary detection, auto-capture, OCR, PDF export, and automatic image enhancement.
 
 ## Architecture
 
@@ -84,7 +84,9 @@ flowchart TB
 - **Domain** has zero external dependencies — pure Dart business logic
 - **Data** implements domain ports with real I/O (JSON, files, PDF, gallery)
 - **Presentation** uses Riverpod to coordinate between services and use cases
-- **Core** holds infrastructure services (OCR, image processing)
+- **Core** holds infrastructure services (OCR, boundary detection, image processing)
+
+> Note: Perspective correction and image enhancement are currently inlined in `preview_screen.dart` (presentation layer) for simplicity, using OpenCV directly. This should be refactored into `core/` when time permits.
 
 ## Tech Stack
 
@@ -97,7 +99,8 @@ flowchart TB
 | PDF generation | `pdf` |
 | Gallery save | `gal` |
 | Persistence | JSON file via `path_provider` |
-| Image crop | `flutter_image_perspective_crop` |
+| Perspective crop | OpenCV `getPerspectiveTransform2f` + `warpPerspective` (replaced `flutter_image_perspective_crop`) |
+| Boundary detection | OpenCV OTSU + morphology + minAreaRect (preview + photo) |
 | Themes | 3 themes (Arcade, Kawaii, Professional) |
 
 ## Project Structure
@@ -106,28 +109,30 @@ flowchart TB
 lib/
 ├── main.dart
 ├── core/
-│   ├── document_processor.dart    # OpenCV auto-enhance pipeline
-│   └── ocr_service.dart           # Google ML Kit OCR
+│   ├── document_boundary_detector.dart  # Live camera boundary detection
+│   ├── document_processor.dart          # OpenCV auto-enhance pipeline
+│   └── ocr_service.dart                 # Google ML Kit OCR
 ├── data/
 │   ├── datasources/
-│   │   └── local_datasource.dart  # JSON file persistence
+│   │   └── local_datasource.dart    # JSON file persistence
 │   ├── models/
 │   │   └── scanned_document_model.dart
 │   ├── repositories/
 │   │   └── document_repository_impl.dart
 │   └── services/
-│       └── file_service.dart      # File I/O, PDF, gallery ops
+│       └── file_service.dart        # File I/O, PDF, gallery ops
 ├── domain/
 │   ├── entities/
 │   │   ├── ocr_result.dart
 │   │   └── scanned_document.dart
 │   ├── repositories/
-│   │   └── document_repository.dart  # Port interface
+│   │   └── document_repository.dart    # Port interface
 │   └── usecases/
 │       ├── add_pages_to_document.dart
 │       ├── delete_document.dart
 │       ├── export_to_pdf.dart
 │       ├── get_all_documents.dart
+│       ├── remove_page_from_document.dart
 │       ├── rename_document.dart
 │       └── scan_document.dart
 └── presentation/
@@ -136,10 +141,11 @@ lib/
     │   ├── ocr_provider.dart         # OCR state
     │   └── theme_provider.dart       # Theme state
     ├── screens/
+    │   ├── document_detail_screen.dart  # Page grid + batch delete
     │   ├── home_screen.dart          # Document list + search + batch
     │   ├── onboarding_screen.dart    # First-run carousel
-    │   ├── preview_screen.dart       # Crop + OCR
-    │   └── scanner_screen.dart       # Camera capture
+    │   ├── preview_screen.dart       # Crop + OCR + enhance
+    │   └── scanner_screen.dart       # Camera capture + auto-detect
     ├── theme/
     │   └── themes.dart               # Arcade / Kawaii / Professional
     └── widgets/
@@ -150,10 +156,14 @@ lib/
 
 ## Features
 
-- **Auto-enhance**: OpenCV OTSU binarization + deskew on every scan
-- **PDF-first**: Generates PDF immediately after crop, regenerates on page add
-- **OCR**: Google ML Kit text recognition with copy-to-clipboard
+- **Auto-capture + boundary detection**: Real-time document detection in camera preview (Y-plane → downsample → OTSU → morphology → minAreaRect). Canny fallback. Auto-captures after 3 consecutive detections.
+- **Perspective correction**: OpenCV `getPerspectiveTransform2f` + `warpPerspective` (bypasses JPEG DNL bug in `flutter_image_perspective_crop`)
+- **Image enhancement**: normalize(NORM_MINMAX) + contrast boost (α=1.2, β=10) + subtle sharpen for clean scan-like output
+- **Manual corner adjustment**: Draggable handles with magnifier (RawMagnifier, pending improvement)
+- **PDF-first**: Dynamic page format per image aspect ratio, regenerates on page add/remove
+- **OCR**: Google ML Kit text recognition with copy-to-clipboard (labeled "Extract Text" for UX)
 - **Search & batch**: Filter documents by name, multi-select delete
+- **Page management**: View/delete individual pages within multi-page documents
 - **Pull-to-refresh**: Refresh document list
 - **3 themes**: Arcade (neon retro), Kawaii (pastel cute), Professional (clean)
 - **Onboarding**: 4-page first-run carousel persisted via SharedPreferences
@@ -166,12 +176,15 @@ lib/
 flutter test
 ```
 
-37 tests (4 skipped on host — require native OpenCV lib present on device):
+36 tests (4 skipped on host — require native OpenCV lib present on device):
 - Entity serialization tests
 - Repository implementation tests
 - Use case orchestration tests
 - OCR service tests
 - Document model roundtrip tests
+- Boundary detector tests (require OpenCV native lib)
+
+> New features should include unit tests (enforced in `.opencode/instructions/git-workflow.md`).
 
 ## Build
 

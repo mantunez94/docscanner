@@ -44,3 +44,7 @@ Examples:
 3. `flutter analyze` with no errors
 4. `flutter test` — all tests passing
 5. Push branch and create PR
+
+## After pushing to main
+- Update `README.md` if the push introduces new features, changes architecture, or modifies the tech stack
+- Update `.opencode/session-summary.md` with current status and next steps

@@ -145,14 +145,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.7"
-  cupertino_icons:
-    dependency: "direct main"
-    description:
-      name: cupertino_icons
-      sha256: ba631d1c7f7bef6b729a622b7b752645a2d076dba9976925b8f25725a30e1ee6
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.8"
   fake_async:
     dependency: transitive
     description:
@@ -256,22 +248,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.14.0"
-  http:
-    dependency: transitive
-    description:
-      name: http
-      sha256: "87721a4a50b19c7f1d49001e51409bddc46303966ce89a65af4f4e6004896412"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.6.0"
-  http_parser:
-    dependency: transitive
-    description:
-      name: http_parser
-      sha256: "178d74305e7866013777bab2c3d8726205dc5a4dd935297175b19a23a2e66571"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.1.2"
   image:
     dependency: "direct main"
     description:
@@ -440,14 +416,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.11.3"
-  pdf_widget_wrapper:
-    dependency: transitive
-    description:
-      name: pdf_widget_wrapper
-      sha256: c930860d987213a3d58c7ec3b7ecf8085c3897f773e8dc23da9cae60a5d6d0f5
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.4"
   permission_handler:
     dependency: "direct main"
     description:
@@ -528,14 +496,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.5.0"
-  printing:
-    dependency: "direct main"
-    description:
-      name: printing
-      sha256: "689170c9ddb1bda85826466ba80378aa8993486d3c959a71cd7d2d80cb606692"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.14.3"
   qr:
     dependency: transitive
     description:
@@ -549,14 +509,6 @@ packages:
     description:
       name: riverpod
       sha256: "59062512288d3056b2321804332a13ffdd1bf16df70dcc8e506e411280a72959"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.6.1"
-  riverpod_annotation:
-    dependency: "direct main"
-    description:
-      name: riverpod_annotation
-      sha256: e14b0bf45b71326654e2705d462f21b958f987087be850afd60578fcd502d1b8
       url: "https://pub.dev"
     source: hosted
     version: "2.6.1"

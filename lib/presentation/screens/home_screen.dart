@@ -105,7 +105,7 @@ class HomeScreen extends ConsumerWidget {
         ),
         data: (docs) => docs.isEmpty
             ? _EmptyState(onScan: () => _openScanner(context, ref, null))
-            : _DocumentGrid(docs: docs),
+            : _DocumentGrid(docs: docs, onOpenScanner: () => _openScanner(context, ref, null)),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openScanner(context, ref, null),
@@ -114,7 +114,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _openScanner(BuildContext context, WidgetRef ref, String? documentId) async {
+  static Future<void> _openScanner(BuildContext context, WidgetRef ref, String? documentId) async {
     final result = await Navigator.push<Uint8List>(
       context,
       PageRouteBuilder(
@@ -131,7 +131,7 @@ class HomeScreen extends ConsumerWidget {
     );
     if (result == null || !context.mounted) return;
     if (documentId != null) {
-      ref.read(documentListProvider.notifier).addPageToDocument(documentId, result);
+      await ref.read(documentListProvider.notifier).addPageToDocument(documentId, result);
     } else {
       await ref.read(documentListProvider.notifier).scanFromBytes(result);
     }
@@ -166,8 +166,9 @@ class HomeScreen extends ConsumerWidget {
 
 class _DocumentGrid extends ConsumerWidget {
   final List<ScannedDocument> docs;
+  final VoidCallback onOpenScanner;
 
-  const _DocumentGrid({required this.docs});
+  const _DocumentGrid({required this.docs, required this.onOpenScanner});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -195,41 +196,10 @@ class _DocumentGrid extends ConsumerWidget {
       context,
       doc,
       onRename: () => _rename(context, ref, doc),
-      onAddPage: () => _openScanner(context, ref, doc.id),
+      onAddPage: () => HomeScreen._openScanner(context, ref, doc.id),
       onShare: () => _share(doc),
       onDelete: () => _delete(context, ref, doc),
     );
-  }
-
-  Future<void> _openScanner(BuildContext context, WidgetRef ref, String? documentId) async {
-    final result = await Navigator.push<Uint8List>(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const ScannerScreen(),
-        transitionsBuilder: (_, animation, __, child) =>
-            SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 1),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut)),
-              child: child,
-            ),
-      ),
-    );
-    if (result == null || !context.mounted) return;
-    if (documentId != null) {
-      await ref.read(documentListProvider.notifier).addPageToDocument(documentId, result);
-    } else {
-      await ref.read(documentListProvider.notifier).scanFromBytes(result);
-    }
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(documentId != null ? 'Page added' : 'Document saved'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
   }
 
   void _share(ScannedDocument doc) {
@@ -275,16 +245,35 @@ class _DocumentGrid extends ConsumerWidget {
   }
 
   void _delete(BuildContext context, WidgetRef ref, ScannedDocument doc) {
-    ref.read(documentListProvider.notifier).delete(doc.id);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('"${doc.name}" deleted'),
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () {
-            ScaffoldMessenger.of(context).clearSnackBars();
-          },
-        ),
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete document'),
+        content: Text('Are you sure you want to delete "${doc.name}"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              final deletedDoc = ref.read(documentListProvider.notifier).getDocument(doc.id);
+              ref.read(documentListProvider.notifier).delete(doc.id);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('"${doc.name}" deleted'),
+                  action: SnackBarAction(
+                    label: 'Undo',
+                    onPressed: () {
+                      if (deletedDoc != null) {
+                        ref.read(documentListProvider.notifier).restore(deletedDoc);
+                      }
+                    },
+                  ),
+                ),
+              );
+            },
+            child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          ),
+        ],
       ),
     );
   }

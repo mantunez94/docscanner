@@ -23,7 +23,6 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   DocumentFilter _selectedFilter = DocumentFilter.grayscale;
   final _controller = ImagePerspectiveCropController();
   bool _ocrLoading = false;
-  OcrResult? _ocrResult;
 
   @override
   void initState() {
@@ -58,10 +57,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       final service = ref.read(ocrServiceProvider);
       final result = await service.recognizeImage(widget.imagePath);
       if (!mounted) return;
-      setState(() {
-        _ocrLoading = false;
-        _ocrResult = result;
-      });
+      setState(() => _ocrLoading = false);
       _showOcrResult(result);
     } catch (e) {
       if (!mounted) return;
@@ -164,99 +160,85 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Adjust & Confirm')),
-      body: Stack(
-        children: [
-          ImagePerspectiveCrop(
-            image: _displayBytes!,
-            controller: _controller,
-            style: ImagePerspectiveCropStyle(
-              actionBarStyle: PerspectiveActionBarStyle(
-                backgroundColor: const Color(0xBB000000),
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                iconColor: Colors.white,
-                iconSize: 28,
-              ),
-              lineStyle: PerspectiveLineStyle(
-                color: const Color(0xFF00E5FF),
-                strokeWidth: 2.5,
-              ),
-              handleStyle: PerspectiveHandleStyle(
-                size: 26,
-                fillColor: const Color(0xFF00E5FF),
-                borderColor: Colors.white,
-                borderWidth: 2,
-              ),
-            ),
-            onCompleted: (result) {
-              if (result.status == PerspectiveCropStatus.complete && result.bytes != null) {
-                Navigator.pop(context, result.bytes!);
-              } else if (result.status == PerspectiveCropStatus.error) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: ${result.errorMessage}')),
-                  );
-                }
-              }
-            },
-            builders: ImagePerspectiveCropBuilders(
-              bottomBarWithControllerBuilder: (ctx, controller, close, switchBtn, complete) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildFilterBar(),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        SizedBox(width: 40, child: close),
-                        const SizedBox(width: 4),
-                        SizedBox(width: 40, child: switchBtn),
-                        const Spacer(),
-                        ElevatedButton.icon(
-                          onPressed: _ocrLoading ? null : _runOcr,
-                          icon: _ocrLoading
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Icon(Icons.text_snippet, size: 18),
-                          label: Text(
-                            _ocrLoading ? 'OCR...' : 'OCR',
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        ElevatedButton.icon(
-                          onPressed: () => Navigator.pop(context, 'retake'),
-                          icon: const Icon(Icons.camera_alt, size: 18),
-                          label: const Text('Retake', style: TextStyle(fontSize: 14)),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        SizedBox(width: 40, child: complete),
-                      ],
-                    ),
-                  ],
-                );
-              },
-            ),
+      body: ImagePerspectiveCrop(
+        image: _displayBytes!,
+        controller: _controller,
+        style: ImagePerspectiveCropStyle(
+          actionBarStyle: PerspectiveActionBarStyle(
+            backgroundColor: const Color(0xBB000000),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            iconColor: Colors.white,
+            iconSize: 28,
           ),
-          if (_ocrResult != null)
-            Positioned(
-              top: 8,
-              right: 8,
-              child: ActionChip(
-                avatar: const Icon(Icons.text_snippet, size: 16),
-                label: Text('${_ocrResult!.blocks.length} blocks'),
-                onPressed: () => _showOcrResult(_ocrResult!),
-              ),
-            ),
-        ],
+          lineStyle: PerspectiveLineStyle(
+            color: const Color(0xFF00E5FF),
+            strokeWidth: 2.5,
+          ),
+          handleStyle: PerspectiveHandleStyle(
+            size: 26,
+            fillColor: const Color(0xFF00E5FF),
+            borderColor: Colors.white,
+            borderWidth: 2,
+          ),
+        ),
+        onCompleted: (result) {
+          if (result.status == PerspectiveCropStatus.complete && result.bytes != null) {
+            Navigator.pop(context, result.bytes!);
+          } else if (result.status == PerspectiveCropStatus.error) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error: ${result.errorMessage}')),
+              );
+            }
+          }
+        },
+        builders: ImagePerspectiveCropBuilders(
+          bottomBarWithControllerBuilder: (ctx, controller, close, switchBtn, complete) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildFilterBar(),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    SizedBox(width: 40, child: close),
+                    const SizedBox(width: 4),
+                    SizedBox(width: 40, child: switchBtn),
+                    const Spacer(),
+                    ElevatedButton.icon(
+                      onPressed: _ocrLoading ? null : _runOcr,
+                      icon: _ocrLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.text_snippet, size: 18),
+                      label: Text(
+                        _ocrLoading ? 'OCR...' : 'OCR',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    ElevatedButton.icon(
+                      onPressed: () => Navigator.pop(context, 'retake'),
+                      icon: const Icon(Icons.camera_alt, size: 18),
+                      label: const Text('Retake', style: TextStyle(fontSize: 14)),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(width: 40, child: complete),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

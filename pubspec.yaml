@@ -30,19 +30,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
   camera: ^0.11.1
   image: ^4.5.3
   path_provider: ^2.1.5
   flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
   intl: ^0.20.2
   permission_handler: ^11.3.1
   flutter_image_perspective_crop: ^0.0.3
   share_plus: ^10.1.4
   shared_preferences: ^2.3.5
   pdf: ^3.11.3
-  printing: ^5.14.2
   google_mlkit_text_recognition: ^0.14.0
 
 dependency_overrides:

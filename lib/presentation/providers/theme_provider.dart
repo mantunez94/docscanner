@@ -11,17 +11,6 @@ final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((r
   return ThemeModeNotifier();
 });
 
-final appThemeDataProvider = Provider<ThemeData>((ref) {
-  final theme = ref.watch(themeProvider);
-  final mode = ref.watch(themeModeProvider);
-  final brightness = switch (mode) {
-    ThemeMode.light => Brightness.light,
-    ThemeMode.dark => Brightness.dark,
-    ThemeMode.system => WidgetsBinding.instance.platformDispatcher.platformBrightness,
-  };
-  return buildTheme(theme, brightness);
-});
-
 final appDarkThemeDataProvider = Provider<ThemeData>((ref) {
   final theme = ref.watch(themeProvider);
   return buildTheme(theme, Brightness.dark);

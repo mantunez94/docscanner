@@ -15,6 +15,7 @@ class ScannerScreen extends StatefulWidget {
 class _ScannerScreenState extends State<ScannerScreen> {
   CameraController? _controller;
   bool _initialized = false;
+  String? _error;
 
   @override
   void initState() {
@@ -23,15 +24,22 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   Future<void> _initCamera() async {
-    final cameras = await availableCameras();
-    if (cameras.isEmpty) return;
-    final controller = CameraController(cameras[0], ResolutionPreset.veryHigh);
-    await controller.initialize();
-    if (!mounted) return;
-    setState(() {
-      _controller = controller;
-      _initialized = true;
-    });
+    try {
+      final cameras = await availableCameras();
+      if (cameras.isEmpty) {
+        if (mounted) setState(() => _error = 'No camera found');
+        return;
+      }
+      final controller = CameraController(cameras[0], ResolutionPreset.veryHigh);
+      await controller.initialize();
+      if (!mounted) return;
+      setState(() {
+        _controller = controller;
+        _initialized = true;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Failed to initialize camera: $e');
+    }
   }
 
   @override
@@ -42,8 +50,38 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Scan Document')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+                const SizedBox(height: 16),
+                Text(_error!, textAlign: TextAlign.center),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Go back'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan Document')),
+      appBar: AppBar(
+        title: const Text('Scan Document'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: !_initialized
           ? const Center(child: CircularProgressIndicator())
           : Stack(
@@ -53,7 +91,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ],
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _capture,
+        onPressed: _initialized ? _capture : null,
         child: const Icon(Icons.camera),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -74,7 +112,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       final copy = await File(file.path).copy('${dir.path}/temp_scan.jpg');
       if (!mounted) return;
 
-      final result = await Navigator.push<Uint8List>(
+      final result = await Navigator.push<Object>(
         context,
         MaterialPageRoute(
           builder: (_) => PreviewScreen(imagePath: copy.path),
@@ -83,8 +121,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
       if (!mounted) return;
       if (result is Uint8List) {
-        Navigator.pop(context, result);
-      } else {
+        Navigator.pop<Uint8List>(context, result);
+      } else if (result == 'retake') {
         _capture();
       }
     } catch (e) {

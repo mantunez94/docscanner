@@ -62,21 +62,53 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
   }
 
   Future<void> addPageToDocument(String documentId, Uint8List bytes) async {
-    final addPages = ref.watch(_addPagesToDocumentProvider);
-    await addPages(documentId, bytes);
-    ref.invalidateSelf();
+    try {
+      final addPages = ref.watch(_addPagesToDocumentProvider);
+      await addPages(documentId, bytes);
+      ref.invalidateSelf();
+    } catch (e) {
+      state = AsyncError(e, StackTrace.current);
+    }
   }
 
   Future<void> delete(String id) async {
-    final delete = ref.watch(_deleteDocumentProvider);
-    await delete(id);
-    ref.invalidateSelf();
+    try {
+      final delete = ref.watch(_deleteDocumentProvider);
+      await delete(id);
+      ref.invalidateSelf();
+    } catch (e) {
+      state = AsyncError(e, StackTrace.current);
+    }
   }
 
   Future<void> rename(String id, String newName) async {
-    final rename = ref.watch(_renameDocumentProvider);
-    await rename(id, newName);
-    ref.invalidateSelf();
+    try {
+      final rename = ref.watch(_renameDocumentProvider);
+      await rename(id, newName);
+      ref.invalidateSelf();
+    } catch (e) {
+      state = AsyncError(e, StackTrace.current);
+    }
+  }
+
+  ScannedDocument? getDocument(String id) {
+    final docs = state.valueOrNull;
+    if (docs == null) return null;
+    try {
+      return docs.firstWhere((d) => d.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> restore(ScannedDocument document) async {
+    try {
+      final repo = ref.watch(_repositoryProvider);
+      await repo.save(document);
+      ref.invalidateSelf();
+    } catch (e) {
+      state = AsyncError(e, StackTrace.current);
+    }
   }
 
   Future<File> exportToPdf() async {

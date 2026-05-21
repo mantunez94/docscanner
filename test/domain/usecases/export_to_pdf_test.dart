@@ -1,88 +1,51 @@
-import 'dart:io';
 import 'package:docscanner/domain/entities/scanned_document.dart';
+import 'package:docscanner/domain/repositories/document_repository.dart';
 import 'package:docscanner/domain/usecases/export_to_pdf.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:image/image.dart' as img;
+import 'package:mocktail/mocktail.dart';
+
+class MockRepository extends Mock implements DocumentRepository {}
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
   group('ExportToPdf', () {
-    late Directory tempDir;
+    late ExportToPdf useCase;
+    late MockRepository repository;
 
     setUp(() {
-      tempDir = Directory.systemTemp.createTempSync('pdf_test_');
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('plugins.flutter.io/path_provider'),
-        (MethodCall call) async {
-          if (call.method == 'getApplicationDocumentsDirectory') {
-            return tempDir.path;
-          }
-          return null;
-        },
-      );
+      repository = MockRepository();
+      useCase = ExportToPdf(repository);
     });
 
-    tearDown(() {
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('plugins.flutter.io/path_provider'),
-        null,
-      );
-      tempDir.deleteSync(recursive: true);
-    });
-
-    test('creates a PDF file for documents with pages', () async {
-      final imagePath = '${tempDir.path}/test.jpg';
-      final image = img.Image(width: 10, height: 10);
-      await File(imagePath).writeAsBytes(img.encodeJpg(image));
-
+    test('collects page paths from documents', () async {
       final docs = [
         ScannedDocument(
           id: '1',
-          pages: [imagePath],
-          thumbnailPath: imagePath,
+          pages: ['/a.jpg'],
+          thumbnailPath: '/t.jpg',
           createdAt: DateTime(2026, 5, 21),
           name: 'Doc 1',
         ),
       ];
 
-      final export = ExportToPdf();
-      final file = await export(docs);
+      final result = await useCase(docs);
 
-      expect(file.existsSync(), isTrue);
-      expect(file.path.endsWith('.pdf'), isTrue);
-      expect(file.lengthSync(), greaterThan(0));
-
-      file.deleteSync();
+      expect(result, ['/a.jpg']);
     });
 
-    test('creates PDF with multiple pages from single document', () async {
-      final imagePath1 = '${tempDir.path}/page1.jpg';
-      final imagePath2 = '${tempDir.path}/page2.jpg';
-      final image = img.Image(width: 5, height: 5);
-      await File(imagePath1).writeAsBytes(img.encodeJpg(image));
-      await File(imagePath2).writeAsBytes(img.encodeJpg(image));
-
+    test('collects all page paths from multiple documents', () async {
       final docs = [
         ScannedDocument(
           id: '1',
-          pages: [imagePath1, imagePath2],
-          thumbnailPath: imagePath1,
+          pages: ['/a.jpg', '/b.jpg'],
+          thumbnailPath: '/t.jpg',
           createdAt: DateTime(2026, 5, 21),
           name: 'Multi',
         ),
       ];
 
-      final export = ExportToPdf();
-      final file = await export(docs);
+      final result = await useCase(docs);
 
-      expect(file.existsSync(), isTrue);
-      expect(file.lengthSync(), greaterThan(0));
-
-      file.deleteSync();
+      expect(result, ['/a.jpg', '/b.jpg']);
     });
   });
 }

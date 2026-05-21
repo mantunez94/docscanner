@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/datasources/local_datasource.dart';
 import '../../data/repositories/document_repository_impl.dart';
+import '../../data/services/file_service.dart';
 import '../../domain/entities/scanned_document.dart';
 import '../../domain/repositories/document_repository.dart';
 import '../../domain/usecases/add_pages_to_document.dart';
@@ -14,6 +15,10 @@ import '../../domain/usecases/scan_document.dart';
 
 final _repositoryProvider = Provider<DocumentRepository>((ref) {
   return DocumentRepositoryImpl(LocalDataSource());
+});
+
+final _fileServiceProvider = Provider<FileService>((ref) {
+  return FileService();
 });
 
 final _scanDocumentProvider = Provider<ScanDocument>((ref) {
@@ -33,7 +38,7 @@ final _renameDocumentProvider = Provider<RenameDocument>((ref) {
 });
 
 final _exportToPdfProvider = Provider<ExportToPdf>((ref) {
-  return ExportToPdf();
+  return ExportToPdf(ref.watch(_repositoryProvider));
 });
 
 final _addPagesToDocumentProvider = Provider<AddPagesToDocument>((ref) {
@@ -54,17 +59,40 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
 
   Future<void> scanFromBytes(Uint8List bytes) async {
     state = const AsyncLoading();
-    final scan = ref.watch(_scanDocumentProvider);
-    state = await AsyncValue.guard(() async {
-      await scan(bytes);
-      return ref.read(_getAllDocumentsProvider).call();
-    });
+    try {
+      final fileService = ref.read(_fileServiceProvider);
+      final id = DateTime.now().millisecondsSinceEpoch.toString();
+      final filePath = await fileService.savePageImage(id, bytes);
+      final thumbPath = await fileService.saveThumbnail(id, bytes);
+      final pdfPath = await fileService.generatePdf(id, [filePath]);
+      await fileService.saveToGallery(filePath);
+
+      final scan = ref.read(_scanDocumentProvider);
+      await scan(
+        id: id,
+        filePath: filePath,
+        thumbnailPath: thumbPath,
+        pdfPath: pdfPath,
+      );
+
+      state = AsyncData(await ref.read(_getAllDocumentsProvider).call());
+    } catch (e) {
+      state = AsyncError(e, StackTrace.current);
+    }
   }
 
   Future<void> addPageToDocument(String documentId, Uint8List bytes) async {
     try {
-      final addPages = ref.watch(_addPagesToDocumentProvider);
-      await addPages(documentId, bytes);
+      final fileService = ref.read(_fileServiceProvider);
+      final path = await fileService.savePageImageWithSuffix(documentId, bytes);
+      await fileService.saveToGallery(path);
+
+      final addPages = ref.read(_addPagesToDocumentProvider);
+      final updated = await addPages(documentId, [path]);
+
+      final pdfPath = await fileService.generatePdf(documentId, updated.pages);
+      await ref.read(_repositoryProvider).updatePdfPath(documentId, pdfPath);
+
       ref.invalidateSelf();
     } catch (e) {
       state = AsyncError(e, StackTrace.current);
@@ -115,6 +143,9 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
     final docs = state.valueOrNull ?? [];
     if (docs.isEmpty) throw Exception('No documents to export');
     final export = ref.watch(_exportToPdfProvider);
-    return export(docs);
+    final allPagePaths = await export(docs);
+    final fileService = ref.read(_fileServiceProvider);
+    final path = await fileService.exportPdf(allPagePaths);
+    return File(path);
   }
 }

@@ -1,12 +1,17 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:opencv_dart/opencv_dart.dart' as cv;
 import 'package:path_provider/path_provider.dart';
+import '../../core/document_boundary_detector.dart';
 import 'preview_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
-  const ScannerScreen({super.key});
+  final bool autoCapture;
+
+  const ScannerScreen({super.key, this.autoCapture = true});
 
   @override
   State<ScannerScreen> createState() => _ScannerScreenState();
@@ -16,6 +21,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
   CameraController? _controller;
   bool _initialized = false;
   String? _error;
+  bool _streamActive = false;
+  int _frameCount = 0;
+
+  final _boundaryDetector = DocumentBoundaryDetector();
+  List<cv.Point>? _corners;
+  bool _autoCapturing = false;
+  int _imageWidth = 0;
+  int _imageHeight = 0;
+
+  final List<double> _areas = [];
+  int _stableCount = 0;
 
   @override
   void initState() {
@@ -30,20 +46,98 @@ class _ScannerScreenState extends State<ScannerScreen> {
         if (mounted) setState(() => _error = 'No camera found');
         return;
       }
-      final controller = CameraController(cameras[0], ResolutionPreset.veryHigh);
+      final controller = CameraController(
+        cameras[0],
+        ResolutionPreset.veryHigh,
+        imageFormatGroup: ImageFormatGroup.yuv420,
+      );
       await controller.initialize();
       if (!mounted) return;
       setState(() {
         _controller = controller;
         _initialized = true;
       });
+      _startImageStream();
     } catch (e) {
       if (mounted) setState(() => _error = 'Failed to initialize camera: $e');
     }
   }
 
+  void _startImageStream() {
+    if (_controller == null || !_controller!.value.isInitialized) return;
+    _streamActive = true;
+    _controller!.startImageStream(_onImage);
+  }
+
+  void _stopImageStream() {
+    _streamActive = false;
+    try {
+      _controller?.stopImageStream();
+    } catch (_) {}
+  }
+
+  void _onImage(CameraImage image) {
+    if (!_streamActive) return;
+    _frameCount++;
+    if (_frameCount % 3 != 0) return;
+
+    _imageWidth = image.width;
+    _imageHeight = image.height;
+
+    final yPlane = image.planes[0];
+    final corners = _boundaryDetector.detectBoundary(
+      yPlane.bytes,
+      image.width,
+      image.height,
+      stride: yPlane.bytesPerRow,
+    );
+
+    if (mounted) {
+      setState(() => _corners = corners);
+    }
+
+    if (widget.autoCapture && !_autoCapturing) {
+      _checkAutoCapture(corners);
+    }
+  }
+
+  void _checkAutoCapture(List<cv.Point>? corners) {
+    if (corners == null || corners.length < 4) {
+      _areas.clear();
+      _stableCount = 0;
+      return;
+    }
+
+    final area = _boundaryDetector.computeAreaFraction(corners, _imageWidth, _imageHeight);
+    _areas.add(area);
+    if (_areas.length > 15) _areas.removeAt(0);
+    if (_areas.length < 15) return;
+
+    final mean = _areas.reduce((a, b) => a + b) / _areas.length;
+    if (mean <= 0) return;
+
+    final variance =
+        _areas.map((a) => (a - mean) * (a - mean)).reduce((a, b) => a + b) / _areas.length;
+    final cvVal = math.sqrt(variance) / mean;
+
+    if (cvVal < 0.05) {
+      _stableCount++;
+      if (_stableCount >= 5 && mean > 0.15) {
+        _triggerAutoCapture();
+      }
+    } else {
+      _stableCount = 0;
+    }
+  }
+
+  void _triggerAutoCapture() {
+    _autoCapturing = true;
+    _capture();
+  }
+
   @override
   void dispose() {
+    _stopImageStream();
     _controller?.dispose();
     super.dispose();
   }
@@ -81,6 +175,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          if (_autoCapturing)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+        ],
       ),
       body: !_initialized
           ? const Center(child: CircularProgressIndicator())
@@ -91,17 +196,34 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ],
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _initialized ? _capture : null,
-        child: const Icon(Icons.camera),
+        onPressed: (!_initialized || _autoCapturing) ? null : _capture,
+        child: _autoCapturing
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              )
+            : const Icon(Icons.camera),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
   Widget _buildOverlay() {
+    final preview = _controller?.value.previewSize;
+    if (preview == null) return const SizedBox.shrink();
+
     return CustomPaint(
       size: Size.infinite,
-      painter: _ScannerOverlayPainter(),
+      painter: _BoundaryOverlayPainter(
+        corners: _corners,
+        previewWidth: preview.width,
+        previewHeight: preview.height,
+        sensorOrientation: _controller!.value.description.sensorOrientation,
+        imageWidth: _imageWidth,
+        imageHeight: _imageHeight,
+        isAutoCapturing: _autoCapturing,
+      ),
     );
   }
 
@@ -123,9 +245,38 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (result is Uint8List) {
         Navigator.pop<Uint8List>(context, result);
       } else if (result == 'retake') {
-        _capture();
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Retake?'),
+            content: const Text('The current page will be discarded.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Keep'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Retake'),
+              ),
+            ],
+          ),
+        );
+        if (!context.mounted) return;
+        if (confirm == true) {
+          _autoCapturing = false;
+          _areas.clear();
+          _stableCount = 0;
+          _corners = null;
+        } else {
+          Navigator.pop(context);
+        }
+      } else {
+        _autoCapturing = false;
       }
     } catch (e) {
+      _autoCapturing = false;
+      _startImageStream();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
@@ -135,39 +286,127 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 }
 
-class _ScannerOverlayPainter extends CustomPainter {
+class _BoundaryOverlayPainter extends CustomPainter {
+  final List<cv.Point>? corners;
+  final double previewWidth;
+  final double previewHeight;
+  final int sensorOrientation;
+  final int imageWidth;
+  final int imageHeight;
+  final bool isAutoCapturing;
+
+  _BoundaryOverlayPainter({
+    this.corners,
+    required this.previewWidth,
+    required this.previewHeight,
+    required this.sensorOrientation,
+    required this.imageWidth,
+    required this.imageHeight,
+    this.isAutoCapturing = false,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
+    final scaleX = size.width / previewWidth;
+    final scaleY = size.height / previewHeight;
+
     final paint = Paint()
-      ..color = Colors.white.withAlpha(60)
+      ..color = Colors.black.withAlpha(100)
       ..style = PaintingStyle.fill;
 
-    final rect = Rect.fromCenter(
-      center: Offset(size.width / 2, size.height / 2),
-      width: size.width * 0.85,
-      height: size.height * 0.55,
-    );
-
-    canvas.drawPath(
-      Path.combine(
-        PathOperation.difference,
-        Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
-        Path()..addRRect(RRect.fromRectAndRadius(rect, const Radius.circular(12))),
-      ),
-      paint,
-    );
-
     final borderPaint = Paint()
-      ..color = Colors.white
+      ..color = isAutoCapturing ? Colors.greenAccent : Colors.cyanAccent
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = 3;
 
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, const Radius.circular(12)),
-      borderPaint,
-    );
+    final cornerPaint = Paint()
+      ..color = isAutoCapturing ? Colors.greenAccent : Colors.cyanAccent
+      ..style = PaintingStyle.fill;
+
+    if (corners != null && corners!.length >= 4) {
+      final pts = _mapCorners(corners!, scaleX, scaleY);
+
+      final docPath = Path()..moveTo(pts[0].dx, pts[0].dy);
+      for (var i = 1; i < pts.length; i++) {
+        docPath.lineTo(pts[i].dx, pts[i].dy);
+      }
+      docPath.close();
+
+      canvas.drawPath(
+        Path.combine(
+          PathOperation.difference,
+          Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
+          docPath,
+        ),
+        paint,
+      );
+
+      canvas.drawPath(docPath, borderPaint);
+
+      for (final p in pts) {
+        canvas.drawCircle(p, 6, cornerPaint);
+        canvas.drawCircle(p, 6, Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2);
+      }
+    } else {
+      final rect = Rect.fromCenter(
+        center: Offset(size.width / 2, size.height / 2),
+        width: size.width * 0.85,
+        height: size.height * 0.55,
+      );
+
+      canvas.drawPath(
+        Path.combine(
+          PathOperation.difference,
+          Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
+          Path()..addRRect(RRect.fromRectAndRadius(rect, const Radius.circular(12))),
+        ),
+        paint,
+      );
+
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(12)),
+        borderPaint,
+      );
+    }
+  }
+
+  List<Offset> _mapCorners(List<cv.Point> corners, double scaleX, double scaleY) {
+    return corners.map((p) {
+      double x = p.x.toDouble();
+      double y = p.y.toDouble();
+
+      final w = imageWidth.toDouble();
+      final h = imageHeight.toDouble();
+
+      switch (sensorOrientation) {
+        case 90:
+          final tmp = x;
+          x = h - y;
+          y = tmp;
+        case 180:
+          x = w - x;
+          y = h - y;
+        case 270:
+          final tmp = x;
+          x = y;
+          y = w - tmp;
+      }
+
+      final displayW = (sensorOrientation == 90 || sensorOrientation == 270) ? h : w;
+      final displayH = (sensorOrientation == 90 || sensorOrientation == 270) ? w : h;
+
+      return Offset(
+        x * scaleX * previewWidth / displayW,
+        y * scaleY * previewHeight / displayH,
+      );
+    }).toList();
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _BoundaryOverlayPainter oldDelegate) {
+    return oldDelegate.corners != corners || oldDelegate.isAutoCapturing != isAutoCapturing;
+  }
 }

@@ -10,6 +10,7 @@ import '../../domain/usecases/add_pages_to_document.dart';
 import '../../domain/usecases/delete_document.dart';
 import '../../domain/usecases/export_to_pdf.dart';
 import '../../domain/usecases/get_all_documents.dart';
+import '../../domain/usecases/remove_page_from_document.dart';
 import '../../domain/usecases/rename_document.dart';
 import '../../domain/usecases/scan_document.dart';
 
@@ -43,6 +44,10 @@ final _exportToPdfProvider = Provider<ExportToPdf>((ref) {
 
 final _addPagesToDocumentProvider = Provider<AddPagesToDocument>((ref) {
   return AddPagesToDocument(ref.watch(_repositoryProvider));
+});
+
+final _removePageFromDocumentProvider = Provider<RemovePageFromDocument>((ref) {
+  return RemovePageFromDocument(ref.watch(_repositoryProvider));
 });
 
 final documentListProvider =
@@ -103,6 +108,19 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
     try {
       final delete = ref.watch(_deleteDocumentProvider);
       await delete(id);
+      ref.invalidateSelf();
+    } catch (e) {
+      state = AsyncError(e, StackTrace.current);
+    }
+  }
+
+  Future<void> removePage(String id, String pagePath) async {
+    try {
+      final removePage = ref.read(_removePageFromDocumentProvider);
+      final updated = await removePage(id, pagePath);
+      final fileService = ref.read(_fileServiceProvider);
+      final pdfPath = await fileService.generatePdf(id, updated.pages);
+      await ref.read(_repositoryProvider).updatePdfPath(id, pdfPath);
       ref.invalidateSelf();
     } catch (e) {
       state = AsyncError(e, StackTrace.current);

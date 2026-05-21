@@ -43,6 +43,12 @@ class DocumentRepositoryImpl implements DocumentRepository {
   }
 
   @override
+  Future<ScannedDocument> removePage(String id, String pagePath) async {
+    final model = await dataSource.removePage(id, pagePath);
+    return model.toEntity();
+  }
+
+  @override
   Future<void> updatePdfPath(String id, String pdfPath) async {
     await dataSource.updatePdfPath(id, pdfPath);
   }

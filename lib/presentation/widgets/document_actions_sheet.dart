@@ -8,6 +8,7 @@ Future<void> showDocumentActionsSheet(
   required VoidCallback onAddPage,
   required VoidCallback onShare,
   required VoidCallback onDelete,
+  VoidCallback? onViewPages,
 }) {
   return showModalBottomSheet(
     context: context,
@@ -34,6 +35,12 @@ Future<void> showDocumentActionsSheet(
             label: 'Add page',
             onTap: () { Navigator.pop(ctx); onAddPage(); },
           ),
+          if (onViewPages != null)
+            _ActionTile(
+              icon: Icons.pages_outlined,
+              label: 'View pages (${doc.pageCount})',
+              onTap: () { Navigator.pop(ctx); onViewPages(); },
+            ),
           _ActionTile(
             icon: Icons.share_outlined,
             label: 'Share',

@@ -54,6 +54,20 @@ class LocalDataSource {
     return _cache[index];
   }
 
+  Future<ScannedDocumentModel> removePage(String id, String pagePath) async {
+    final index = _cache.indexWhere((d) => d.id == id);
+    if (index == -1) throw Exception('Document not found');
+    final existing = _cache[index];
+    final remaining = existing.pages.where((p) => p != pagePath).toList();
+    if (remaining.isEmpty) throw Exception('Cannot remove the last page');
+    _cache[index] = existing.copyWith(
+      filePath: remaining.first,
+      pages: remaining,
+    );
+    await _persist();
+    return _cache[index];
+  }
+
   Future<void> updatePdfPath(String id, String pdfPath) async {
     final index = _cache.indexWhere((d) => d.id == id);
     if (index == -1) throw Exception('Document not found');

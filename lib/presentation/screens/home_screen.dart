@@ -9,6 +9,7 @@ import '../theme/themes.dart';
 import '../widgets/document_actions_sheet.dart';
 import '../widgets/document_card.dart';
 import '../widgets/shimmer_grid.dart';
+import 'document_detail_screen.dart';
 import 'scanner_screen.dart';
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
@@ -35,6 +36,8 @@ class HomeScreen extends ConsumerWidget {
         ? documents
         : documents.where((d) =>
             d.name.toLowerCase().contains(searchQuery.toLowerCase())).toList();
+
+    final isSearching = searchQuery.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -171,14 +174,25 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                  Expanded(
-                    child: filtered.isEmpty && searchQuery.isNotEmpty
-                        ? Center(
-                            child: Text('No documents match "$searchQuery"',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface.withAlpha(150))),
-                          )
-                        : RefreshIndicator(
+                    Expanded(
+                      child: filtered.isEmpty && isSearching
+                          ? Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.search_off, size: 64,
+                                    color: Theme.of(context).colorScheme.onSurface.withAlpha(80)),
+                                  const SizedBox(height: 16),
+                                  Text('No documents match',
+                                    style: Theme.of(context).textTheme.titleMedium),
+                                  const SizedBox(height: 4),
+                                  Text('"$searchQuery"',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurface.withAlpha(150))),
+                                ],
+                              ),
+                            )
+                          : RefreshIndicator(
                             onRefresh: () async {
                               ref.invalidate(documentListProvider);
                             },
@@ -301,6 +315,16 @@ class HomeScreen extends ConsumerWidget {
       onAddPage: () => _openScanner(context, ref, doc.id),
       onShare: () => _share(doc),
       onDelete: () => _deleteOne(context, ref, doc),
+      onViewPages: () => _openDetail(context, ref, doc),
+    );
+  }
+
+  void _openDetail(BuildContext context, WidgetRef ref, ScannedDocument doc) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DocumentDetailScreen(document: doc),
+      ),
     );
   }
 

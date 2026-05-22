@@ -241,20 +241,26 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
           final scanAnother = await showDialog<bool>(
             context: context,
-            barrierDismissible: false,
-            builder: (ctx) => AlertDialog(
-              title: const Text('Page saved'),
-              content: const Text('Scan another page?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Done'),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text('Scan another'),
-                ),
-              ],
+            barrierDismissible: true,
+            builder: (ctx) => PopScope(
+              canPop: false,
+              onPopInvokedWithResult: (didPop, _) {
+                if (!didPop) Navigator.pop(ctx, false);
+              },
+              child: AlertDialog(
+                title: const Text('Page saved'),
+                content: const Text('Scan another page?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('Done'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text('Scan another'),
+                  ),
+                ],
+              ),
             ),
           );
 

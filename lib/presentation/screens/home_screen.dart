@@ -48,6 +48,7 @@ class HomeScreen extends ConsumerWidget {
         leading: batchMode
             ? IconButton(
                 icon: const Icon(Icons.close),
+                tooltip: 'Cancel selection',
                 onPressed: () {
                   ref.read(batchModeProvider.notifier).state = false;
                   ref.read(selectedIdsProvider.notifier).state = {};

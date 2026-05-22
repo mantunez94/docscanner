@@ -289,6 +289,16 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     }
   }
 
+  bool get _hasChanges {
+    if (_originalCorners == null || _corners == null) return false;
+    if (_originalCorners!.length != _corners!.length) return true;
+    for (var i = 0; i < _originalCorners!.length; i++) {
+      if (_originalCorners![i].x != _corners![i].x ||
+          _originalCorners![i].y != _corners![i].y) return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_displayBytes == null) {
@@ -298,7 +308,32 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       );
     }
 
-    return Scaffold(
+    return PopScope(
+      canPop: !_hasChanges,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Discard changes?'),
+            content: const Text('You have made adjustments to the crop area. Do you want to discard them?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Keep editing'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        );
+        if (confirm == true && mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(title: const Text('Adjust & Confirm')),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -468,6 +503,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -529,9 +565,19 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       if (!success) throw Exception('Failed to encode');
       if (mounted) Navigator.pop(context, encoded);
     } catch (e) {
-      if (!mounted) return;
-      final bytes = _displayBytes;
-      if (bytes != null) Navigator.pop(context, bytes);
+      if (mounted) {
+        final bytes = _displayBytes;
+        if (bytes != null) {
+          Navigator.pop(context, bytes);
+        } else {
+          setState(() => _saving = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to process image. Please try again.')),
+          );
+        }
+      } else {
+        _saving = false;
+      }
     }
   }
 }

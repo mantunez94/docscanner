@@ -260,6 +260,16 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
           content: Text(count >= widget.document.pages.length
               ? 'Cannot delete all pages. Delete the document instead.'
               : 'No pages selected'),
+          duration: const Duration(seconds: 4),
+          action: count >= widget.document.pages.length
+              ? SnackBarAction(
+                  label: 'Delete document',
+                  onPressed: () {
+                    ref.read(documentListProvider.notifier).delete(widget.document.id);
+                    Navigator.pop(context);
+                  },
+                )
+              : null,
         ),
       );
       return;

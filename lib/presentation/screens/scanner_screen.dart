@@ -200,6 +200,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   void _triggerAutoCapture() {
+    HapticFeedback.mediumImpact();
     _autoCapturing = true;
     _capture();
   }
@@ -312,6 +313,27 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else if (widget.autoCapture && _detectedCount > 0)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(5, (i) {
+                  final filled = i < _detectedCount;
+                  return Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: filled
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurface.withAlpha(40),
+                    ),
+                  );
+                }),
               ),
             ),
         ],

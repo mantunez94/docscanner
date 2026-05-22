@@ -8,6 +8,10 @@ while read local_ref local_sha remote_ref remote_sha; do
   if [ "$local_sha" = "$z40" ]; then
     continue
   fi
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    echo "❌ Direct pushes to main are not allowed. Create a PR instead."
+    exit 1
+  fi
   if [ "$remote_sha" = "$z40" ]; then
     range="$local_sha"
   else

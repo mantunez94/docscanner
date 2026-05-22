@@ -75,6 +75,18 @@ class LocalDataSource {
     await _persist();
   }
 
+  Future<ScannedDocumentModel> reorderPages(String id, List<String> reorderedPages) async {
+    final index = _cache.indexWhere((d) => d.id == id);
+    if (index == -1) throw Exception('Document not found');
+    final existing = _cache[index];
+    _cache[index] = existing.copyWith(
+      filePath: reorderedPages.first,
+      pages: reorderedPages,
+    );
+    await _persist();
+    return _cache[index];
+  }
+
   Future<void> delete(String id) async {
     _cache.removeWhere((d) => d.id == id);
     await _persist();

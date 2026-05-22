@@ -49,6 +49,12 @@ class DocumentRepositoryImpl implements DocumentRepository {
   }
 
   @override
+  Future<ScannedDocument> reorderPages(String id, List<String> reorderedPages) async {
+    final model = await dataSource.reorderPages(id, reorderedPages);
+    return model.toEntity();
+  }
+
+  @override
   Future<void> updatePdfPath(String id, String pdfPath) async {
     await dataSource.updatePdfPath(id, pdfPath);
   }

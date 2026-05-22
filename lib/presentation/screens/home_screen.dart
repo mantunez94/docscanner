@@ -316,14 +316,15 @@ class HomeScreen extends ConsumerWidget {
       onShare: () => _share(doc),
       onDelete: () => _deleteOne(context, ref, doc),
       onViewPages: () => _openDetail(context, ref, doc),
+      onReorderPages: () => _openDetail(context, ref, doc, reorderMode: true),
     );
   }
 
-  void _openDetail(BuildContext context, WidgetRef ref, ScannedDocument doc) {
+  void _openDetail(BuildContext context, WidgetRef ref, ScannedDocument doc, {bool reorderMode = false}) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => DocumentDetailScreen(document: doc),
+        builder: (_) => DocumentDetailScreen(document: doc, initialReorderMode: reorderMode),
       ),
     );
   }

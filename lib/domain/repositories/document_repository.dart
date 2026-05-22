@@ -7,5 +7,6 @@ abstract class DocumentRepository {
   Future<ScannedDocument> rename(String id, String newName);
   Future<ScannedDocument> addPages(String id, List<String> pagePaths, [String? pdfPath]);
   Future<ScannedDocument> removePage(String id, String pagePath);
+  Future<ScannedDocument> reorderPages(String id, List<String> reorderedPages);
   Future<void> updatePdfPath(String id, String pdfPath);
 }

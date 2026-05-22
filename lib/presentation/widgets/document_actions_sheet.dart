@@ -9,6 +9,7 @@ Future<void> showDocumentActionsSheet(
   required VoidCallback onShare,
   required VoidCallback onDelete,
   VoidCallback? onViewPages,
+  VoidCallback? onReorderPages,
 }) {
   return showModalBottomSheet(
     context: context,
@@ -40,6 +41,12 @@ Future<void> showDocumentActionsSheet(
               icon: Icons.pages_outlined,
               label: 'View pages (${doc.pageCount})',
               onTap: () { Navigator.pop(ctx); onViewPages(); },
+            ),
+          if (onReorderPages != null && doc.pages.length > 1)
+            _ActionTile(
+              icon: Icons.swap_vert_outlined,
+              label: 'Reorder pages',
+              onTap: () { Navigator.pop(ctx); onReorderPages(); },
             ),
           _ActionTile(
             icon: Icons.share_outlined,

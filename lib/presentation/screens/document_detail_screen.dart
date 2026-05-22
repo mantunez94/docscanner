@@ -86,6 +86,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
         leading: _batchMode
             ? IconButton(
                 icon: const Icon(Icons.close),
+                tooltip: 'Cancel selection',
                 onPressed: () => setState(() {
                   _batchMode = false;
                   _selectedIndices.clear();
@@ -94,6 +95,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
             : _reorderMode
                 ? IconButton(
                     icon: const Icon(Icons.close),
+                    tooltip: 'Cancel reorder',
                     onPressed: _cancelReorder,
                   )
                 : null,

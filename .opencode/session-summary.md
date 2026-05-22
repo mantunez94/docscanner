@@ -58,6 +58,10 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 2. **4 OpenCV tests skipped on host** — native lib not available on host test runner; run on device only.
 3. **`document_processor.dart`** in `core/` is not used — all processing is inlined in `preview_screen.dart` for simplicity. Should be refactored.
 
+### Recent Changes
+
+- **Auto-capture tuning** (2026-05-22): Increased area threshold from 10% → 15% and consecutive detections from 5 → 8 to give more time to center the document before capture.
+
 ### Test Suite
 
 36 tests total (4 skipped on host):

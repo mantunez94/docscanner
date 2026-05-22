@@ -110,13 +110,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
 
     final area = _boundaryDetector.computeAreaFraction(corners, _imageWidth, _imageHeight);
-    if (area < 0.10) {
+    if (area < 0.15) {
       _detectedCount = 0;
       return;
     }
 
     _detectedCount++;
-    if (_detectedCount >= 5) {
+    if (_detectedCount >= 8) {
       _triggerAutoCapture();
     }
   }

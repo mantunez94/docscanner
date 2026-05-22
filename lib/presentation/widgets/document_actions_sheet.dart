@@ -18,7 +18,12 @@ Future<void> showDocumentActionsSheet(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+            padding: const EdgeInsets.only(top: 12),
+            child: Icon(Icons.description_outlined, size: 32,
+              color: Theme.of(context).colorScheme.primary),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
               doc.name,
               style: Theme.of(context).textTheme.titleMedium,

@@ -73,13 +73,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(_pages.length, (i) {
+                final isLast = i == _pages.length - 1;
                 return Semantics(
                   label: 'Page ${i + 1} of ${_pages.length}',
                   selected: _currentPage == i,
                   child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: _currentPage == i ? 24 : 8,
+                  width: _currentPage == i ? (isLast ? 32 : 24) : 8,
                   height: 8,
                   decoration: BoxDecoration(
                     color: _currentPage == i
@@ -87,6 +88,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         : theme.colorScheme.onSurface.withAlpha(60),
                     borderRadius: BorderRadius.circular(4),
                   ),
+                  child: isLast && _currentPage == i
+                      ? const Icon(Icons.check, size: 6, color: Colors.white)
+                      : null,
                   ),
                 );
               }),

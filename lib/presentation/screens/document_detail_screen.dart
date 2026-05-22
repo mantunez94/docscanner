@@ -130,7 +130,20 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                 : null,
       ),
       body: pages.isEmpty
-          ? Center(child: Text('No pages', style: theme.textTheme.bodyMedium))
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.photo_library_outlined, size: 64,
+                    color: theme.colorScheme.onSurface.withAlpha(80)),
+                  const SizedBox(height: 16),
+                  Text('No pages', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text('This document has no pages', style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withAlpha(150))),
+                ],
+              ),
+            )
           : _reorderMode
               ? _buildReorderableList(pages, theme)
               : _buildGridView(pages, theme),

@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart' show Share, XFile;
@@ -241,14 +240,11 @@ class HomeScreen extends ConsumerWidget {
       ),
       floatingActionButton: batchMode
           ? null
-          : GestureDetector(
-              onLongPress: () => _startBatchScan(context, ref),
-              child: FloatingActionButton.extended(
-                onPressed: () => _openScanner(context, ref, null),
-                icon: const Icon(Icons.camera_alt),
-                label: const Text('Scan'),
-                tooltip: 'Tap for single page, hold for batch scan',
-              ),
+          : FloatingActionButton.extended(
+              onPressed: () => _openScanner(context, ref, null),
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('Scan'),
+              tooltip: 'Scan a document',
             ),
     );
   }
@@ -283,38 +279,7 @@ class HomeScreen extends ConsumerWidget {
   }
 
   static Future<void> _openScanner(BuildContext context, WidgetRef ref, String? documentId) async {
-    final result = await Navigator.push<Uint8List>(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const ScannerScreen(),
-        transitionsBuilder: (_, animation, __, child) =>
-            SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 1),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut)),
-              child: child,
-            ),
-      ),
-    );
-    if (result == null || !context.mounted) return;
-    if (documentId != null) {
-      await ref.read(documentListProvider.notifier).addPageToDocument(documentId, result);
-    } else {
-      await ref.read(documentListProvider.notifier).scanFromBytes(result);
-    }
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(documentId != null ? 'Page added' : 'Document saved'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  static Future<void> _startBatchScan(BuildContext context, WidgetRef ref) async {
-    String? docId;
+    String? docId = documentId;
 
     await Navigator.push(
       context,
@@ -343,6 +308,12 @@ class HomeScreen extends ConsumerWidget {
     );
     if (!context.mounted) return;
     ref.invalidate(documentListProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(documentId != null ? 'Pages added' : 'Document saved'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void _showActions(BuildContext context, WidgetRef ref, ScannedDocument doc) {

@@ -188,17 +188,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 _buildOverlay(),
               ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: (!_initialized || _autoCapturing) ? null : _capture,
-        child: _autoCapturing
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-              )
-            : const Icon(Icons.camera),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 

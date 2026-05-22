@@ -163,7 +163,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
       appBar: AppBar(
         title: const Text('Scan Document'),
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.home_outlined),
+          tooltip: 'Home',
           onPressed: () => Navigator.pop(context),
         ),
         actions: [

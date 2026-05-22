@@ -86,6 +86,13 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 - **Manual capture removed**: Auto-capture only.
 - **Default theme**: Arcade → Professional.
 - **Home button**: X → home_outlined.
+- **UX audit (6 GitHub issues created)**: Reviewed all touch targets, dismissible dialogs, magnifier positioning, tooltip labels, PopScope guards, manual capture fallback.
+- **#8 Fixed**: Batch dialog made dismissible — `barrierDismissible: true` on "Scan another?" dialog.
+- **#6 Fixed**: 48dp touch targets — corner handles in preview screen increased from 12px radius to 24dp (24.0 radius).
+- **#9 Fixed**: Magnifier adaptive position — positions below finger when in top 40% of screen, above otherwise, clamped to screen edges.
+- **#11 Fixed**: Tooltip labels on all icon-only buttons — Corner reset, Extract Text, Rename, Delete, Reorder pages, Search, Batch delete, Home.
+- **#10 Fixed**: PopScope guard — wraps ScannerScreen's Scaffold, intercepts back navigation in batch mode with "Discard batch?" confirmation dialog.
+- **#7 Fixed**: Manual capture fallback — `FloatingActionButton.large` at `centerFloat` with camera icon; shows spinner during auto-capture, enabled otherwise.
 
 ### Test Suite
 

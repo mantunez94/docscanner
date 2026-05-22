@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../core/document_boundary_detector.dart';
 import 'preview_screen.dart';
 
@@ -28,6 +29,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   CameraController? _controller;
   bool _initialized = false;
   String? _error;
+  bool _permissionDenied = false;
   bool _streamActive = false;
   int _frameCount = 0;
 
@@ -43,7 +45,67 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   void initState() {
     super.initState();
-    _initCamera();
+    _requestCameraPermission();
+  }
+
+  Future<void> _requestCameraPermission() async {
+    final status = await Permission.camera.status;
+    if (status.isGranted) {
+      _initCamera();
+      return;
+    }
+
+    if (status.isPermanentlyDenied) {
+      if (mounted) {
+        setState(() {
+          _error = 'Camera permission is permanently denied. Please enable it in app settings.';
+          _permissionDenied = true;
+        });
+      }
+      return;
+    }
+
+    if (mounted) {
+      final rationale = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Camera permission needed'),
+          content: const Text(
+            'DocScanner needs access to your camera to scan documents. '
+            'No photos are taken without your action.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Deny'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Allow'),
+            ),
+          ],
+        ),
+      );
+
+      if (rationale != true || !mounted) {
+        setState(() => _error = 'Camera permission is required to scan documents.');
+        return;
+      }
+    }
+
+    final result = await Permission.camera.request();
+    if (!mounted) return;
+
+    if (result.isGranted) {
+      _initCamera();
+    } else if (result.isPermanentlyDenied) {
+      setState(() {
+        _error = 'Camera permission is permanently denied. Please enable it in app settings.';
+        _permissionDenied = true;
+      });
+    } else {
+      setState(() => _error = 'Camera permission is required to scan documents.');
+    }
   }
 
   Future<void> _initCamera() async {
@@ -66,8 +128,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
         _initialized = true;
       });
       _startImageStream();
-    } catch (e) {
-      if (mounted) setState(() => _error = 'Failed to initialize camera: $e');
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Failed to open camera. Please try again.');
     }
   }
 
@@ -160,13 +222,44 @@ class _ScannerScreenState extends State<ScannerScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+                Icon(
+                  _permissionDenied ? Icons.no_photography_outlined : Icons.error_outline,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.error,
+                ),
                 const SizedBox(height: 16),
                 Text(_error!, textAlign: TextAlign.center),
                 const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Go back'),
+                if (_permissionDenied)
+                  FilledButton.icon(
+                    onPressed: () async {
+                      await openAppSettings();
+                    },
+                    icon: const Icon(Icons.settings, size: 18),
+                    label: const Text('Open Settings'),
+                  ),
+                if (_permissionDenied) const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Go back'),
+                    ),
+                    if (!_permissionDenied) ...[
+                      const SizedBox(width: 12),
+                      FilledButton(
+                        onPressed: () {
+                          setState(() {
+                            _error = null;
+                            _permissionDenied = false;
+                          });
+                          _requestCameraPermission();
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),

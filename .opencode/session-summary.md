@@ -71,17 +71,9 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 2. **`document_processor.dart`** in `core/` is not used — all processing is inlined in `preview_screen.dart`.
 3. **`_imageMat` (cv.Mat)** stored field may be unused after removing OpenCV-based magnifier — verify in refactor pass.
 
-### Recent Changes (2026-05-22) - Batch 2: UX Audit Fixes #16-#22
+### Recent Changes (2026-05-22)
 
-All 7 GitHub issues from the UX audit are now resolved:
-
-- **#18 Fixed**: Onboarding page 2 copy updated — "Filters & Adjustments" → "Adjust & Refine" with accurate descriptions for perspective correction and corner adjustment.
-- **#21 Fixed**: Inverted font size hierarchy in Arcade theme — `titleLarge` increased (20px PressStart2P), `titleMedium` reduced (18px VT323), `titleSmall` reduced (16px VT323) to match M3 spec.
-- **#19 Fixed**: SnackBar only shows "Document saved"/"Pages added" when actual scanning occurred — tracks `pagesScanned` counter and returns `true` from scanner in batch mode.
-- **#20 Fixed**: All raw exception strings replaced with human-readable messages — scanner capture, PDF export, and OCR extraction errors now show user-friendly text.
-- **#22 Fixed**: Gallery/disk saves happen after database write to prevent orphaned files on failure — `scanFromBytes` and `addPageToDocument` reordered; added `_cleanupFiles` to remove orphaned files if database write fails.
-- **#16 Fixed**: Semantic labels added across all screens for TalkBack accessibility — FAB tooltip, boundary overlay, crop overlay, magnifier, corner handles, search field, page indicator dots, page thumbnails, drag handles, document card thumbnails all wrapped in `Semantics` with descriptive labels.
-- **#17 Fixed**: Camera permission request flow — rationale dialog before system prompt, graceful handling of denied/permanently-denied states, `openAppSettings()` button, retry button for non-permission errors, user-friendly error messages replacing raw exceptions.
+- **PDF regeneration after image editing**: Editing a page in PreviewScreen now writes the edited image bytes back to disk and regenerates the PDF, ensuring the PDF stays in sync with the edited image.
 
 ### Test Suite
 

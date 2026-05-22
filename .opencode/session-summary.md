@@ -54,13 +54,14 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 
 ### Known Issues
 
-1. **Magnifier** — `RawMagnifier` shows the overlay + handle pixels, not clean image. Needs custom implementation that extracts a Mat ROI around the corner and displays it zoomed in a floating widget (extract 40x40 px → resize 4x → show in ClipOval).
-2. **4 OpenCV tests skipped on host** — native lib not available on host test runner; run on device only.
-3. **`document_processor.dart`** in `core/` is not used — all processing is inlined in `preview_screen.dart` for simplicity. Should be refactored.
+1. **4 OpenCV tests skipped on host** — native lib not available on host test runner; run on device only.
+2. **`document_processor.dart`** in `core/` is not used — all processing is inlined in `preview_screen.dart` for simplicity. Should be refactored.
 
 ### Recent Changes
 
 - **Auto-capture tuning** (2026-05-22): Increased area threshold from 10% → 15% and consecutive detections from 5 → 8 to give more time to center the document before capture.
+- **Custom magnifier + grid** (2026-05-22): Replaced `RawMagnifier` with custom widget that extracts a 40×40 ROI from `_imageMat` at the dragged corner, resizes 4×, and displays in a circular container. Added rule-of-thirds grid overlay (white, alpha 50) to help align document borders. Re-enabled crop overlay during drag for visual feedback.
+- **Home button** (2026-05-22): Changed close icon (X) to home icon in scanner AppBar for clearer navigation.
 
 ### Test Suite
 
@@ -83,10 +84,8 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 
 ## Next Steps (suggested order)
 
-1. **Fix magnifier** — custom widget: extract Mat ROI (40x40 px) from `_imageMat` around corner, resize 4x, encode as PNG, display in ClipOval above drag point
-2. **Manual corner reset** — allow user to reset corners to auto-detected position
-3. **Auto-capture tuning** — verify 3-frame threshold vs 8% fill fraction on real device scenarios
-4. **Dark mode per-theme** — verify all 3 themes have complete dark variants
-5. **Widget tests** — search, batch mode, onboarding, OCR, document detail, boundary overlay painters
-6. **App icon + splash screen branding**
-7. **Play Store prep** — CI/CD, screenshots, description
+1. **Manual corner reset** — allow user to reset corners to auto-detected position
+2. **Dark mode per-theme** — verify all 3 themes have complete dark variants
+3. **Widget tests** — search, batch mode, onboarding, OCR, document detail, boundary overlay painters
+4. **App icon + splash screen branding**
+5. **Play Store prep** — CI/CD, screenshots, description

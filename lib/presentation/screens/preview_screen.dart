@@ -320,7 +320,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
               Center(
                 child: Image.memory(_displayBytes!, fit: BoxFit.contain),
               ),
-              if (_imageRect != Rect.zero && _draggingIndex < 0)
+              if (_imageRect != Rect.zero)
                 Positioned.fill(
                   child: CustomPaint(
                     painter: _CropOverlayPainter(
@@ -355,26 +355,8 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                       ),
                     ),
                   ),
-              if (_draggingIndex >= 0)
-                Positioned(
-                  left: _dragLocalPos.dx - 50,
-                  top: _dragLocalPos.dy - 120,
-                  child: IgnorePointer(
-                    child: RawMagnifier(
-                      size: const Size(100, 100),
-                      magnificationScale: 2.5,
-                      focalPointOffset: const Offset(50, 100),
-                      decoration: MagnifierDecoration(
-                        shape: const CircleBorder(
-                          side: BorderSide(color: Colors.white, width: 2),
-                        ),
-                        shadows: const [
-                          BoxShadow(blurRadius: 12, color: Colors.black38),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              if (_draggingIndex >= 0 && _imageMat != null && _corners != null)
+                _buildMagnifier(),
             ],
           );
         },
@@ -422,6 +404,38 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMagnifier() {
+    final corner = _corners![_draggingIndex];
+    final cx = corner.x.clamp(20, _imgW - 20);
+    final cy = corner.y.clamp(20, _imgH - 20);
+    final roi = cv.Mat.fromMat(
+      _imageMat!,
+      roi: cv.Rect(cx - 20, cy - 20, 40, 40),
+    );
+    final enlarged = cv.resize(roi, (160, 160));
+    final rgb = cv.cvtColor(enlarged, cv.COLOR_BGR2RGB);
+    final (ok, encoded) = cv.imencode('.png', rgb);
+    if (!ok) return const SizedBox.shrink();
+
+    return Positioned(
+      left: _dragLocalPos.dx - 75,
+      top: _dragLocalPos.dy - 175,
+      child: IgnorePointer(
+        child: Container(
+          width: 150,
+          height: 150,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2.5),
+            boxShadow: const [BoxShadow(blurRadius: 12, color: Colors.black38)],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Image.memory(encoded, fit: BoxFit.cover),
         ),
       ),
     );
@@ -531,6 +545,21 @@ class _CropOverlayPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
     canvas.drawPath(cropPath, linePaint);
+
+    final gridPaint = Paint()
+      ..color = Colors.white.withAlpha(50)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.5;
+    for (var i = 1; i < 3; i++) {
+      final t = i / 3;
+      final top = Offset.lerp(corners![0], corners![3], t)!;
+      final bottom = Offset.lerp(corners![1], corners![2], t)!;
+      canvas.drawLine(top, bottom, gridPaint);
+
+      final left = Offset.lerp(corners![0], corners![1], t)!;
+      final right = Offset.lerp(corners![3], corners![2], t)!;
+      canvas.drawLine(left, right, gridPaint);
+    }
   }
 
   @override

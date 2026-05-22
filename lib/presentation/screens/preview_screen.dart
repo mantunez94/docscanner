@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -28,6 +29,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   Offset _dragLocalPos = Offset.zero;
   final _stackKey = GlobalKey();
   cv.Mat? _imageMat;
+  ui.Image? _uiImage;
 
   @override
   void initState() {
@@ -38,6 +40,9 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   Future<void> _loadImage() async {
     final bytes = await File(widget.imagePath).readAsBytes();
     if (!mounted) return;
+    final codec = await ui.instantiateImageCodec(bytes);
+    final frame = await codec.getNextFrame();
+    _uiImage = frame.image;
     _imageMat = cv.imdecode(bytes, cv.IMREAD_COLOR);
     final src = _imageMat!;
     _imgW = src.cols;
@@ -350,22 +355,31 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                       ),
                     ),
                   ),
-              if (_draggingIndex >= 0)
+              if (_draggingIndex >= 0 && _uiImage != null && _corners != null)
                 Positioned(
-                  left: _dragLocalPos.dx - 50,
-                  top: _dragLocalPos.dy - 130,
+                  left: _dragLocalPos.dx - 100,
+                  top: _dragLocalPos.dy - 230,
                   child: IgnorePointer(
-                    child: RawMagnifier(
-                      size: const Size(100, 100),
-                      magnificationScale: 3.0,
-                      focalPointOffset: const Offset(50, 130),
-                      decoration: MagnifierDecoration(
-                        shape: const CircleBorder(
-                          side: BorderSide(color: Colors.white, width: 2.5),
-                        ),
-                        shadows: const [
-                          BoxShadow(blurRadius: 14, color: Colors.black45),
+                    child: Container(
+                      width: 200,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 3),
+                        boxShadow: const [
+                          BoxShadow(blurRadius: 16, color: Colors.black45),
                         ],
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: CustomPaint(
+                        painter: _MagnifierPainter(
+                          image: _uiImage!,
+                          focalX: _corners![_draggingIndex].x.toDouble(),
+                          focalY: _corners![_draggingIndex].y.toDouble(),
+                          zoom: 4.0,
+                          imgW: _imgW.toDouble(),
+                          imgH: _imgH.toDouble(),
+                        ),
                       ),
                     ),
                   ),
@@ -555,11 +569,11 @@ class _CropOverlayPainter extends CustomPainter {
     canvas.drawPath(cropPath, linePaint);
 
     final gridPaint = Paint()
-      ..color = Colors.white.withAlpha(50)
+      ..color = Colors.white.withAlpha(40)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.5;
-    for (var i = 1; i < 3; i++) {
-      final t = i / 3;
+    for (var i = 1; i < 10; i++) {
+      final t = i / 10;
       final top = Offset.lerp(corners![0], corners![3], t)!;
       final bottom = Offset.lerp(corners![1], corners![2], t)!;
       canvas.drawLine(top, bottom, gridPaint);
@@ -573,4 +587,39 @@ class _CropOverlayPainter extends CustomPainter {
   @override
   bool shouldRepaint(_CropOverlayPainter old) =>
       old.corners != corners || old.fullOverlay != fullOverlay;
+}
+
+class _MagnifierPainter extends CustomPainter {
+  final ui.Image image;
+  final double focalX;
+  final double focalY;
+  final double zoom;
+  final double imgW;
+  final double imgH;
+
+  _MagnifierPainter({
+    required this.image,
+    required this.focalX,
+    required this.focalY,
+    required this.zoom,
+    required this.imgW,
+    required this.imgH,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final halfW = size.width / (2 * zoom);
+    final halfH = size.height / (2 * zoom);
+    final srcRect = Rect.fromLTWH(
+      (focalX - halfW).clamp(0, imgW - 1),
+      (focalY - halfH).clamp(0, imgH - 1),
+      (halfW * 2).clamp(1, imgW),
+      (halfH * 2).clamp(1, imgH),
+    );
+    canvas.drawImageRect(image, srcRect, Offset.zero & size, Paint());
+  }
+
+  @override
+  bool shouldRepaint(_MagnifierPainter old) =>
+      old.focalX != focalX || old.focalY != focalY || old.zoom != zoom;
 }

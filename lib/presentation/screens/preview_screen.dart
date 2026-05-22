@@ -124,7 +124,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   cv.Mat _enhanceScan(cv.Mat bgr) {
     final gray = cv.cvtColor(bgr, cv.COLOR_BGR2GRAY);
     cv.normalize(gray, gray, alpha: 0, beta: 255, normType: cv.NORM_MINMAX);
-    final adjusted = cv.convertScaleAbs(gray, alpha: 1.2, beta: 10);
+    final adjusted = cv.convertScaleAbs(gray, alpha: 1.25, beta: 5);
     final kernel = cv.Mat.fromList(3, 3, cv.MatType.CV_32FC1, [
       0.0, -1.0, 0.0,
       -1.0, 5.0, -1.0,
@@ -185,13 +185,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     if (_corners == null || _imageRect.isEmpty || _imgW == 0 || _imgH == 0) return;
     final scaleX = _imageRect.width / _imgW;
     final scaleY = _imageRect.height / _imgH;
-    final dx = (delta.dx / scaleX).round();
-    final dy = (delta.dy / scaleY).round();
-    final updated = List<cv.Point>.from(_corners!);
-    updated[index] = cv.Point(
-      (updated[index].x + dx).clamp(0, _imgW - 1),
-      (updated[index].y + dy).clamp(0, _imgH - 1),
-    );
+    final updated = applyDragToCorners(_corners!, index, delta, scaleX, scaleY, _imgW, _imgH);
     setState(() => _corners = updated);
   }
 
@@ -326,6 +320,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                     painter: _CropOverlayPainter(
                       corners: _corners?.map(_imageToScreen).toList(),
                       imageRect: _imageRect,
+                      fullOverlay: _draggingIndex < 0,
                     ),
                   ),
                 ),
@@ -355,8 +350,26 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                       ),
                     ),
                   ),
-              if (_draggingIndex >= 0 && _imageMat != null && _corners != null)
-                _buildMagnifier(),
+              if (_draggingIndex >= 0)
+                Positioned(
+                  left: _dragLocalPos.dx - 50,
+                  top: _dragLocalPos.dy - 130,
+                  child: IgnorePointer(
+                    child: RawMagnifier(
+                      size: const Size(100, 100),
+                      magnificationScale: 3.0,
+                      focalPointOffset: const Offset(50, 130),
+                      decoration: MagnifierDecoration(
+                        shape: const CircleBorder(
+                          side: BorderSide(color: Colors.white, width: 2.5),
+                        ),
+                        shadows: const [
+                          BoxShadow(blurRadius: 14, color: Colors.black45),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
             ],
           );
         },
@@ -404,38 +417,6 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMagnifier() {
-    final corner = _corners![_draggingIndex];
-    final cx = corner.x.clamp(20, _imgW - 20);
-    final cy = corner.y.clamp(20, _imgH - 20);
-    final roi = cv.Mat.fromMat(
-      _imageMat!,
-      roi: cv.Rect(cx - 20, cy - 20, 40, 40),
-    );
-    final enlarged = cv.resize(roi, (160, 160));
-    final rgb = cv.cvtColor(enlarged, cv.COLOR_BGR2RGB);
-    final (ok, encoded) = cv.imencode('.png', rgb);
-    if (!ok) return const SizedBox.shrink();
-
-    return Positioned(
-      left: _dragLocalPos.dx - 75,
-      top: _dragLocalPos.dy - 175,
-      child: IgnorePointer(
-        child: Container(
-          width: 150,
-          height: 150,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2.5),
-            boxShadow: const [BoxShadow(blurRadius: 12, color: Colors.black38)],
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Image.memory(encoded, fit: BoxFit.cover),
         ),
       ),
     );
@@ -506,11 +487,35 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   }
 }
 
+List<cv.Point> applyDragToCorners(
+  List<cv.Point> corners,
+  int index,
+  Offset delta,
+  double scaleX,
+  double scaleY,
+  int imgW,
+  int imgH,
+) {
+  final dx = (delta.dx / scaleX).round();
+  final dy = (delta.dy / scaleY).round();
+  final updated = List<cv.Point>.from(corners);
+  updated[index] = cv.Point(
+    (updated[index].x + dx).clamp(0, imgW - 1),
+    (updated[index].y + dy).clamp(0, imgH - 1),
+  );
+  return updated;
+}
+
 class _CropOverlayPainter extends CustomPainter {
   final List<Offset>? corners;
   final Rect imageRect;
+  final bool fullOverlay;
 
-  _CropOverlayPainter({required this.corners, required this.imageRect});
+  _CropOverlayPainter({
+    required this.corners,
+    required this.imageRect,
+    this.fullOverlay = true,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -528,17 +533,20 @@ class _CropOverlayPainter extends CustomPainter {
       return;
     }
 
-    final overlayPaint = Paint()
-      ..color = Colors.black.withAlpha(100);
-    final path = Path()..addRect(Offset.zero & size);
     final cropPath = Path()
       ..moveTo(corners![0].dx, corners![0].dy)
       ..lineTo(corners![1].dx, corners![1].dy)
       ..lineTo(corners![2].dx, corners![2].dy)
       ..lineTo(corners![3].dx, corners![3].dy)
       ..close();
-    path.addPath(cropPath, Offset.zero);
-    canvas.drawPath(path, overlayPaint);
+
+    if (fullOverlay) {
+      final overlayPaint = Paint()
+        ..color = Colors.black.withAlpha(100);
+      final path = Path()..addRect(Offset.zero & size);
+      path.addPath(cropPath, Offset.zero);
+      canvas.drawPath(path, overlayPaint);
+    }
 
     final linePaint = Paint()
       ..color = Colors.cyan
@@ -563,5 +571,6 @@ class _CropOverlayPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CropOverlayPainter old) => true;
+  bool shouldRepaint(_CropOverlayPainter old) =>
+      old.corners != corners || old.fullOverlay != fullOverlay;
 }

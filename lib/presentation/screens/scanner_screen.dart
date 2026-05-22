@@ -47,6 +47,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       final controller = CameraController(
         cameras[0],
         ResolutionPreset.veryHigh,
+        enableAudio: false,
         imageFormatGroup: ImageFormatGroup.yuv420,
       );
       await controller.initialize();

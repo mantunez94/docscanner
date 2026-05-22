@@ -68,12 +68,24 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 ### Known Issues
 
 1. **4 OpenCV tests skipped on host** — native lib not available on host test runner; run on device only.
-2. **`document_processor.dart`** in `core/` is not used — all processing is inlined in `preview_screen.dart`.
-3. **`_imageMat` (cv.Mat)** stored field may be unused after removing OpenCV-based magnifier — verify in refactor pass.
+2. **Night/low-light boundary detection degrades** — mitigation ideas saved in `.opencode/night-detection-improvements.md` (CLAHE, adaptive Canny thresholds).
 
 ### Recent Changes (2026-05-22)
 
+**UX Audit — 58 hallazgos, ~33 resueltos en 5 PRs (#24–#28):**
+
+| PR | Hallazgos | Cambios |
+|----|-----------|---------|
+| #24 | #16, #17, #11–#13, #24, #27, #29 | Semantic labels, camera permission, haptic, saving state, detection progress, discard dialog, disabled styles, undo delete |
+| #25 | #8, #17b, #18, #20, #30, #31, #32, #48 | Icono back, batch mode title, Select All, onboarding re-entry, Kawaii snackbar, shimmer animation, gallery save feedback, reorder confirm |
+| #26 | #22, #23, #39, #40, #47, #51 | Processing error SnackBar, OCR title size, onboarding checkmark, batch FAB animation, empty page state, action sheet icon |
+| #27 | #21, #26, #37, #43, #44, #53 | Skip button touch target, add-page FAB, splash branding, cooldown indicator, semantic labels, shimmer font scale |
+| #28 | #15, #34, #42, #49, #52 | Grid flicker fix, textScaleFactor clamp, detector params, thumbnail retry hint, delete dialog warning |
+
 - **PDF regeneration after image editing**: Editing a page in PreviewScreen now writes the edited image bytes back to disk and regenerates the PDF, ensuring the PDF stays in sync with the edited image.
+- **Night detection improvements** saved to `.opencode/night-detection-improvements.md`
+- **All 7 GitHub issues (#16–#22) closed**
+- **Device disconnected** — reconnect and run `adb install -r build/app/outputs/flutter-apk/app-debug.apk`
 
 ### Test Suite
 
@@ -97,7 +109,7 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 
 ## Next Steps (suggested order)
 
-1. **Verify dark mode across all 3 themes** — ensure complete dark variants
-2. **Widget tests** — search, batch mode, onboarding, OCR, document detail, boundary overlay painters
-3. **App icon + splash screen branding**
-4. **Play Store prep** — CI/CD, screenshots, description
+1. **Widget tests** — search, batch mode, onboarding, OCR, document detail, boundary overlay painters
+2. **Play Store prep** — app icon, splash branding, CI/CD, screenshots, description
+3. **Night detection** — implement CLAHE + adaptive Canny from `night-detection-improvements.md`
+4. **Remaining low-priority items** — torch toggle, pinch-to-zoom, text scaling beyond clamped range

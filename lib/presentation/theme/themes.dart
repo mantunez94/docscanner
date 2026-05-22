@@ -92,6 +92,8 @@ ThemeData _buildArcadeTheme(Brightness brightness) {
       style: FilledButton.styleFrom(
         backgroundColor: isDark ? const Color(0xFF00E5FF) : const Color(0xFF1A237E),
         foregroundColor: isDark ? const Color(0xFF0A0A1A) : Colors.white,
+        disabledBackgroundColor: isDark ? const Color(0xFF1E1E3A) : const Color(0xFFBDBDBD),
+        disabledForegroundColor: isDark ? const Color(0xFF555577) : const Color(0xFF757575),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: BorderSide(color: isDark ? const Color(0xFF00E5FF) : const Color(0xFF1A237E), width: 2),
@@ -104,6 +106,8 @@ ThemeData _buildArcadeTheme(Brightness brightness) {
       style: ElevatedButton.styleFrom(
         backgroundColor: isDark ? const Color(0xFF1E1E3A) : null,
         foregroundColor: isDark ? const Color(0xFF00E5FF) : null,
+        disabledBackgroundColor: isDark ? const Color(0xFF111128) : const Color(0xFFE0E0E0),
+        disabledForegroundColor: isDark ? const Color(0xFF444466) : const Color(0xFF9E9E9E),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
           side: BorderSide(color: isDark ? const Color(0xFF2A2A50) : const Color(0xFFE0D8D0), width: 1.5),
@@ -114,6 +118,7 @@ ThemeData _buildArcadeTheme(Brightness brightness) {
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: isDark ? const Color(0xFF00E5FF) : null,
+        disabledForegroundColor: isDark ? const Color(0xFF444466) : const Color(0xFF9E9E9E),
         textStyle: const TextStyle(fontFamily: _arcadeBody, fontSize: 18, letterSpacing: 1),
       ),
     ),
@@ -150,6 +155,10 @@ ThemeData _buildArcadeTheme(Brightness brightness) {
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide(color: isDark ? const Color(0xFF00E5FF) : const Color(0xFF1A237E), width: 2),
       ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: isDark ? const Color(0xFF1E1E3A) : const Color(0xFFE0E0E0), width: 1),
+      ),
       labelStyle: TextStyle(fontFamily: _arcadeBody, fontSize: 16, color: isDark ? Colors.white70 : null),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -165,11 +174,11 @@ ThemeData _buildArcadeTheme(Brightness brightness) {
       thickness: 1,
     ),
     textTheme: TextTheme(
-      titleLarge: TextStyle(fontFamily: _arcadeTitle, fontSize: 16, letterSpacing: 2,
+      titleLarge: TextStyle(fontFamily: _arcadeTitle, fontSize: 20, letterSpacing: 2,
         color: isDark ? const Color(0xFF00E5FF) : const Color(0xFF1A237E)),
-      titleMedium: TextStyle(fontFamily: _arcadeBody, fontSize: 22, letterSpacing: 1,
+      titleMedium: TextStyle(fontFamily: _arcadeBody, fontSize: 18, letterSpacing: 1,
         color: isDark ? Colors.white : null),
-      titleSmall: TextStyle(fontFamily: _arcadeBody, fontSize: 18, letterSpacing: 1,
+      titleSmall: TextStyle(fontFamily: _arcadeBody, fontSize: 16, letterSpacing: 1,
         color: isDark ? Colors.white70 : null),
       bodyLarge: TextStyle(fontFamily: _arcadeBody, fontSize: 20,
         color: isDark ? Colors.white : null),
@@ -254,6 +263,8 @@ ThemeData _buildKawaiiTheme(Brightness brightness) {
       style: FilledButton.styleFrom(
         backgroundColor: isDark ? const Color(0xFFFF9EB5) : const Color(0xFFE91E8C),
         foregroundColor: isDark ? const Color(0xFF2D1B36) : Colors.white,
+        disabledBackgroundColor: isDark ? const Color(0xFF4A2D5A) : const Color(0xFFF0C0D0),
+        disabledForegroundColor: isDark ? const Color(0xFF6A4D7A) : const Color(0xFF9E9E9E),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -263,6 +274,8 @@ ThemeData _buildKawaiiTheme(Brightness brightness) {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
+        disabledBackgroundColor: isDark ? const Color(0xFF3E224A) : const Color(0xFFE0E0E0),
+        disabledForegroundColor: isDark ? const Color(0xFF6A4D7A) : const Color(0xFF9E9E9E),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -271,6 +284,7 @@ ThemeData _buildKawaiiTheme(Brightness brightness) {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
+        disabledForegroundColor: isDark ? const Color(0xFF6A4D7A) : const Color(0xFF9E9E9E),
         textStyle: const TextStyle(fontFamily: _kawaii, fontSize: 18),
       ),
     ),
@@ -306,6 +320,13 @@ ThemeData _buildKawaiiTheme(Brightness brightness) {
         borderSide: BorderSide(
           color: isDark ? const Color(0xFFFF9EB5) : const Color(0xFFE91E8C),
           width: 2,
+        ),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(
+          color: isDark ? const Color(0xFF5A3D6B) : const Color(0xFFE0E0E0),
+          width: 1,
         ),
       ),
       labelStyle: TextStyle(fontFamily: _kawaii, fontSize: 16, color: isDark ? Colors.white70 : null),
@@ -406,6 +427,8 @@ ThemeData _buildProfessionalTheme(Brightness brightness) {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
+        disabledBackgroundColor: isDark ? const Color(0xFF1B2838) : const Color(0xFFE0E0E0),
+        disabledForegroundColor: isDark ? const Color(0xFF4A6A8A) : const Color(0xFF9E9E9E),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
         ),
@@ -415,6 +438,8 @@ ThemeData _buildProfessionalTheme(Brightness brightness) {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
+        disabledBackgroundColor: isDark ? const Color(0xFF1B2838) : const Color(0xFFE0E0E0),
+        disabledForegroundColor: isDark ? const Color(0xFF4A6A8A) : const Color(0xFF9E9E9E),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(6),
         ),
@@ -423,6 +448,7 @@ ThemeData _buildProfessionalTheme(Brightness brightness) {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
+        disabledForegroundColor: isDark ? const Color(0xFF4A6A8A) : const Color(0xFF9E9E9E),
         textStyle: const TextStyle(fontFamily: _prof, fontSize: 16),
       ),
     ),
@@ -459,6 +485,12 @@ ThemeData _buildProfessionalTheme(Brightness brightness) {
         borderSide: BorderSide(
           color: isDark ? const Color(0xFF4A90D9) : const Color(0xFF1A5276),
           width: 2,
+        ),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(6),
+        borderSide: BorderSide(
+          color: isDark ? const Color(0xFF1B2838) : const Color(0xFFE0E0E0),
         ),
       ),
       labelStyle: TextStyle(fontFamily: _prof, fontSize: 16, color: isDark ? Colors.white70 : null),

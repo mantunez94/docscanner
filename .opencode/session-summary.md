@@ -73,38 +73,11 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 
 ### Recent Changes (2026-05-22)
 
-- **Batch scan**: Modified `ScannerScreen` with `batchMode` param and `onPageScanned` callback. After PreviewScreen confirms, saves page and shows "Scan another?" dialog. FAB tap = single page, FAB long-press = batch mode. `_startBatchScan` tracks `docId` across pages in home screen.
-- **Page reordering**: Added `reorderPages` to repository/datasource/provider layers. `DocumentDetailScreen` now has reorder mode with `ReorderableListView` + `ReorderableDragStartListener`. Option in document action sheet.
-- **Corner reset button**: `_originalCorners` stored at load time. Reset button (`Icons.restart_alt`) in preview toolbar restores auto-detected corners.
-- **AI assistant rules**: Added to `.opencode/instructions/git-workflow.md` — never commit/push/merge directly to main.
-- **Auto-capture tuning**: Area 10%→15%→12%, detections 5→8→5.
-- **Image enhancement**: normalize + convertScaleAbs(α=1.25, β=5) + sharpen center 5.
-- **Custom magnifier**: GPU-accelerated with `ui.Image` + `drawImageRect`, 4× zoom, 200px circle.
-- **Grid**: Rule-of-thirds → 10×10 (white, alpha 40, 0.5px).
-- **Overlay during drag**: Only lines + grid, no dark fill.
-- **Microphone**: `enableAudio: false`.
-- **Manual capture removed**: Auto-capture only. Later restored with fixed overlay alignment.
-- **Default theme**: Arcade → Professional.
-- **Home button**: X → home_outlined.
-- **UX audit (6 GitHub issues created)**: Reviewed all touch targets, dismissible dialogs, magnifier positioning, tooltip labels, PopScope guards, manual capture fallback.
-- **#8 Fixed**: Batch dialog made dismissible — `barrierDismissible: true` on "Scan another?" dialog.
-- **#6 Fixed**: 48dp touch targets — corner handles in preview screen increased from 12px radius to 24dp (24.0 radius).
-- **#9 Fixed**: Magnifier adaptive position — positions below finger when in top 40% of screen, above otherwise, clamped to screen edges.
-- **#11 Fixed**: Tooltip labels on all icon-only buttons — Corner reset, Extract Text, Rename, Delete, Reorder pages, Search, Batch delete, Home.
-- **#10 Fixed**: PopScope guard — wraps ScannerScreen's Scaffold, intercepts back navigation in batch mode with "Discard batch?" confirmation dialog.
-- **#7 Fixed**: Manual capture FAB restored — `FloatingActionButton.large` at `centerFloat` with camera icon; enabled at all times.
-- **Boundary overlay alignment**: Fixed coordinate mapping mismatch between detected corners and camera preview. Now uses `LayoutBuilder` to compute the actual `CameraPreview` area (matching its `AspectRatio` logic per portrait/landscape orientation), projects corner coordinates within that area via `previewOffsetX/Y` + `previewPaintWidth/Height`. Overlay wrapped in `Positioned.fill` for correct sizing.
-- **Reset corners icon changed**: `Icons.restart_alt` → `Icons.crop_square` to avoid confusion with retake button.
-- **#8 Fixed**: Batch dialog made dismissible — `barrierDismissible: true` on "Scan another?" dialog.
-- **#6 Fixed**: 48dp touch targets — corner handles in preview screen increased from 12px radius to 24dp (24.0 radius).
-- **#9 Fixed**: Magnifier adaptive position — positions below finger when in top 40% of screen, above otherwise, clamped to screen edges.
-- **#11 Fixed**: Tooltip labels on all icon-only buttons — Corner reset, Extract Text, Rename, Delete, Reorder pages, Search, Batch delete, Home.
-- **#10 Fixed**: PopScope guard — wraps ScannerScreen's Scaffold, intercepts back navigation in batch mode with "Discard batch?" confirmation dialog.
-- **#7 Fixed**: Manual capture fallback — `FloatingActionButton.large` at `centerFloat` with camera icon; shows spinner during auto-capture, enabled otherwise.
+- **PDF regeneration after image editing**: Editing a page in PreviewScreen now writes the edited image bytes back to disk and regenerates the PDF, ensuring the PDF stays in sync with the edited image.
 
 ### Test Suite
 
-40 tests total (4 skipped on host):
+- 37 tests total (4 skipped on host):
 - Entity serialization roundtrip
 - Repository implementation (mocktail)
 - Use case orchestration

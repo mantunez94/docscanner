@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../core/document_boundary_detector.dart';
 import 'preview_screen.dart';
 
@@ -28,6 +29,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   CameraController? _controller;
   bool _initialized = false;
   String? _error;
+  bool _permissionDenied = false;
   bool _streamActive = false;
   int _frameCount = 0;
 
@@ -43,7 +45,67 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   void initState() {
     super.initState();
-    _initCamera();
+    _requestCameraPermission();
+  }
+
+  Future<void> _requestCameraPermission() async {
+    final status = await Permission.camera.status;
+    if (status.isGranted) {
+      _initCamera();
+      return;
+    }
+
+    if (status.isPermanentlyDenied) {
+      if (mounted) {
+        setState(() {
+          _error = 'Camera permission is permanently denied. Please enable it in app settings.';
+          _permissionDenied = true;
+        });
+      }
+      return;
+    }
+
+    if (mounted) {
+      final rationale = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Camera permission needed'),
+          content: const Text(
+            'DocScanner needs access to your camera to scan documents. '
+            'No photos are taken without your action.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Deny'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Allow'),
+            ),
+          ],
+        ),
+      );
+
+      if (rationale != true || !mounted) {
+        setState(() => _error = 'Camera permission is required to scan documents.');
+        return;
+      }
+    }
+
+    final result = await Permission.camera.request();
+    if (!mounted) return;
+
+    if (result.isGranted) {
+      _initCamera();
+    } else if (result.isPermanentlyDenied) {
+      setState(() {
+        _error = 'Camera permission is permanently denied. Please enable it in app settings.';
+        _permissionDenied = true;
+      });
+    } else {
+      setState(() => _error = 'Camera permission is required to scan documents.');
+    }
   }
 
   Future<void> _initCamera() async {
@@ -66,8 +128,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
         _initialized = true;
       });
       _startImageStream();
-    } catch (e) {
-      if (mounted) setState(() => _error = 'Failed to initialize camera: $e');
+    } catch (_) {
+      if (mounted) setState(() => _error = 'Failed to open camera. Please try again.');
     }
   }
 
@@ -138,6 +200,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   void _triggerAutoCapture() {
+    HapticFeedback.mediumImpact();
     _autoCapturing = true;
     _capture();
   }
@@ -160,13 +223,44 @@ class _ScannerScreenState extends State<ScannerScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
+                Icon(
+                  _permissionDenied ? Icons.no_photography_outlined : Icons.error_outline,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.error,
+                ),
                 const SizedBox(height: 16),
                 Text(_error!, textAlign: TextAlign.center),
                 const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Go back'),
+                if (_permissionDenied)
+                  FilledButton.icon(
+                    onPressed: () async {
+                      await openAppSettings();
+                    },
+                    icon: const Icon(Icons.settings, size: 18),
+                    label: const Text('Open Settings'),
+                  ),
+                if (_permissionDenied) const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Go back'),
+                    ),
+                    if (!_permissionDenied) ...[
+                      const SizedBox(width: 12),
+                      FilledButton(
+                        onPressed: () {
+                          setState(() {
+                            _error = null;
+                            _permissionDenied = false;
+                          });
+                          _requestCameraPermission();
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
@@ -200,7 +294,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ),
         );
         if (confirm == true && mounted) {
-          Navigator.pop(context);
+          Navigator.pop(context, true);
         }
       },
       child: Scaffold(
@@ -220,11 +314,33 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
+            )
+          else if (widget.autoCapture && _detectedCount > 0)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(5, (i) {
+                  final filled = i < _detectedCount;
+                  return Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: filled
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.onSurface.withAlpha(40),
+                    ),
+                  );
+                }),
+              ),
             ),
         ],
       ),
       floatingActionButton: FloatingActionButton.large(
         onPressed: _capture,
+        tooltip: 'Capture photo',
         child: const Icon(Icons.camera_alt),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -267,8 +383,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
         final offsetX = (bodyW - paintW) / 2;
         final offsetY = (bodyH - paintH) / 2;
 
-        return CustomPaint(
-          painter: _BoundaryOverlayPainter(
+        return Semantics(
+          label: 'Document boundary overlay',
+          excludeSemantics: true,
+          child: CustomPaint(
+            painter: _BoundaryOverlayPainter(
             corners: _corners,
             previewWidth: preview.width,
             previewHeight: preview.height,
@@ -280,6 +399,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             imageWidth: _imageWidth,
             imageHeight: _imageHeight,
             isAutoCapturing: _autoCapturing,
+          ),
           ),
         );
       },
@@ -347,7 +467,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             _startImageStream();
             _autoCaptureCooldownUntil = DateTime.now().add(const Duration(milliseconds: 1500));
           } else {
-            Navigator.pop(context);
+            Navigator.pop(context, true);
           }
         } else {
           Navigator.pop<Uint8List>(context, result);
@@ -387,9 +507,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
       _autoCapturing = false;
       _startImageStream();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Something went wrong while capturing. Please try again.')),
+      );
       }
     }
   }

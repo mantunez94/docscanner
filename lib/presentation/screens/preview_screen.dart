@@ -210,7 +210,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       if (!mounted) return;
       setState(() => _ocrLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Text extraction failed: $e')),
+        const SnackBar(content: Text('Text extraction failed. Please try again.')),
       );
     }
   }
@@ -289,6 +289,16 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     }
   }
 
+  bool get _hasChanges {
+    if (_originalCorners == null || _corners == null) return false;
+    if (_originalCorners!.length != _corners!.length) return true;
+    for (var i = 0; i < _originalCorners!.length; i++) {
+      if (_originalCorners![i].x != _corners![i].x ||
+          _originalCorners![i].y != _corners![i].y) return true;
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_displayBytes == null) {
@@ -298,7 +308,32 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       );
     }
 
-    return Scaffold(
+    return PopScope(
+      canPop: !_hasChanges,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Discard changes?'),
+            content: const Text('You have made adjustments to the crop area. Do you want to discard them?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Keep editing'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Discard'),
+              ),
+            ],
+          ),
+        );
+        if (confirm == true && mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(title: const Text('Adjust & Confirm')),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -331,16 +366,20 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
             key: _stackKey,
             children: [
               Center(
-                child: Image.memory(_displayBytes!, fit: BoxFit.contain),
+                child: Image.memory(_displayBytes!, fit: BoxFit.contain, semanticLabel: 'Document preview'),
               ),
               if (_imageRect != Rect.zero)
                 Positioned.fill(
-                  child: CustomPaint(
+                  child: Semantics(
+                    label: 'Crop region overlay',
+                    excludeSemantics: true,
+                    child: CustomPaint(
                     painter: _CropOverlayPainter(
                       corners: _corners?.map(_imageToScreen).toList(),
                       imageRect: _imageRect,
                       fullOverlay: _draggingIndex < 0,
                     ),
+                  ),
                   ),
                 ),
               if (_corners != null && _imageRect != Rect.zero)
@@ -348,11 +387,13 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                   Positioned(
                     left: _imageToScreen(_corners![i]).dx - 24,
                     top: _imageToScreen(_corners![i]).dy - 24,
-                    child: GestureDetector(
-                      onPanStart: (d) => _onHandleDragStart(i, d),
-                      onPanUpdate: (d) => _onHandleDragUpdate(i, d),
-                      onPanEnd: _onHandleDragEnd,
-                      child: Container(
+                    child: Semantics(
+                      label: 'Crop corner ${i + 1}',
+                      child: GestureDetector(
+                        onPanStart: (d) => _onHandleDragStart(i, d),
+                        onPanUpdate: (d) => _onHandleDragUpdate(i, d),
+                        onPanEnd: _onHandleDragEnd,
+                        child: Container(
                         width: 48,
                         height: 48,
                         alignment: Alignment.center,
@@ -368,6 +409,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                           color: Colors.white, size: 16,
                         ),
                       ),
+                    ),
                     ),
                   ),
               if (_draggingIndex >= 0 && _uiImage != null && _corners != null)
@@ -386,8 +428,11 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                         ],
                       ),
                       clipBehavior: Clip.antiAlias,
-                      child: CustomPaint(
-                        painter: _MagnifierPainter(
+                  child: Semantics(
+                    label: 'Magnified view of corner region',
+                    excludeSemantics: true,
+                    child: CustomPaint(
+                      painter: _MagnifierPainter(
                           image: _uiImage!,
                           focalX: _corners![_draggingIndex].x.toDouble(),
                           focalY: _corners![_draggingIndex].y.toDouble(),
@@ -399,11 +444,12 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                     ),
                   ),
                 ),
-            ],
-          );
-        },
-      ),
-      bottomNavigationBar: Container(
+              ),
+              ],
+            );
+          },
+        ),
+        bottomNavigationBar: Container(
         color: Colors.black87,
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
         child: SafeArea(
@@ -456,6 +502,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
@@ -518,9 +565,19 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       if (!success) throw Exception('Failed to encode');
       if (mounted) Navigator.pop(context, encoded);
     } catch (e) {
-      if (!mounted) return;
-      final bytes = _displayBytes;
-      if (bytes != null) Navigator.pop(context, bytes);
+      if (mounted) {
+        final bytes = _displayBytes;
+        if (bytes != null) {
+          Navigator.pop(context, bytes);
+        } else {
+          setState(() => _saving = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to process image. Please try again.')),
+          );
+        }
+      } else {
+        _saving = false;
+      }
     }
   }
 }

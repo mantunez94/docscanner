@@ -22,8 +22,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     _OnboardingPage(
       icon: Icons.tune_outlined,
-      title: 'Filters & Adjustments',
-      description: 'Apply filters like grayscale, black & white, or enhanced. Adjust perspective for perfect results.',
+      title: 'Adjust & Refine',
+      description: 'Fine-tune corners, adjust perspective, and enhance the image for a crisp, clean scan.',
     ),
     _OnboardingPage(
       icon: Icons.text_snippet_outlined,
@@ -73,7 +73,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(_pages.length, (i) {
-                return AnimatedContainer(
+                return Semantics(
+                  label: 'Page ${i + 1} of ${_pages.length}',
+                  selected: _currentPage == i,
+                  child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   width: _currentPage == i ? 24 : 8,
@@ -83,6 +86,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ? theme.colorScheme.primary
                         : theme.colorScheme.onSurface.withAlpha(60),
                     borderRadius: BorderRadius.circular(4),
+                  ),
                   ),
                 );
               }),

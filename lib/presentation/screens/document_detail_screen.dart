@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/scanned_document.dart';
 import '../providers/document_provider.dart';
+import 'preview_screen.dart';
 
 class DocumentDetailScreen extends ConsumerStatefulWidget {
   final ScannedDocument document;
@@ -127,6 +129,21 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
     );
   }
 
+  Future<void> _openPageForEditing(int index, String path) async {
+    final result = await Navigator.push<Uint8List>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PreviewScreen(imagePath: path),
+      ),
+    );
+    if (!context.mounted || result == null) return;
+    await File(path).writeAsBytes(result);
+    await ref.read(documentListProvider.notifier).reorderPages(
+      widget.document.id,
+      List<String>.from(widget.document.pages),
+    );
+  }
+
   Widget _buildPageCard(List<String> pages, int index, ThemeData theme) {
     final path = pages[index];
     final selected = _selectedIndices.contains(index);
@@ -140,6 +157,8 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
               _selectedIndices.add(index);
             }
           });
+        } else {
+          _openPageForEditing(index, path);
         }
       },
       onLongPress: !_batchMode
@@ -157,6 +176,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
               Image.file(
                 File(path),
                 fit: BoxFit.cover,
+                semanticLabel: 'Page ${index + 1} thumbnail',
                 errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 48),
               )
             else
@@ -220,9 +240,12 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
             children: [
               ReorderableDragStartListener(
                 index: index,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  child: Icon(Icons.drag_handle, color: theme.colorScheme.onSurface.withAlpha(120)),
+                child: Semantics(
+                  label: 'Drag to reorder page ${index + 1}',
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    child: Icon(Icons.drag_handle, color: theme.colorScheme.onSurface.withAlpha(120)),
+                  ),
                 ),
               ),
               ClipRRect(
@@ -232,6 +255,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                   height: 60,
                   child: File(path).existsSync()
                       ? Image.file(File(path), fit: BoxFit.cover,
+                          semanticLabel: 'Page ${index + 1} thumbnail',
                           errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 24))
                       : const Icon(Icons.broken_image, size: 24),
                 ),
@@ -255,6 +279,16 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
           content: Text(count >= widget.document.pages.length
               ? 'Cannot delete all pages. Delete the document instead.'
               : 'No pages selected'),
+          duration: const Duration(seconds: 4),
+          action: count >= widget.document.pages.length
+              ? SnackBarAction(
+                  label: 'Delete document',
+                  onPressed: () {
+                    ref.read(documentListProvider.notifier).delete(widget.document.id);
+                    Navigator.pop(context);
+                  },
+                )
+              : null,
         ),
       );
       return;

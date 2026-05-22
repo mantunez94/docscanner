@@ -155,7 +155,9 @@ class HomeScreen extends ConsumerWidget {
                   if (documents.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                      child: TextField(
+                      child: Semantics(
+                        label: 'Search documents',
+                        child: TextField(
                         onChanged: (v) => ref.read(searchQueryProvider.notifier).state = v,
                         decoration: InputDecoration(
                           hintText: 'Search documents...',
@@ -163,6 +165,7 @@ class HomeScreen extends ConsumerWidget {
                           suffixIcon: searchQuery.isNotEmpty
                               ? IconButton(
                                   icon: const Icon(Icons.clear, size: 18),
+                                  tooltip: 'Clear search',
                                   onPressed: () => ref.read(searchQueryProvider.notifier).state = '',
                                 )
                               : null,
@@ -172,9 +175,10 @@ class HomeScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
+                        ),
+                        ),
                       ),
-                    ),
-                    Expanded(
+                      Expanded(
                       child: filtered.isEmpty && isSearching
                           ? Center(
                               child: Column(
@@ -250,6 +254,9 @@ class HomeScreen extends ConsumerWidget {
   }
 
   void _deleteSelected(BuildContext context, WidgetRef ref, Set<String> ids) {
+    final docs = ref.read(documentListProvider).valueOrNull ?? [];
+    final deletedDocs = docs.where((d) => ids.contains(d.id)).toList();
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -267,7 +274,18 @@ class HomeScreen extends ConsumerWidget {
               ref.read(selectedIdsProvider.notifier).state = {};
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${ids.length} document${ids.length > 1 ? 's' : ''} deleted')),
+                  SnackBar(
+                    content: Text('${ids.length} document${ids.length > 1 ? 's' : ''} deleted'),
+                    duration: const Duration(seconds: 4),
+                    action: SnackBarAction(
+                      label: 'Undo',
+                      onPressed: () {
+                        for (final doc in deletedDocs) {
+                          ref.read(documentListProvider.notifier).restore(doc);
+                        }
+                      },
+                    ),
+                  ),
                 );
               }
             },
@@ -280,8 +298,9 @@ class HomeScreen extends ConsumerWidget {
 
   static Future<void> _openScanner(BuildContext context, WidgetRef ref, String? documentId) async {
     String? docId = documentId;
+    var pagesScanned = 0;
 
-    await Navigator.push(
+    final result = await Navigator.push<bool>(
       context,
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => ScannerScreen(
@@ -294,6 +313,7 @@ class HomeScreen extends ConsumerWidget {
             } else {
               await ref.read(documentListProvider.notifier).addPageToDocument(docId!, bytes);
             }
+            pagesScanned++;
           },
         ),
         transitionsBuilder: (_, animation, __, child) =>
@@ -308,12 +328,15 @@ class HomeScreen extends ConsumerWidget {
     );
     if (!context.mounted) return;
     ref.invalidate(documentListProvider);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(documentId != null ? 'Pages added' : 'Document saved'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    final scanned = result == true || pagesScanned > 0;
+    if (scanned) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(documentId != null ? 'Pages added' : 'Document saved'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   void _showActions(BuildContext context, WidgetRef ref, ScannedDocument doc) {
@@ -394,7 +417,14 @@ class HomeScreen extends ConsumerWidget {
               Navigator.pop(ctx);
               ref.read(documentListProvider.notifier).delete(doc.id);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('"${doc.name}" deleted')),
+                SnackBar(
+                  content: Text('"${doc.name}" deleted'),
+                  duration: const Duration(seconds: 4),
+                  action: SnackBarAction(
+                    label: 'Undo',
+                    onPressed: () => ref.read(documentListProvider.notifier).restore(doc),
+                  ),
+                ),
               );
             },
             child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
@@ -413,10 +443,10 @@ class HomeScreen extends ConsumerWidget {
         messenger.hideCurrentSnackBar();
         await Share.shareXFiles([XFile(pdfFile.path)]);
       }
-    } catch (e) {
+    } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          const SnackBar(content: Text('Failed to export PDF. Please try again.')),
         );
       }
     }

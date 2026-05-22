@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/datasources/local_datasource.dart';
 import '../../data/repositories/document_repository_impl.dart';
@@ -91,7 +92,11 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
         rethrow;
       }
 
-      await fileService.saveToGallery(filePath);
+      try {
+        await fileService.saveToGallery(filePath);
+      } catch (e) {
+        debugPrint('Gallery save failed: $e');
+      }
 
       state = AsyncData(await ref.read(_getAllDocumentsProvider).call());
     } catch (e) {
@@ -130,7 +135,11 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
         rethrow;
       }
 
-      await fileService.saveToGallery(path);
+      try {
+        await fileService.saveToGallery(path);
+      } catch (e) {
+        debugPrint('Gallery save failed: $e');
+      }
       ref.invalidateSelf();
     } catch (e) {
       state = AsyncError(e, StackTrace.current);

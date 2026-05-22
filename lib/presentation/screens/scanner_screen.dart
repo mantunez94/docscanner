@@ -301,8 +301,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
         appBar: AppBar(
           title: Text(widget.batchMode ? 'Batch Scan' : 'Scan Document'),
         leading: IconButton(
-          icon: const Icon(Icons.home_outlined),
-          tooltip: 'Home',
+          icon: const Icon(Icons.arrow_back),
+          tooltip: 'Back',
           onPressed: () => Navigator.pop(context),
         ),
         actions: [

@@ -28,7 +28,22 @@ class DocScannerApp extends ConsumerWidget {
         future: shouldShowOnboarding(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+            return const Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.document_scanner_outlined, size: 64,
+                      color: Color(0xFF1A5276)),
+                    SizedBox(height: 16),
+                    Text('DocScanner',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 24),
+                    CircularProgressIndicator(),
+                  ],
+                ),
+              ),
+            );
           }
           if (snapshot.data == true) {
             return OnboardingScreen(

@@ -31,6 +31,7 @@ class _ShimmerGridState extends State<ShimmerGrid>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final textScale = MediaQuery.textScaleFactorOf(context);
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
@@ -58,30 +59,30 @@ class _ShimmerGridState extends State<ShimmerGrid>
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 10,
-                        width: 100,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest
-                              .withValues(alpha: opacity),
-                          borderRadius: BorderRadius.circular(2),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 10 * textScale,
+                          width: 100 * textScale,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest
+                                .withValues(alpha: opacity),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        height: 8,
-                        width: 60,
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest
-                              .withValues(alpha: opacity),
-                          borderRadius: BorderRadius.circular(2),
+                        const SizedBox(height: 6),
+                        Container(
+                          height: 8 * textScale,
+                          width: 60 * textScale,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surfaceContainerHighest
+                                .withValues(alpha: opacity),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
                 ),
               ],
             ),

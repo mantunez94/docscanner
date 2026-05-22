@@ -42,6 +42,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
   int _detectedCount = 0;
   DateTime? _autoCaptureCooldownUntil;
 
+  bool get _isCoolingDown =>
+      _autoCaptureCooldownUntil != null &&
+      DateTime.now().isBefore(_autoCaptureCooldownUntil!);
+
   @override
   void initState() {
     super.initState();
@@ -168,8 +172,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       }
 
       if (widget.autoCapture && !_autoCapturing) {
-        if (_autoCaptureCooldownUntil != null &&
-            DateTime.now().isBefore(_autoCaptureCooldownUntil!)) {
+        if (_isCoolingDown) {
           _detectedCount = 0;
         } else {
           _autoCaptureCooldownUntil = null;
@@ -313,6 +316,24 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else if (_isCoolingDown)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Tooltip(
+                message: 'Cooldown',
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.timer_outlined, size: 16,
+                      color: Theme.of(context).colorScheme.onSurface.withAlpha(100)),
+                    const SizedBox(width: 4),
+                    Text('wait',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withAlpha(100))),
+                  ],
+                ),
               ),
             )
           else if (widget.autoCapture && _detectedCount > 0)
@@ -465,7 +486,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
               _corners = null;
             });
             _startImageStream();
-            _autoCaptureCooldownUntil = DateTime.now().add(const Duration(milliseconds: 1500));
+            setState(() {
+              _autoCaptureCooldownUntil = DateTime.now().add(const Duration(milliseconds: 1500));
+            });
           } else {
             Navigator.pop(context, true);
           }

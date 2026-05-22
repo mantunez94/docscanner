@@ -254,6 +254,9 @@ class HomeScreen extends ConsumerWidget {
   }
 
   void _deleteSelected(BuildContext context, WidgetRef ref, Set<String> ids) {
+    final docs = ref.read(documentListProvider).valueOrNull ?? [];
+    final deletedDocs = docs.where((d) => ids.contains(d.id)).toList();
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -271,7 +274,18 @@ class HomeScreen extends ConsumerWidget {
               ref.read(selectedIdsProvider.notifier).state = {};
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${ids.length} document${ids.length > 1 ? 's' : ''} deleted')),
+                  SnackBar(
+                    content: Text('${ids.length} document${ids.length > 1 ? 's' : ''} deleted'),
+                    duration: const Duration(seconds: 4),
+                    action: SnackBarAction(
+                      label: 'Undo',
+                      onPressed: () {
+                        for (final doc in deletedDocs) {
+                          ref.read(documentListProvider.notifier).restore(doc);
+                        }
+                      },
+                    ),
+                  ),
                 );
               }
             },
@@ -403,7 +417,14 @@ class HomeScreen extends ConsumerWidget {
               Navigator.pop(ctx);
               ref.read(documentListProvider.notifier).delete(doc.id);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('"${doc.name}" deleted')),
+                SnackBar(
+                  content: Text('"${doc.name}" deleted'),
+                  duration: const Duration(seconds: 4),
+                  action: SnackBarAction(
+                    label: 'Undo',
+                    onPressed: () => ref.read(documentListProvider.notifier).restore(doc),
+                  ),
+                ),
               );
             },
             child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),

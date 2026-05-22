@@ -38,6 +38,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   int _imageHeight = 0;
 
   int _detectedCount = 0;
+  DateTime? _autoCaptureCooldownUntil;
 
   @override
   void initState() {
@@ -105,7 +106,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
       }
 
       if (widget.autoCapture && !_autoCapturing) {
-        _checkAutoCapture(corners);
+        if (_autoCaptureCooldownUntil != null &&
+            DateTime.now().isBefore(_autoCaptureCooldownUntil!)) {
+          _detectedCount = 0;
+        } else {
+          _autoCaptureCooldownUntil = null;
+          _checkAutoCapture(corners);
+        }
       }
     } catch (e) {
       debugPrint('Error processing frame: $e');
@@ -302,6 +309,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
           _detectedCount = 0;
           _corners = null;
 
+          await Future.delayed(const Duration(milliseconds: 350));
+
           final scanAnother = await showDialog<bool>(
             context: context,
             barrierDismissible: true,
@@ -334,6 +343,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               _detectedCount = 0;
               _corners = null;
             });
+            _autoCaptureCooldownUntil = DateTime.now().add(const Duration(milliseconds: 1500));
           } else {
             Navigator.pop(context);
           }

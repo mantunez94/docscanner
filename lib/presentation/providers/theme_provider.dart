@@ -22,13 +22,13 @@ final appLightThemeDataProvider = Provider<ThemeData>((ref) {
 });
 
 class ThemeNotifier extends StateNotifier<AppTheme> {
-  ThemeNotifier() : super(AppTheme.arcade) {
+  ThemeNotifier() : super(AppTheme.professional) {
     _load();
   }
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
-    final index = prefs.getInt('app_theme') ?? 0;
+    final index = prefs.getInt('app_theme') ?? AppTheme.professional.index;
     state = AppTheme.values[index];
   }
 

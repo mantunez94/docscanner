@@ -22,6 +22,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   bool _ocrLoading = false;
   bool _saving = false;
   List<cv.Point>? _corners;
+  List<cv.Point>? _originalCorners;
   int _imgW = 0;
   int _imgH = 0;
   Rect _imageRect = Rect.zero;
@@ -57,7 +58,10 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
         cv.Point((_imgW * m).round(), (_imgH * (1 - m)).round()),
       ];
     }
-    setState(() => _displayBytes = bytes);
+    setState(() {
+      _displayBytes = bytes;
+      _originalCorners = _corners != null ? List<cv.Point>.from(_corners!) : null;
+    });
   }
 
   List<cv.Point>? _detectDocumentFromMat(cv.Mat src) {
@@ -396,6 +400,15 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              Tooltip(
+                message: 'Reset corners',
+                child: IconButton(
+                  onPressed: _originalCorners != null
+                      ? () => setState(() => _corners = List<cv.Point>.from(_originalCorners!))
+                      : null,
+                  icon: const Icon(Icons.restart_alt, color: Colors.white, size: 26),
+                ),
+              ),
               Tooltip(
                 message: 'Extract text from this page',
                 child: IconButton(

@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/scanned_document.dart';
 import '../providers/document_provider.dart';
+import 'preview_screen.dart';
 
 class DocumentDetailScreen extends ConsumerStatefulWidget {
   final ScannedDocument document;
@@ -127,6 +129,21 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
     );
   }
 
+  Future<void> _openPageForEditing(int index, String path) async {
+    final result = await Navigator.push<Uint8List>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PreviewScreen(imagePath: path),
+      ),
+    );
+    if (!context.mounted || result == null) return;
+    await File(path).writeAsBytes(result);
+    await ref.read(documentListProvider.notifier).reorderPages(
+      widget.document.id,
+      List<String>.from(widget.document.pages),
+    );
+  }
+
   Widget _buildPageCard(List<String> pages, int index, ThemeData theme) {
     final path = pages[index];
     final selected = _selectedIndices.contains(index);
@@ -140,6 +157,8 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
               _selectedIndices.add(index);
             }
           });
+        } else {
+          _openPageForEditing(index, path);
         }
       },
       onLongPress: !_batchMode

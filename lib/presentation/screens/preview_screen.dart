@@ -316,6 +316,16 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
               rH,
             );
           }
+          const _mgSize = 200.0;
+          const _mgGap = 30.0;
+          final _mgLeft = _draggingIndex >= 0 && _uiImage != null && _corners != null
+              ? (_dragLocalPos.dx - _mgSize / 2).clamp(0, constraints.maxWidth - _mgSize).toDouble()
+              : 0.0;
+          final _mgTop = _draggingIndex >= 0 && _uiImage != null && _corners != null
+              ? (_dragLocalPos.dy < constraints.maxHeight * 0.4
+                  ? (_dragLocalPos.dy + _mgGap).clamp(0, constraints.maxHeight - _mgSize).toDouble()
+                  : (_dragLocalPos.dy - _mgSize - _mgGap).clamp(0, constraints.maxHeight - _mgSize).toDouble())
+              : 0.0;
 
           return Stack(
             key: _stackKey,
@@ -336,15 +346,16 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
               if (_corners != null && _imageRect != Rect.zero)
                 for (var i = 0; i < _corners!.length; i++)
                   Positioned(
-                    left: _imageToScreen(_corners![i]).dx - 14,
-                    top: _imageToScreen(_corners![i]).dy - 14,
+                    left: _imageToScreen(_corners![i]).dx - 24,
+                    top: _imageToScreen(_corners![i]).dy - 24,
                     child: GestureDetector(
                       onPanStart: (d) => _onHandleDragStart(i, d),
                       onPanUpdate: (d) => _onHandleDragUpdate(i, d),
                       onPanEnd: _onHandleDragEnd,
                       child: Container(
-                        width: 28,
-                        height: 28,
+                        width: 48,
+                        height: 48,
+                        alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: _draggingIndex == i
                               ? Colors.cyan.withAlpha(80)
@@ -354,19 +365,19 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                         ),
                         child: Icon(
                           _draggingIndex == i ? Icons.circle : Icons.drag_handle,
-                          color: Colors.white, size: 14,
+                          color: Colors.white, size: 16,
                         ),
                       ),
                     ),
                   ),
               if (_draggingIndex >= 0 && _uiImage != null && _corners != null)
                 Positioned(
-                  left: _dragLocalPos.dx - 100,
-                  top: _dragLocalPos.dy - 230,
+                  left: _mgLeft,
+                  top: _mgTop,
                   child: IgnorePointer(
                     child: Container(
-                      width: 200,
-                      height: 200,
+                      width: _mgSize,
+                      height: _mgSize,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 3),

@@ -24,6 +24,15 @@ class DocScannerApp extends ConsumerWidget {
       theme: theme,
       darkTheme: darkTheme,
       themeMode: themeMode,
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(
+          textScaler: MediaQuery.of(context).textScaler.clamp(
+            minScaleFactor: 0.8,
+            maxScaleFactor: 1.3,
+          ),
+        ),
+        child: child!,
+      ),
       home: FutureBuilder<bool>(
         future: shouldShowOnboarding(),
         builder: (context, snapshot) {

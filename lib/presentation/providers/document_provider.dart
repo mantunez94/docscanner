@@ -64,7 +64,6 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
   }
 
   Future<void> scanFromBytes(Uint8List bytes) async {
-    state = const AsyncLoading();
     try {
       final fileService = ref.read(_fileServiceProvider);
       final id = DateTime.now().millisecondsSinceEpoch.toString();

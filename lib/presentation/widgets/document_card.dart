@@ -47,8 +47,14 @@ class DocumentCard extends StatelessWidget {
                     semanticLabel: 'Thumbnail of ${document.name}',
                     errorBuilder: (_, __, ___) => Container(
                       color: theme.colorScheme.surfaceContainerHighest,
-                      child: Center(
-                        child: Icon(Icons.broken_image, size: 40, color: theme.colorScheme.onSurface.withAlpha(100)),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.broken_image, size: 32, color: theme.colorScheme.onSurface.withAlpha(100)),
+                          const SizedBox(height: 4),
+                          Text('Tap to reload', style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withAlpha(80))),
+                        ],
                       ),
                     ),
                   ),

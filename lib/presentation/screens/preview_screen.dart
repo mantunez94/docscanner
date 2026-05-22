@@ -417,7 +417,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                   onPressed: _originalCorners != null
                       ? () => setState(() => _corners = List<cv.Point>.from(_originalCorners!))
                       : null,
-                  icon: const Icon(Icons.restart_alt, color: Colors.white, size: 26),
+                  icon: const Icon(Icons.crop_square, color: Colors.white, size: 26),
                 ),
               ),
               Tooltip(

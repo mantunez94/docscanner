@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 import 'package:path_provider/path_provider.dart';
 import '../../core/document_boundary_detector.dart';
@@ -215,13 +216,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.large(
+        onPressed: _capture,
+        child: const Icon(Icons.camera_alt),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
 
       body: !_initialized
           ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
                 CameraPreview(_controller!),
-                _buildOverlay(),
+                Positioned.fill(child: _buildOverlay()),
               ],
             ),
       ),
@@ -232,17 +238,44 @@ class _ScannerScreenState extends State<ScannerScreen> {
     final preview = _controller?.value.previewSize;
     if (preview == null) return const SizedBox.shrink();
 
-    return CustomPaint(
-      size: Size.infinite,
-      painter: _BoundaryOverlayPainter(
-        corners: _corners,
-        previewWidth: preview.width,
-        previewHeight: preview.height,
-        sensorOrientation: _controller!.value.description.sensorOrientation,
-        imageWidth: _imageWidth,
-        imageHeight: _imageHeight,
-        isAutoCapturing: _autoCapturing,
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bodyW = constraints.maxWidth;
+        final bodyH = constraints.maxHeight;
+
+        final orientation = _controller!.value.deviceOrientation;
+        final isLandscape = orientation == DeviceOrientation.landscapeLeft ||
+            orientation == DeviceOrientation.landscapeRight;
+        final camAspect = isLandscape
+            ? preview.width / preview.height
+            : preview.height / preview.width;
+
+        double paintW = bodyW;
+        double paintH = paintW / camAspect;
+        if (paintH > bodyH) {
+          paintH = bodyH;
+          paintW = paintH * camAspect;
+        }
+
+        final offsetX = (bodyW - paintW) / 2;
+        final offsetY = (bodyH - paintH) / 2;
+
+        return CustomPaint(
+          painter: _BoundaryOverlayPainter(
+            corners: _corners,
+            previewWidth: preview.width,
+            previewHeight: preview.height,
+            previewOffsetX: offsetX,
+            previewOffsetY: offsetY,
+            previewPaintWidth: paintW,
+            previewPaintHeight: paintH,
+            sensorOrientation: _controller!.value.description.sensorOrientation,
+            imageWidth: _imageWidth,
+            imageHeight: _imageHeight,
+            isAutoCapturing: _autoCapturing,
+          ),
+        );
+      },
     );
   }
 
@@ -352,6 +385,10 @@ class _BoundaryOverlayPainter extends CustomPainter {
   final List<cv.Point>? corners;
   final double previewWidth;
   final double previewHeight;
+  final double previewOffsetX;
+  final double previewOffsetY;
+  final double previewPaintWidth;
+  final double previewPaintHeight;
   final int sensorOrientation;
   final int imageWidth;
   final int imageHeight;
@@ -361,6 +398,10 @@ class _BoundaryOverlayPainter extends CustomPainter {
     this.corners,
     required this.previewWidth,
     required this.previewHeight,
+    required this.previewOffsetX,
+    required this.previewOffsetY,
+    required this.previewPaintWidth,
+    required this.previewPaintHeight,
     required this.sensorOrientation,
     required this.imageWidth,
     required this.imageHeight,
@@ -369,9 +410,6 @@ class _BoundaryOverlayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final scaleX = size.width / previewWidth;
-    final scaleY = size.height / previewHeight;
-
     final paint = Paint()
       ..color = Colors.black.withAlpha(100)
       ..style = PaintingStyle.fill;
@@ -386,7 +424,7 @@ class _BoundaryOverlayPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     if (corners != null && corners!.length >= 4) {
-      final pts = _mapCorners(corners!, scaleX, scaleY);
+      final pts = _mapCorners(corners!);
 
       final docPath = Path()..moveTo(pts[0].dx, pts[0].dy);
       for (var i = 1; i < pts.length; i++) {
@@ -413,10 +451,13 @@ class _BoundaryOverlayPainter extends CustomPainter {
           ..strokeWidth = 2);
       }
     } else {
+      final centerX = previewOffsetX + previewPaintWidth / 2;
+      final centerY = previewOffsetY + previewPaintHeight / 2;
+
       final rect = Rect.fromCenter(
-        center: Offset(size.width / 2, size.height / 2),
-        width: size.width * 0.85,
-        height: size.height * 0.55,
+        center: Offset(centerX, centerY),
+        width: previewPaintWidth * 0.85,
+        height: previewPaintHeight * 0.55,
       );
 
       canvas.drawPath(
@@ -435,7 +476,7 @@ class _BoundaryOverlayPainter extends CustomPainter {
     }
   }
 
-  List<Offset> _mapCorners(List<cv.Point> corners, double scaleX, double scaleY) {
+  List<Offset> _mapCorners(List<cv.Point> corners) {
     return corners.map((p) {
       double x = p.x.toDouble();
       double y = p.y.toDouble();
@@ -461,14 +502,19 @@ class _BoundaryOverlayPainter extends CustomPainter {
       final displayH = (sensorOrientation == 90 || sensorOrientation == 270) ? w : h;
 
       return Offset(
-        x * scaleX * previewWidth / displayW,
-        y * scaleY * previewHeight / displayH,
+        previewOffsetX + x * previewPaintWidth / displayW,
+        previewOffsetY + y * previewPaintHeight / displayH,
       );
     }).toList();
   }
 
   @override
   bool shouldRepaint(covariant _BoundaryOverlayPainter oldDelegate) {
-    return oldDelegate.corners != corners || oldDelegate.isAutoCapturing != isAutoCapturing;
+    return oldDelegate.corners != corners ||
+        oldDelegate.isAutoCapturing != isAutoCapturing ||
+        oldDelegate.previewOffsetX != previewOffsetX ||
+        oldDelegate.previewOffsetY != previewOffsetY ||
+        oldDelegate.previewPaintWidth != previewPaintWidth ||
+        oldDelegate.previewPaintHeight != previewPaintHeight;
   }
 }

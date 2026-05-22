@@ -9,8 +9,15 @@ import 'preview_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
   final bool autoCapture;
+  final bool batchMode;
+  final Future<void> Function(Uint8List bytes)? onPageScanned;
 
-  const ScannerScreen({super.key, this.autoCapture = true});
+  const ScannerScreen({
+    super.key,
+    this.autoCapture = true,
+    this.batchMode = false,
+    this.onPageScanned,
+  });
 
   @override
   State<ScannerScreen> createState() => _ScannerScreenState();
@@ -225,7 +232,45 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
       if (!mounted) return;
       if (result is Uint8List) {
-        Navigator.pop<Uint8List>(context, result);
+        if (widget.batchMode && widget.onPageScanned != null) {
+          await widget.onPageScanned!(result);
+          if (!mounted) return;
+          _autoCapturing = false;
+          _detectedCount = 0;
+          _corners = null;
+
+          final scanAnother = await showDialog<bool>(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Page saved'),
+              content: const Text('Scan another page?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Done'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Scan another'),
+                ),
+              ],
+            ),
+          );
+
+          if (!mounted) return;
+          if (scanAnother == true) {
+            setState(() {
+              _autoCapturing = false;
+              _detectedCount = 0;
+              _corners = null;
+            });
+          } else {
+            Navigator.pop(context);
+          }
+        } else {
+          Navigator.pop<Uint8List>(context, result);
+        }
       } else if (result == 'retake') {
         final confirm = await showDialog<bool>(
           context: context,

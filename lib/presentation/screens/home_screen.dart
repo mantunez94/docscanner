@@ -240,9 +240,14 @@ class HomeScreen extends ConsumerWidget {
       ),
       floatingActionButton: batchMode
           ? null
-          : FloatingActionButton(
-              onPressed: () => _openScanner(context, ref, null),
-              child: const Icon(Icons.camera_alt),
+          : GestureDetector(
+              onLongPress: () => _startBatchScan(context, ref),
+              child: FloatingActionButton.extended(
+                onPressed: () => _openScanner(context, ref, null),
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Scan'),
+                tooltip: 'Tap for single page, hold for batch scan',
+              ),
             ),
     );
   }
@@ -305,6 +310,38 @@ class HomeScreen extends ConsumerWidget {
         ),
       );
     }
+  }
+
+  static Future<void> _startBatchScan(BuildContext context, WidgetRef ref) async {
+    String? docId;
+
+    await Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => ScannerScreen(
+          batchMode: true,
+          onPageScanned: (bytes) async {
+            if (docId == null) {
+              await ref.read(documentListProvider.notifier).scanFromBytes(bytes);
+              final docs = ref.read(documentListProvider).valueOrNull ?? [];
+              if (docs.isNotEmpty) docId = docs.last.id;
+            } else {
+              await ref.read(documentListProvider.notifier).addPageToDocument(docId!, bytes);
+            }
+          },
+        ),
+        transitionsBuilder: (_, animation, __, child) =>
+            SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 1),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut)),
+              child: child,
+            ),
+      ),
+    );
+    if (!context.mounted) return;
+    ref.invalidate(documentListProvider);
   }
 
   void _showActions(BuildContext context, WidgetRef ref, ScannedDocument doc) {

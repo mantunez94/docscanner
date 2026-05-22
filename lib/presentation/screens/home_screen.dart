@@ -272,14 +272,18 @@ class HomeScreen extends ConsumerWidget {
                 ],
               ),
       ),
-      floatingActionButton: batchMode
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => _openScanner(context, ref, null),
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Scan'),
-              tooltip: 'Scan a document',
-            ),
+      floatingActionButton: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: batchMode
+            ? const SizedBox.shrink(key: ValueKey('batch'))
+            : FloatingActionButton.extended(
+                key: const ValueKey('scan'),
+                onPressed: () => _openScanner(context, ref, null),
+                icon: const Icon(Icons.camera_alt),
+                label: const Text('Scan'),
+                tooltip: 'Scan a document',
+              ),
+      ),
     );
   }
 

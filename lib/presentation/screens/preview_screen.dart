@@ -245,7 +245,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Text('Extracted Text', style: Theme.of(context).textTheme.titleLarge),
+                  Text('Extracted Text', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 4),
                   Text('${result.blocks.length} text blocks found',
                       style: Theme.of(context).textTheme.bodySmall),
@@ -565,9 +565,13 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       if (!success) throw Exception('Failed to encode');
       if (mounted) Navigator.pop(context, encoded);
     } catch (e) {
+      debugPrint('Processing failed: $e');
       if (mounted) {
         final bytes = _displayBytes;
         if (bytes != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Processing failed. Using original image.')),
+          );
           Navigator.pop(context, bytes);
         } else {
           setState(() => _saving = false);

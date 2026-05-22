@@ -457,46 +457,58 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Tooltip(
-                message: 'Reset corners',
-                child: IconButton(
-                  onPressed: _originalCorners != null
-                      ? () => setState(() => _corners = List<cv.Point>.from(_originalCorners!))
-                      : null,
-                  icon: const Icon(Icons.crop_square, color: Colors.white, size: 26),
+              Semantics(
+                label: 'Reset corners',
+                child: Tooltip(
+                  message: 'Reset corners',
+                  child: IconButton(
+                    onPressed: _originalCorners != null
+                        ? () => setState(() => _corners = List<cv.Point>.from(_originalCorners!))
+                        : null,
+                    icon: const Icon(Icons.crop_square, color: Colors.white, size: 26),
+                  ),
                 ),
               ),
-              Tooltip(
-                message: 'Extract text from this page',
-                child: IconButton(
-                  onPressed: _ocrLoading ? null : _runOcr,
-                  icon: _ocrLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Icon(Icons.text_snippet, color: Colors.white, size: 26),
+              Semantics(
+                label: 'Extract text from this page',
+                child: Tooltip(
+                  message: 'Extract text from this page',
+                  child: IconButton(
+                    onPressed: _ocrLoading ? null : _runOcr,
+                    icon: _ocrLoading
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Icon(Icons.text_snippet, color: Colors.white, size: 26),
+                  ),
                 ),
               ),
-              Tooltip(
-                message: 'Take photo again',
-                child: IconButton(
-                  onPressed: () => Navigator.pop(context, 'retake'),
-                  icon: const Icon(Icons.camera_alt, color: Colors.white, size: 26),
+              Semantics(
+                label: 'Take photo again',
+                child: Tooltip(
+                  message: 'Take photo again',
+                  child: IconButton(
+                    onPressed: () => Navigator.pop(context, 'retake'),
+                    icon: const Icon(Icons.camera_alt, color: Colors.white, size: 26),
+                  ),
                 ),
               ),
-              Tooltip(
-                message: 'Save scan',
-                child: IconButton(
-                  icon: _saving
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Icon(Icons.check_circle, color: Colors.white, size: 30),
-                  onPressed: _saving ? null : _onConfirm,
+              Semantics(
+                label: 'Save scan',
+                child: Tooltip(
+                  message: 'Save scan',
+                  child: IconButton(
+                    icon: _saving
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Icon(Icons.check_circle, color: Colors.white, size: 30),
+                    onPressed: _saving ? null : _onConfirm,
+                  ),
                 ),
               ),
             ],

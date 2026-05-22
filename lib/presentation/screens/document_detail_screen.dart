@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/scanned_document.dart';
 import '../providers/document_provider.dart';
 import 'preview_screen.dart';
+import 'scanner_screen.dart';
 
 class DocumentDetailScreen extends ConsumerStatefulWidget {
   final ScannedDocument document;
@@ -147,6 +148,13 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
           : _reorderMode
               ? _buildReorderableList(pages, theme)
               : _buildGridView(pages, theme),
+      floatingActionButton: !_reorderMode && !_batchMode
+          ? FloatingActionButton(
+              onPressed: () => _openScanner(context),
+              tooltip: 'Add page',
+              child: const Icon(Icons.add_a_photo_outlined),
+            )
+          : null,
     );
   }
 
@@ -181,6 +189,31 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
     await ref.read(documentListProvider.notifier).reorderPages(
       widget.document.id,
       List<String>.from(widget.document.pages),
+    );
+  }
+
+  Future<void> _openScanner(BuildContext context) async {
+    final result = await Navigator.push<bool>(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => ScannerScreen(
+          batchMode: true,
+          onPageScanned: (bytes) async {
+            await ref.read(documentListProvider.notifier).addPageToDocument(
+              widget.document.id,
+              bytes,
+            );
+          },
+        ),
+        transitionsBuilder: (_, animation, __, child) =>
+            SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 1),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(parent: animation, curve: Curves.easeInOut)),
+              child: child,
+            ),
+      ),
     );
   }
 

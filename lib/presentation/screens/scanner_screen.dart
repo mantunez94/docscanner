@@ -215,19 +215,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
         ],
       ),
-      floatingActionButton: _initialized
-          ? FloatingActionButton.large(
-              onPressed: _autoCapturing ? null : _capture,
-              child: _autoCapturing
-                  ? const SizedBox(
-                      width: 28,
-                      height: 28,
-                      child: CircularProgressIndicator(strokeWidth: 3),
-                    )
-                  : const Icon(Icons.camera_alt),
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+
       body: !_initialized
           ? const Center(child: CircularProgressIndicator())
           : Stack(

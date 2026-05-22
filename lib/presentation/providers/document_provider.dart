@@ -127,6 +127,19 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
     }
   }
 
+  Future<void> reorderPages(String id, List<String> reorderedPages) async {
+    try {
+      final repo = ref.read(_repositoryProvider);
+      await repo.reorderPages(id, reorderedPages);
+      final fileService = ref.read(_fileServiceProvider);
+      final pdfPath = await fileService.generatePdf(id, reorderedPages);
+      await repo.updatePdfPath(id, pdfPath);
+      ref.invalidateSelf();
+    } catch (e) {
+      state = AsyncError(e, StackTrace.current);
+    }
+  }
+
   Future<void> rename(String id, String newName) async {
     try {
       final rename = ref.watch(_renameDocumentProvider);

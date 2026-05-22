@@ -167,9 +167,37 @@ class _ScannerScreenState extends State<ScannerScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scan Document'),
+    return PopScope(
+      canPop: !widget.batchMode,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop || !widget.batchMode) return;
+        final ctx = context;
+        final confirm = await showDialog<bool>(
+          context: ctx,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Discard batch?'),
+            content: const Text(
+              'You have pages in the current batch. Do you want to discard them and go back?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Stay'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Exit'),
+              ),
+            ],
+          ),
+        );
+        if (confirm == true && mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.batchMode ? 'Batch Scan' : 'Scan Document'),
         leading: IconButton(
           icon: const Icon(Icons.home_outlined),
           tooltip: 'Home',
@@ -187,6 +215,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
         ],
       ),
+      floatingActionButton: _initialized
+          ? FloatingActionButton.large(
+              onPressed: _autoCapturing ? null : _capture,
+              child: _autoCapturing
+                  ? const SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: CircularProgressIndicator(strokeWidth: 3),
+                    )
+                  : const Icon(Icons.camera_alt),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: !_initialized
           ? const Center(child: CircularProgressIndicator())
           : Stack(
@@ -195,6 +236,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 _buildOverlay(),
               ],
             ),
+      ),
     );
   }
 

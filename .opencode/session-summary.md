@@ -15,6 +15,7 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 - Microphone permission: `enableAudio: false` in CameraController (never requested at runtime)
 - Manual capture FAB removed — auto-capture only
 - Home button (`home_outlined` icon) in scanner AppBar leading position
+- **Batch scan**: FAB tap = single page; FAB hold = batch mode (after each page, asks "Scan another?"). All pages saved to same document.
 
 **Image Processing**
 - Perspective correction: OpenCV `getPerspectiveTransform2f` + `warpPerspective` (bypasses `flutter_image_perspective_crop` DNL JPEG bug on MediaTek)
@@ -24,13 +25,14 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 **Preview Screen**
 - Draggable corner handles (4 cyan circles) for manual crop adjustment
 - `applyDragToCorners()` function ensuring complete corner independence
+- **Corner reset button**: `Icons.restart_alt` in bottom toolbar — restores auto-detected corners
 - Crop overlay painter with 10×10 grid (white, alpha 40, 0.5px stroke)
 - Two overlay modes: `fullOverlay=true` (dark exterior + lines + grid), `fullOverlay=false` (lines + grid only, no dark fill — used during corner drag)
 - GPU-accelerated magnifier: `_MagnifierPainter` using `ui.Image` + `canvas.drawImageRect` for raw pixel zoom, 4×, 200px circle, positioned above finger (replaced `RawMagnifier` which showed overlay/circle pixels instead of image)
 
 **PDF Generation**
 - Dynamic `PdfPageFormat` per image aspect ratio (no white borders)
-- Regenerates PDF on page add/remove
+- Regenerates PDF on page add/remove/reorder
 
 **Document Management**
 - Multi-page documents with page grid view
@@ -39,6 +41,7 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 - Batch mode (multi-select delete)
 - Rename documents
 - Pull-to-refresh
+- **Page reordering**: `ReorderableListView` with drag handle — accessed from action sheet ("Reorder pages") or directly from document detail
 
 **OCR**
 - Google ML Kit text recognition
@@ -60,6 +63,7 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 - ANDROID_HOME configured at `/opt/android-sdk`
 - Build for armeabi-v7a: `flutter build apk --debug` (no `--target-platform android-arm64`)
 - Install: `adb install -r build/app/outputs/flutter-apk/app-debug.apk`
+- **AI assistant branching rules**: Never push directly to main — always create feature branches and PRs
 
 ### Known Issues
 
@@ -69,16 +73,19 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 
 ### Recent Changes (2026-05-22)
 
-- **Auto-capture tuning**: 10%→15%→12% area, 5→8→5 consecutive detections. Final params (12%, 5 detections) balance fast capture with avoiding false triggers.
-- **Image enhancement retuned**: Changed from hard defaults to `normalize` + `convertScaleAbs(α=1.25, β=5)` + sharpen center 5 — subtle enhancement without overprocessing.
-- **Custom magnifier** (2 iterations): Replaced `RawMagnifier` with GPU-accelerated `_MagnifierPainter` using `ui.instantiateImageCodec` + `drawImageRect` — 4× zoom, 200px circle, positioned above finger. Shows only raw image pixels. Avoids OpenCV encode/decode overhead.
-- **Grid overlay**: Rule-of-thirds → 10×10 grid (white, alpha 40, 0.5px stroke) inside crop area.
-- **Overlay during drag**: Changed from hidden overlay to showing only quad lines + grid (no dark fill) so magnifier stays clean while corners remain visually connected.
-- **Corner independence**: Extracted `applyDragToCorners()` function — ensures each corner moves independently. 4 unit tests added.
-- **Microphone permission**: `CameraController(enableAudio: false)` — avoids runtime RECORD_AUDIO prompt without removing manifest declaration (camera plugin requires it).
-- **Manual capture removed**: FAB deleted — auto-capture only workflow.
-- **Default theme**: Changed from Arcade to Professional.
-- **Home button**: Close icon (X) → home icon (`home_outlined`).
+- **Batch scan**: Modified `ScannerScreen` with `batchMode` param and `onPageScanned` callback. After PreviewScreen confirms, saves page and shows "Scan another?" dialog. FAB tap = single page, FAB long-press = batch mode. `_startBatchScan` tracks `docId` across pages in home screen.
+- **Page reordering**: Added `reorderPages` to repository/datasource/provider layers. `DocumentDetailScreen` now has reorder mode with `ReorderableListView` + `ReorderableDragStartListener`. Option in document action sheet.
+- **Corner reset button**: `_originalCorners` stored at load time. Reset button (`Icons.restart_alt`) in preview toolbar restores auto-detected corners.
+- **AI assistant rules**: Added to `.opencode/instructions/git-workflow.md` — never commit/push/merge directly to main.
+- **Auto-capture tuning**: Area 10%→15%→12%, detections 5→8→5.
+- **Image enhancement**: normalize + convertScaleAbs(α=1.25, β=5) + sharpen center 5.
+- **Custom magnifier**: GPU-accelerated with `ui.Image` + `drawImageRect`, 4× zoom, 200px circle.
+- **Grid**: Rule-of-thirds → 10×10 (white, alpha 40, 0.5px).
+- **Overlay during drag**: Only lines + grid, no dark fill.
+- **Microphone**: `enableAudio: false`.
+- **Manual capture removed**: Auto-capture only.
+- **Default theme**: Arcade → Professional.
+- **Home button**: X → home_outlined.
 
 ### Test Suite
 
@@ -102,8 +109,7 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 
 ## Next Steps (suggested order)
 
-1. **Manual corner reset** — allow user to reset corners to auto-detected position
-2. **Verify dark mode across all 3 themes** — ensure complete dark variants
-3. **Widget tests** — search, batch mode, onboarding, OCR, document detail, boundary overlay painters
-4. **App icon + splash screen branding**
-5. **Play Store prep** — CI/CD, screenshots, description
+1. **Verify dark mode across all 3 themes** — ensure complete dark variants
+2. **Widget tests** — search, batch mode, onboarding, OCR, document detail, boundary overlay painters
+3. **App icon + splash screen branding**
+4. **Play Store prep** — CI/CD, screenshots, description

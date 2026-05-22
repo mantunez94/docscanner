@@ -331,16 +331,20 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
             key: _stackKey,
             children: [
               Center(
-                child: Image.memory(_displayBytes!, fit: BoxFit.contain),
+                child: Image.memory(_displayBytes!, fit: BoxFit.contain, semanticLabel: 'Document preview'),
               ),
               if (_imageRect != Rect.zero)
                 Positioned.fill(
-                  child: CustomPaint(
+                  child: Semantics(
+                    label: 'Crop region overlay',
+                    excludeSemantics: true,
+                    child: CustomPaint(
                     painter: _CropOverlayPainter(
                       corners: _corners?.map(_imageToScreen).toList(),
                       imageRect: _imageRect,
                       fullOverlay: _draggingIndex < 0,
                     ),
+                  ),
                   ),
                 ),
               if (_corners != null && _imageRect != Rect.zero)
@@ -348,11 +352,13 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                   Positioned(
                     left: _imageToScreen(_corners![i]).dx - 24,
                     top: _imageToScreen(_corners![i]).dy - 24,
-                    child: GestureDetector(
-                      onPanStart: (d) => _onHandleDragStart(i, d),
-                      onPanUpdate: (d) => _onHandleDragUpdate(i, d),
-                      onPanEnd: _onHandleDragEnd,
-                      child: Container(
+                    child: Semantics(
+                      label: 'Crop corner ${i + 1}',
+                      child: GestureDetector(
+                        onPanStart: (d) => _onHandleDragStart(i, d),
+                        onPanUpdate: (d) => _onHandleDragUpdate(i, d),
+                        onPanEnd: _onHandleDragEnd,
+                        child: Container(
                         width: 48,
                         height: 48,
                         alignment: Alignment.center,
@@ -368,6 +374,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                           color: Colors.white, size: 16,
                         ),
                       ),
+                    ),
                     ),
                   ),
               if (_draggingIndex >= 0 && _uiImage != null && _corners != null)
@@ -386,8 +393,11 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                         ],
                       ),
                       clipBehavior: Clip.antiAlias,
-                      child: CustomPaint(
-                        painter: _MagnifierPainter(
+                  child: Semantics(
+                    label: 'Magnified view of corner region',
+                    excludeSemantics: true,
+                    child: CustomPaint(
+                      painter: _MagnifierPainter(
                           image: _uiImage!,
                           focalX: _corners![_draggingIndex].x.toDouble(),
                           focalY: _corners![_draggingIndex].y.toDouble(),
@@ -399,11 +409,12 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                     ),
                   ),
                 ),
-            ],
-          );
-        },
-      ),
-      bottomNavigationBar: Container(
+              ),
+              ],
+            );
+          },
+        ),
+        bottomNavigationBar: Container(
         color: Colors.black87,
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
         child: SafeArea(

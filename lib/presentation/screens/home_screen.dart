@@ -155,7 +155,9 @@ class HomeScreen extends ConsumerWidget {
                   if (documents.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                      child: TextField(
+                      child: Semantics(
+                        label: 'Search documents',
+                        child: TextField(
                         onChanged: (v) => ref.read(searchQueryProvider.notifier).state = v,
                         decoration: InputDecoration(
                           hintText: 'Search documents...',
@@ -163,6 +165,7 @@ class HomeScreen extends ConsumerWidget {
                           suffixIcon: searchQuery.isNotEmpty
                               ? IconButton(
                                   icon: const Icon(Icons.clear, size: 18),
+                                  tooltip: 'Clear search',
                                   onPressed: () => ref.read(searchQueryProvider.notifier).state = '',
                                 )
                               : null,
@@ -172,9 +175,10 @@ class HomeScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
+                        ),
+                        ),
                       ),
-                    ),
-                    Expanded(
+                      Expanded(
                       child: filtered.isEmpty && isSearching
                           ? Center(
                               child: Column(

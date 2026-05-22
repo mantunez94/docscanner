@@ -225,6 +225,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       ),
       floatingActionButton: FloatingActionButton.large(
         onPressed: _capture,
+        tooltip: 'Capture photo',
         child: const Icon(Icons.camera_alt),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -267,8 +268,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
         final offsetX = (bodyW - paintW) / 2;
         final offsetY = (bodyH - paintH) / 2;
 
-        return CustomPaint(
-          painter: _BoundaryOverlayPainter(
+        return Semantics(
+          label: 'Document boundary overlay',
+          excludeSemantics: true,
+          child: CustomPaint(
+            painter: _BoundaryOverlayPainter(
             corners: _corners,
             previewWidth: preview.width,
             previewHeight: preview.height,
@@ -280,6 +284,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             imageWidth: _imageWidth,
             imageHeight: _imageHeight,
             isAutoCapturing: _autoCapturing,
+          ),
           ),
         );
       },

@@ -157,6 +157,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
               Image.file(
                 File(path),
                 fit: BoxFit.cover,
+                semanticLabel: 'Page ${index + 1} thumbnail',
                 errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 48),
               )
             else
@@ -220,9 +221,12 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
             children: [
               ReorderableDragStartListener(
                 index: index,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  child: Icon(Icons.drag_handle, color: theme.colorScheme.onSurface.withAlpha(120)),
+                child: Semantics(
+                  label: 'Drag to reorder page ${index + 1}',
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    child: Icon(Icons.drag_handle, color: theme.colorScheme.onSurface.withAlpha(120)),
+                  ),
                 ),
               ),
               ClipRRect(
@@ -232,6 +236,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                   height: 60,
                   child: File(path).existsSync()
                       ? Image.file(File(path), fit: BoxFit.cover,
+                          semanticLabel: 'Page ${index + 1} thumbnail',
                           errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 24))
                       : const Icon(Icons.broken_image, size: 24),
                 ),

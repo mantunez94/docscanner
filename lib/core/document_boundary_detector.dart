@@ -3,9 +3,15 @@ import 'dart:typed_data';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 
 class DocumentBoundaryDetector {
-  static const double _targetWidth = 320;
-  static const double _minAreaFraction = 0.03;
-  static const double _maxAreaFraction = 0.97;
+  final double targetWidth;
+  final double minAreaFraction;
+  final double maxAreaFraction;
+
+  const DocumentBoundaryDetector({
+    this.targetWidth = 320,
+    this.minAreaFraction = 0.03,
+    this.maxAreaFraction = 0.97,
+  });
 
   List<cv.Point>? detectBoundary(
     Uint8List yPlane,
@@ -15,8 +21,8 @@ class DocumentBoundaryDetector {
   }) {
     final s = stride ?? imageWidth;
 
-    final scale = _targetWidth / imageWidth;
-    final dstW = _targetWidth.round();
+    final scale = targetWidth / imageWidth;
+    final dstW = targetWidth.round();
     final dstH = (imageHeight * scale).round();
     if (dstH <= 0) return null;
 
@@ -72,7 +78,7 @@ class DocumentBoundaryDetector {
     for (var i = 0; i < contours.length; i++) {
       final contour = contours[i];
       final area = cv.contourArea(contour);
-      if (area < _minAreaFraction * totalArea || area > _maxAreaFraction * totalArea) continue;
+      if (area < minAreaFraction * totalArea || area > maxAreaFraction * totalArea) continue;
       if (area > bestArea) {
         bestArea = area;
         bestContour = contour;
@@ -92,7 +98,7 @@ class DocumentBoundaryDetector {
       }
 
       final area2 = _computePolygonArea(corners);
-      if (area2 >= _minAreaFraction * totalArea && area2 <= _maxAreaFraction * totalArea) {
+      if (area2 >= minAreaFraction * totalArea && area2 <= maxAreaFraction * totalArea) {
         return _sortClockwise(corners);
       }
     } catch (_) {}

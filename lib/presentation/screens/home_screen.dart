@@ -294,8 +294,14 @@ class HomeScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete documents'),
-        content: Text('Delete ${ids.length} document${ids.length > 1 ? 's' : ''}?'),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Theme.of(context).colorScheme.error, size: 24),
+            const SizedBox(width: 8),
+            const Text('Delete documents'),
+          ],
+        ),
+        content: Text('Delete ${ids.length} document${ids.length > 1 ? 's' : ''}? This cannot be undone.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(

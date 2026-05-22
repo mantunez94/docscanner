@@ -67,18 +67,31 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
     try {
       final fileService = ref.read(_fileServiceProvider);
       final id = DateTime.now().millisecondsSinceEpoch.toString();
-      final filePath = await fileService.savePageImage(id, bytes);
-      final thumbPath = await fileService.saveThumbnail(id, bytes);
-      final pdfPath = await fileService.generatePdf(id, [filePath]);
-      await fileService.saveToGallery(filePath);
 
       final scan = ref.read(_scanDocumentProvider);
-      await scan(
-        id: id,
-        filePath: filePath,
-        thumbnailPath: thumbPath,
-        pdfPath: pdfPath,
-      );
+      final filePath = await fileService.savePageImage(id, bytes);
+      final thumbPath = await fileService.saveThumbnail(id, bytes);
+      try {
+        await scan(
+          id: id,
+          filePath: filePath,
+          thumbnailPath: thumbPath,
+          pdfPath: '',
+        );
+      } catch (_) {
+        await _cleanupFiles([filePath, thumbPath]);
+        rethrow;
+      }
+
+      final pdfPath = await fileService.generatePdf(id, [filePath]);
+      try {
+        await ref.read(_repositoryProvider).updatePdfPath(id, pdfPath);
+      } catch (_) {
+        await _cleanupFiles([pdfPath]);
+        rethrow;
+      }
+
+      await fileService.saveToGallery(filePath);
 
       state = AsyncData(await ref.read(_getAllDocumentsProvider).call());
     } catch (e) {
@@ -86,18 +99,38 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
     }
   }
 
+  Future<void> _cleanupFiles(List<String> paths) async {
+    for (final p in paths) {
+      try {
+        await File(p).delete();
+      } catch (_) {}
+    }
+  }
+
   Future<void> addPageToDocument(String documentId, Uint8List bytes) async {
     try {
       final fileService = ref.read(_fileServiceProvider);
       final path = await fileService.savePageImageWithSuffix(documentId, bytes);
-      await fileService.saveToGallery(path);
 
       final addPages = ref.read(_addPagesToDocumentProvider);
-      final updated = await addPages(documentId, [path]);
+      List<String> updatedPages;
+      try {
+        final updated = await addPages(documentId, [path]);
+        updatedPages = updated.pages;
+      } catch (_) {
+        await _cleanupFiles([path]);
+        rethrow;
+      }
 
-      final pdfPath = await fileService.generatePdf(documentId, updated.pages);
-      await ref.read(_repositoryProvider).updatePdfPath(documentId, pdfPath);
+      final pdfPath = await fileService.generatePdf(documentId, updatedPages);
+      try {
+        await ref.read(_repositoryProvider).updatePdfPath(documentId, pdfPath);
+      } catch (_) {
+        await _cleanupFiles([pdfPath]);
+        rethrow;
+      }
 
+      await fileService.saveToGallery(path);
       ref.invalidateSelf();
     } catch (e) {
       state = AsyncError(e, StackTrace.current);

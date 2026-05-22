@@ -280,8 +280,9 @@ class HomeScreen extends ConsumerWidget {
 
   static Future<void> _openScanner(BuildContext context, WidgetRef ref, String? documentId) async {
     String? docId = documentId;
+    var pagesScanned = 0;
 
-    await Navigator.push(
+    final result = await Navigator.push<bool>(
       context,
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => ScannerScreen(
@@ -294,6 +295,7 @@ class HomeScreen extends ConsumerWidget {
             } else {
               await ref.read(documentListProvider.notifier).addPageToDocument(docId!, bytes);
             }
+            pagesScanned++;
           },
         ),
         transitionsBuilder: (_, animation, __, child) =>
@@ -308,12 +310,15 @@ class HomeScreen extends ConsumerWidget {
     );
     if (!context.mounted) return;
     ref.invalidate(documentListProvider);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(documentId != null ? 'Pages added' : 'Document saved'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    final scanned = result == true || pagesScanned > 0;
+    if (scanned) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(documentId != null ? 'Pages added' : 'Document saved'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   void _showActions(BuildContext context, WidgetRef ref, ScannedDocument doc) {
@@ -413,10 +418,10 @@ class HomeScreen extends ConsumerWidget {
         messenger.hideCurrentSnackBar();
         await Share.shareXFiles([XFile(pdfFile.path)]);
       }
-    } catch (e) {
+    } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          const SnackBar(content: Text('Failed to export PDF. Please try again.')),
         );
       }
     }

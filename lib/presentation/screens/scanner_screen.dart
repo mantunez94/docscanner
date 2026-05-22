@@ -200,7 +200,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ),
         );
         if (confirm == true && mounted) {
-          Navigator.pop(context);
+          Navigator.pop(context, true);
         }
       },
       child: Scaffold(
@@ -347,7 +347,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             _startImageStream();
             _autoCaptureCooldownUntil = DateTime.now().add(const Duration(milliseconds: 1500));
           } else {
-            Navigator.pop(context);
+            Navigator.pop(context, true);
           }
         } else {
           Navigator.pop<Uint8List>(context, result);
@@ -387,9 +387,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
       _autoCapturing = false;
       _startImageStream();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Something went wrong while capturing. Please try again.')),
+      );
       }
     }
   }

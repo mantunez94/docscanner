@@ -210,7 +210,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       if (!mounted) return;
       setState(() => _ocrLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Text extraction failed: $e')),
+        const SnackBar(content: Text('Text extraction failed. Please try again.')),
       );
     }
   }

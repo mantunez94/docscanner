@@ -22,8 +22,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     _OnboardingPage(
       icon: Icons.tune_outlined,
-      title: 'Filters & Adjustments',
-      description: 'Apply filters like grayscale, black & white, or enhanced. Adjust perspective for perfect results.',
+      title: 'Adjust & Refine',
+      description: 'Fine-tune corners, adjust perspective, and enhance the image for a crisp, clean scan.',
     ),
     _OnboardingPage(
       icon: Icons.text_snippet_outlined,

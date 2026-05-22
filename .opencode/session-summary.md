@@ -101,10 +101,15 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 - **#11 Fixed**: Tooltip labels on all icon-only buttons — Corner reset, Extract Text, Rename, Delete, Reorder pages, Search, Batch delete, Home.
 - **#10 Fixed**: PopScope guard — wraps ScannerScreen's Scaffold, intercepts back navigation in batch mode with "Discard batch?" confirmation dialog.
 - **#7 Fixed**: Manual capture fallback — `FloatingActionButton.large` at `centerFloat` with camera icon; shows spinner during auto-capture, enabled otherwise.
+- **#18 Fixed**: Onboarding page 2 copy updated — "Filters & Adjustments" → "Adjust & Refine" with accurate descriptions for perspective correction and corner adjustment.
+- **#21 Fixed**: Inverted font size hierarchy in Arcade theme — `titleLarge` increased (20px PressStart2P), `titleMedium` reduced (18px VT323), `titleSmall` reduced (16px VT323) to match M3 spec.
+- **#19 Fixed**: SnackBar only shows "Document saved"/"Pages added" when actual scanning occurred — tracks `pagesScanned` counter and returns `true` from scanner in batch mode.
+- **#20 Fixed**: All raw exception strings replaced with human-readable messages — scanner capture, PDF export, and OCR extraction errors now show user-friendly text.
+- **#22 Fixed**: Gallery/disk saves happen after database write to prevent orphaned files on failure — `scanFromBytes` and `addPageToDocument` reordered; added `_cleanupFiles` to remove orphaned files if database write fails.
 
 ### Test Suite
 
-40 tests total (4 skipped on host):
+- 37 tests total (4 skipped on host):
 - Entity serialization roundtrip
 - Repository implementation (mocktail)
 - Use case orchestration

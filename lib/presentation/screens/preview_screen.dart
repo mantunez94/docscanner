@@ -316,15 +316,15 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
               rH,
             );
           }
-          const _mgSize = 200.0;
-          const _mgGap = 30.0;
-          final _mgLeft = _draggingIndex >= 0 && _uiImage != null && _corners != null
-              ? (_dragLocalPos.dx - _mgSize / 2).clamp(0, constraints.maxWidth - _mgSize).toDouble()
+          const mgSize = 200.0;
+          const mgGap = 30.0;
+          final mgLeft = _draggingIndex >= 0 && _uiImage != null && _corners != null
+              ? (_dragLocalPos.dx - mgSize / 2).clamp(0, constraints.maxWidth - mgSize).toDouble()
               : 0.0;
-          final _mgTop = _draggingIndex >= 0 && _uiImage != null && _corners != null
+          final mgTop = _draggingIndex >= 0 && _uiImage != null && _corners != null
               ? (_dragLocalPos.dy < constraints.maxHeight * 0.4
-                  ? (_dragLocalPos.dy + _mgGap).clamp(0, constraints.maxHeight - _mgSize).toDouble()
-                  : (_dragLocalPos.dy - _mgSize - _mgGap).clamp(0, constraints.maxHeight - _mgSize).toDouble())
+                  ? (_dragLocalPos.dy + mgGap).clamp(0, constraints.maxHeight - mgSize).toDouble()
+                  : (_dragLocalPos.dy - mgSize - mgGap).clamp(0, constraints.maxHeight - mgSize).toDouble())
               : 0.0;
 
           return Stack(
@@ -372,12 +372,12 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                   ),
               if (_draggingIndex >= 0 && _uiImage != null && _corners != null)
                 Positioned(
-                  left: _mgLeft,
-                  top: _mgTop,
+                  left: mgLeft,
+                  top: mgTop,
                   child: IgnorePointer(
                     child: Container(
-                      width: _mgSize,
-                      height: _mgSize,
+                      width: mgSize,
+                      height: mgSize,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 3),

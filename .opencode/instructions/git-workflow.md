@@ -39,10 +39,10 @@ Examples:
 - Use `mocktail` for mocking dependencies
 
 ## AI Assistant Rules
-- **NEVER commit, push, or merge directly to `main`**
+- **NEVER commit, push, or merge directly to `main`** — GitHub branch protection now blocks direct pushes
 - Always create a feature branch (`feat/`, `fix/`, `chore/`) before making changes
 - After pushing a feature branch, create a Pull Request — do not merge
-- The only exception is documentation-only changes (`.md` files, `.opencode/` config)
+- No exceptions: branch protection requires all changes to go through PRs
 
 ## Before a PR
 1. `git pull --rebase origin main`

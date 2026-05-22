@@ -38,6 +38,12 @@ Examples:
 - Tests live in `test/` mirroring `lib/` structure
 - Use `mocktail` for mocking dependencies
 
+## AI Assistant Rules
+- **NEVER commit, push, or merge directly to `main`**
+- Always create a feature branch (`feat/`, `fix/`, `chore/`) before making changes
+- After pushing a feature branch, create a Pull Request — do not merge
+- The only exception is documentation-only changes (`.md` files, `.opencode/` config)
+
 ## Before a PR
 1. `git pull --rebase origin main`
 2. Resolve any conflicts

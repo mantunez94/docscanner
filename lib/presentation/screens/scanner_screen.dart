@@ -309,6 +309,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           _detectedCount = 0;
           _corners = null;
 
+          _stopImageStream();
           await Future.delayed(const Duration(milliseconds: 350));
 
           final scanAnother = await showDialog<bool>(
@@ -343,6 +344,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               _detectedCount = 0;
               _corners = null;
             });
+            _startImageStream();
             _autoCaptureCooldownUntil = DateTime.now().add(const Duration(milliseconds: 1500));
           } else {
             Navigator.pop(context);
@@ -351,6 +353,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           Navigator.pop<Uint8List>(context, result);
         }
       } else if (result == 'retake') {
+        _stopImageStream();
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -373,6 +376,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           _autoCapturing = false;
           _detectedCount = 0;
           _corners = null;
+          _startImageStream();
         } else {
           Navigator.pop(context);
         }

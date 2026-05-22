@@ -9,6 +9,7 @@ import '../widgets/document_actions_sheet.dart';
 import '../widgets/document_card.dart';
 import '../widgets/shimmer_grid.dart';
 import 'document_detail_screen.dart';
+import 'onboarding_screen.dart';
 import 'scanner_screen.dart';
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
@@ -41,7 +42,7 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: batchMode
-            ? Text('${selectedIds.length} selected')
+            ? Text(selectedIds.isEmpty ? 'Select documents' : '${selectedIds.length} selected')
             : const Text('DocScanner'),
         centerTitle: true,
         leading: batchMode
@@ -61,6 +62,21 @@ class HomeScreen extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.error),
               onPressed: () => _deleteSelected(context, ref, selectedIds),
               tooltip: 'Delete selected',
+            ),
+          if (batchMode)
+            IconButton(
+              icon: const Icon(Icons.select_all),
+              tooltip: selectedIds.length == filtered.length
+                  ? 'Deselect all'
+                  : 'Select all',
+              onPressed: () {
+                if (selectedIds.length == filtered.length) {
+                  ref.read(selectedIdsProvider.notifier).state = {};
+                } else {
+                  ref.read(selectedIdsProvider.notifier).state =
+                      filtered.map((d) => d.id).toSet();
+                }
+              },
             ),
           if (!batchMode) ...[
             PopupMenuButton<AppTheme>(
@@ -127,6 +143,20 @@ class HomeScreen extends ConsumerWidget {
                 onPressed: () => _exportPdf(context, ref),
                 tooltip: 'Export PDF',
               ),
+            IconButton(
+              icon: const Icon(Icons.help_outline),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => OnboardingScreen(
+                      onComplete: () => Navigator.pop(context),
+                    ),
+                  ),
+                );
+              },
+              tooltip: 'Show onboarding',
+            ),
           ],
         ],
       ),

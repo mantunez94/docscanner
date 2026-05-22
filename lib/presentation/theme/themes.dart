@@ -290,7 +290,7 @@ ThemeData _buildKawaiiTheme(Brightness brightness) {
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
-      backgroundColor: isDark ? const Color(0xFF3E224A) : const Color(0xFFE91E8C),
+      backgroundColor: isDark ? const Color(0xFF3E224A) : const Color(0xFFD463A8),
       contentTextStyle: const TextStyle(fontFamily: _kawaii, fontSize: 16, color: Colors.white),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/scanned_document.dart';
@@ -48,10 +49,36 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
   }
 
   void _cancelReorder() {
-    setState(() {
-      _reorderablePages = List.from(widget.document.pages);
-      _reorderMode = false;
-    });
+    if (listEquals(_reorderablePages, widget.document.pages)) {
+      setState(() {
+        _reorderablePages = List.from(widget.document.pages);
+        _reorderMode = false;
+      });
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Discard changes?'),
+        content: const Text('You have unsaved changes to the page order.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Keep editing'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              setState(() {
+                _reorderablePages = List.from(widget.document.pages);
+                _reorderMode = false;
+              });
+            },
+            child: const Text('Discard'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

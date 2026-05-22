@@ -86,9 +86,6 @@ class FileService {
   }
 
   Future<void> saveToGallery(String path) async {
-    try {
-      await Gal.putImage(path, album: 'DocScanner');
-    } catch (_) {
-    }
+    await Gal.putImage(path, album: 'DocScanner');
   }
 }

@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 import 'package:docscanner/core/image_processing_service.dart';
+import 'package:docscanner/presentation/screens/preview_screen.dart';
 
 void main() {
   group('applyDragToCorners', () {
@@ -89,6 +91,20 @@ void main() {
         expect(initialCorners[i].x, originalCopy[i].x);
         expect(initialCorners[i].y, originalCopy[i].y);
       }
+    });
+  });
+
+  group('PreviewScreen widget', () {
+    testWidgets('shows loading state initially', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: PreviewScreen(imagePath: '/nonexistent/test.jpg'),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('Preview'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
   });
 }

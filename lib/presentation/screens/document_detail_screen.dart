@@ -195,7 +195,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
     final result = await Navigator.push<bool>(
       context,
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => ScannerScreen(
+        pageBuilder: (_, _, _) => ScannerScreen(
           batchMode: true,
           onPageScanned: (bytes) async {
             await ref.read(documentListProvider.notifier).addPageToDocument(
@@ -204,7 +204,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
             );
           },
         ),
-        transitionsBuilder: (_, animation, __, child) =>
+        transitionsBuilder: (_, animation, _, child) =>
             SlideTransition(
               position: Tween<Offset>(
                 begin: const Offset(0, 1),
@@ -248,7 +248,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
               File(path),
               fit: BoxFit.cover,
               semanticLabel: 'Page ${index + 1} thumbnail',
-              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 48),
+              errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 48),
             ),
             if (_batchMode)
               Positioned(
@@ -324,7 +324,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                   height: 60,
               child: Image.file(File(path), fit: BoxFit.cover,
                   semanticLabel: 'Page ${index + 1} thumbnail',
-                  errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 24)),
+                  errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 24)),
                 ),
               ),
               const SizedBox(width: 12),

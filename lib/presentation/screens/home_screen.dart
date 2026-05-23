@@ -343,7 +343,7 @@ class HomeScreen extends ConsumerWidget {
     final result = await Navigator.push<bool>(
       context,
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => ScannerScreen(
+        pageBuilder: (_, _, _) => ScannerScreen(
           batchMode: true,
           onPageScanned: (bytes) async {
             if (docId == null) {
@@ -356,7 +356,7 @@ class HomeScreen extends ConsumerWidget {
             pagesScanned++;
           },
         ),
-        transitionsBuilder: (_, animation, __, child) =>
+        transitionsBuilder: (_, animation, _, child) =>
             SlideTransition(
               position: Tween<Offset>(
                 begin: const Offset(0, 1),

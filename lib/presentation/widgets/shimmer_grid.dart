@@ -46,7 +46,7 @@ class _ShimmerGridState extends State<ShimmerGrid>
             childAspectRatio: 0.7,
           ),
           itemCount: 6,
-          itemBuilder: (_, __) => RepaintBoundary(
+          itemBuilder: (_, _) => RepaintBoundary(
             child: Card(
             clipBehavior: Clip.antiAlias,
             child: Column(

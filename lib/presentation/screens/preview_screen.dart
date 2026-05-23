@@ -21,6 +21,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   Uint8List? _displayBytes;
   bool _ocrLoading = false;
   bool _saving = false;
+  bool _colorMode = false;
   List<cv.Point>? _corners;
   List<cv.Point>? _originalCorners;
   int _imgW = 0;
@@ -76,7 +77,9 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       final gray = cv.cvtColor(small, cv.COLOR_BGR2GRAY);
       final totalArea = dstW * dstH;
 
-      final blurred = cv.gaussianBlur(gray, (5, 5), 0);
+      final clahe = cv.CLAHE.create(clipLimit: 2.0, tileGridSize: (8, 8));
+      final equalized = clahe.apply(gray);
+      final blurred = cv.gaussianBlur(equalized, (5, 5), 0);
       final (_, binary) = cv.threshold(blurred, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
 
       final kernel = cv.getStructuringElement(cv.MORPH_RECT, (5, 5));
@@ -97,7 +100,16 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       }
 
       if (bestContour == null) {
-        final edges = cv.canny(blurred, 50, 150);
+        final mean2 = cv.mean(gray)[0];
+        double cLow, cHigh;
+        if (mean2 < 50) {
+          cLow = 20; cHigh = 60;
+        } else if (mean2 < 100) {
+          cLow = 30; cHigh = 100;
+        } else {
+          cLow = 50; cHigh = 150;
+        }
+        final edges = cv.canny(blurred, cLow, cHigh);
         final dKernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3));
         final dilated = cv.dilate(edges, dKernel, iterations: 3);
         final (edgeContours, _) = cv.findContours(dilated, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
@@ -130,7 +142,16 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     return null;
   }
 
-  cv.Mat _enhanceScan(cv.Mat bgr) {
+  cv.Mat _enhanceScan(cv.Mat bgr, {bool colorMode = false}) {
+    if (colorMode) {
+      final adjusted = cv.convertScaleAbs(bgr, alpha: 1.1, beta: 5);
+      final kernel = cv.Mat.fromList(3, 3, cv.MatType.CV_32FC1, [
+        0.0, -1.0, 0.0,
+        -1.0, 5.0, -1.0,
+        0.0, -1.0, 0.0,
+      ]);
+      return cv.filter2D(adjusted, -1, kernel);
+    }
     final gray = cv.cvtColor(bgr, cv.COLOR_BGR2GRAY);
     cv.normalize(gray, gray, alpha: 0, beta: 255, normType: cv.NORM_MINMAX);
     final adjusted = cv.convertScaleAbs(gray, alpha: 1.25, beta: 5);
@@ -496,6 +517,20 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                 ),
               ),
               Semantics(
+                label: _colorMode ? 'Switch to black and white' : 'Switch to color',
+                child: Tooltip(
+                  message: _colorMode ? 'B&W mode' : 'Color mode',
+                  child: IconButton(
+                    onPressed: () => setState(() => _colorMode = !_colorMode),
+                    icon: Icon(
+                      _colorMode ? Icons.filter_b_and_w : Icons.color_lens,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                  ),
+                ),
+              ),
+              Semantics(
                 label: 'Save scan',
                 child: Tooltip(
                   message: 'Save scan',
@@ -556,7 +591,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
 
           final M = cv.getPerspectiveTransform2f(srcPts, dstPts);
           final warped = cv.warpPerspective(src, M, (dstW, dstH));
-          final enhanced = _enhanceScan(warped);
+          final enhanced = _enhanceScan(warped, colorMode: _colorMode);
 
           final (success, encoded) = cv.imencode(
             '.jpg',

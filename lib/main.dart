@@ -17,8 +17,10 @@ class DocScannerApp extends ConsumerWidget {
     final theme = ref.watch(appLightThemeDataProvider);
     final darkTheme = ref.watch(appDarkThemeDataProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final currentTheme = ref.watch(themeProvider);
 
     return MaterialApp(
+      key: ValueKey(currentTheme),
       title: 'DocScanner',
       debugShowCheckedModeBanner: false,
       theme: theme,

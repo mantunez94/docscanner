@@ -31,7 +31,7 @@ class _ShimmerGridState extends State<ShimmerGrid>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textScale = MediaQuery.textScaleFactorOf(context);
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
@@ -46,7 +46,8 @@ class _ShimmerGridState extends State<ShimmerGrid>
             childAspectRatio: 0.7,
           ),
           itemCount: 6,
-          itemBuilder: (_, __) => Card(
+          itemBuilder: (_, __) => RepaintBoundary(
+            child: Card(
             clipBehavior: Clip.antiAlias,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -85,6 +86,7 @@ class _ShimmerGridState extends State<ShimmerGrid>
                     ),
                 ),
               ],
+            ),
             ),
           ),
         );

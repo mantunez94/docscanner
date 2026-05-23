@@ -147,7 +147,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
     _streamActive = false;
     try {
       _controller?.stopImageStream();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Failed to stop image stream: $e');
+    }
   }
 
   void _onImage(CameraImage image) {

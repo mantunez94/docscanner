@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 
@@ -77,7 +78,9 @@ class ImageProcessingService {
         }
         return orderCorners(corners);
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('ImageProcessingService.detectDocumentFromMat failed: $e');
+    }
     return null;
   }
 

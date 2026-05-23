@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 
 class DocumentBoundaryDetector {
@@ -62,7 +63,9 @@ class DocumentBoundaryDetector {
       final (contours, _) = cv.findContours(cleaned, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
       final quad = _bestQuadFromContours(contours, totalArea);
       if (quad != null) return quad;
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Contour detection failed (CLAHE path): $e');
+    }
 
     try {
       double low, high;
@@ -82,7 +85,9 @@ class DocumentBoundaryDetector {
       final (contours, _) = cv.findContours(dilated, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
       final quad = _bestQuadFromContours(contours, totalArea);
       if (quad != null) return quad;
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Contour detection failed (Canny path): $e');
+    }
 
     return null;
   }
@@ -117,7 +122,9 @@ class DocumentBoundaryDetector {
       if (area2 >= minAreaFraction * totalArea && area2 <= maxAreaFraction * totalArea) {
         return _sortClockwise(corners);
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('minAreaRect failed: $e');
+    }
 
     return null;
   }

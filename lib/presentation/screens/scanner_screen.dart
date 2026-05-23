@@ -160,28 +160,51 @@ class _ScannerScreenState extends State<ScannerScreen> {
       _imageHeight = image.height;
 
       final yPlane = image.planes[0];
-      final corners = _boundaryDetector.detectBoundary(
+      final newCorners = _boundaryDetector.detectBoundary(
         yPlane.bytes,
         image.width,
         image.height,
         stride: yPlane.bytesPerRow,
       );
 
-      if (mounted) {
-        setState(() => _corners = corners);
+      final cornersChanged = !_cornersEqual(_corners, newCorners);
+      if (cornersChanged) {
+        _corners = newCorners;
       }
 
+      var detectedChanged = false;
       if (widget.autoCapture && !_autoCapturing) {
         if (_isCoolingDown) {
-          _detectedCount = 0;
+          if (_detectedCount != 0) {
+            _detectedCount = 0;
+            detectedChanged = true;
+          }
         } else {
           _autoCaptureCooldownUntil = null;
-          _checkAutoCapture(corners);
+          final prevDetected = _detectedCount;
+          _checkAutoCapture(newCorners);
+          if (_detectedCount != prevDetected) {
+            detectedChanged = true;
+          }
         }
+      }
+
+      if (mounted && (cornersChanged || detectedChanged)) {
+        setState(() {});
       }
     } catch (e) {
       debugPrint('Error processing frame: $e');
     }
+  }
+
+  bool _cornersEqual(List<cv.Point>? a, List<cv.Point>? b) {
+    if (a == null && b == null) return true;
+    if (a == null || b == null) return false;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].x != b[i].x || a[i].y != b[i].y) return false;
+    }
+    return true;
   }
 
   void _checkAutoCapture(List<cv.Point>? corners) {

@@ -21,6 +21,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   Uint8List? _displayBytes;
   bool _ocrLoading = false;
   bool _saving = false;
+  bool _colorMode = false;
   List<cv.Point>? _corners;
   List<cv.Point>? _originalCorners;
   int _imgW = 0;
@@ -141,7 +142,16 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     return null;
   }
 
-  cv.Mat _enhanceScan(cv.Mat bgr) {
+  cv.Mat _enhanceScan(cv.Mat bgr, {bool colorMode = false}) {
+    if (colorMode) {
+      final adjusted = cv.convertScaleAbs(bgr, alpha: 1.1, beta: 5);
+      final kernel = cv.Mat.fromList(3, 3, cv.MatType.CV_32FC1, [
+        0.0, -1.0, 0.0,
+        -1.0, 5.0, -1.0,
+        0.0, -1.0, 0.0,
+      ]);
+      return cv.filter2D(adjusted, -1, kernel);
+    }
     final gray = cv.cvtColor(bgr, cv.COLOR_BGR2GRAY);
     cv.normalize(gray, gray, alpha: 0, beta: 255, normType: cv.NORM_MINMAX);
     final adjusted = cv.convertScaleAbs(gray, alpha: 1.25, beta: 5);
@@ -507,6 +517,20 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                 ),
               ),
               Semantics(
+                label: _colorMode ? 'Switch to black and white' : 'Switch to color',
+                child: Tooltip(
+                  message: _colorMode ? 'B&W mode' : 'Color mode',
+                  child: IconButton(
+                    onPressed: () => setState(() => _colorMode = !_colorMode),
+                    icon: Icon(
+                      _colorMode ? Icons.filter_b_and_w : Icons.color_lens,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                  ),
+                ),
+              ),
+              Semantics(
                 label: 'Save scan',
                 child: Tooltip(
                   message: 'Save scan',
@@ -567,7 +591,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
 
           final M = cv.getPerspectiveTransform2f(srcPts, dstPts);
           final warped = cv.warpPerspective(src, M, (dstW, dstH));
-          final enhanced = _enhanceScan(warped);
+          final enhanced = _enhanceScan(warped, colorMode: _colorMode);
 
           final (success, encoded) = cv.imencode(
             '.jpg',

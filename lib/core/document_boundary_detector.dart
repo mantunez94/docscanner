@@ -43,14 +43,21 @@ class DocumentBoundaryDetector {
 
   List<cv.Point>? _findDocumentContour(cv.Mat gray) {
     final totalArea = gray.cols * gray.rows;
+    final mean = cv.mean(gray).val1;
 
     try {
-      final blurred = cv.gaussianBlur(gray, (5, 5), 0);
+      final clahe = cv.CLAHE.create(2.0, (8, 8));
+      final equalized = clahe.apply(gray);
+
+      final blurKernel = mean < 50 ? (7, 7) : (5, 5);
+      final blurred = cv.gaussianBlur(equalized, blurKernel, 0);
       final (_, binary) = cv.threshold(blurred, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
 
+      final closeIterations = mean < 50 ? 4 : 3;
+      final openIterations = mean < 50 ? 3 : 2;
       final kernel = cv.getStructuringElement(cv.MORPH_RECT, (5, 5));
-      final closed = cv.morphologyEx(binary, cv.MORPH_CLOSE, kernel, iterations: 3);
-      final cleaned = cv.morphologyEx(closed, cv.MORPH_OPEN, kernel, iterations: 2);
+      final closed = cv.morphologyEx(binary, cv.MORPH_CLOSE, kernel, iterations: closeIterations);
+      final cleaned = cv.morphologyEx(closed, cv.MORPH_OPEN, kernel, iterations: openIterations);
 
       final (contours, _) = cv.findContours(cleaned, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
       final quad = _bestQuadFromContours(contours, totalArea);
@@ -58,8 +65,17 @@ class DocumentBoundaryDetector {
     } catch (_) {}
 
     try {
+      double low, high;
+      if (mean < 50) {
+        low = 20; high = 60;
+      } else if (mean < 100) {
+        low = 30; high = 100;
+      } else {
+        low = 50; high = 150;
+      }
+
       final blurred = cv.gaussianBlur(gray, (5, 5), 0);
-      final edges = cv.canny(blurred, 30, 100);
+      final edges = cv.canny(blurred, low, high);
       final kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3));
       final dilated = cv.dilate(edges, kernel, iterations: 3);
 

@@ -45,7 +45,7 @@ class DocumentCard extends StatelessWidget {
                     File(document.thumbnailPath),
                     fit: BoxFit.cover,
                     semanticLabel: 'Thumbnail of ${document.name}',
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, _, _) => Container(
                       color: theme.colorScheme.surfaceContainerHighest,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,

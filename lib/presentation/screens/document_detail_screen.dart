@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -245,15 +244,12 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (File(path).existsSync())
-              Image.file(
-                File(path),
-                fit: BoxFit.cover,
-                semanticLabel: 'Page ${index + 1} thumbnail',
-                errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 48),
-              )
-            else
-              const Icon(Icons.broken_image, size: 48),
+            Image.file(
+              File(path),
+              fit: BoxFit.cover,
+              semanticLabel: 'Page ${index + 1} thumbnail',
+              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 48),
+            ),
             if (_batchMode)
               Positioned(
                 top: 8,
@@ -326,11 +322,9 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                 child: SizedBox(
                   width: 60,
                   height: 60,
-                  child: File(path).existsSync()
-                      ? Image.file(File(path), fit: BoxFit.cover,
-                          semanticLabel: 'Page ${index + 1} thumbnail',
-                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 24))
-                      : const Icon(Icons.broken_image, size: 24),
+              child: Image.file(File(path), fit: BoxFit.cover,
+                  semanticLabel: 'Page ${index + 1} thumbnail',
+                  errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 24)),
                 ),
               ),
               const SizedBox(width: 12),

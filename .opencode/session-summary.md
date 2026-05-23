@@ -87,6 +87,23 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 - **All 7 GitHub issues (#16–#22) closed**
 - **Device disconnected** — reconnect and run `adb install -r build/app/outputs/flutter-apk/app-debug.apk`
 
+### Recent Changes (2026-05-23)
+
+**4 user-reported issues fixed — PRs #34–#37:**
+
+| # | Problema | PR | Cambios |
+|---|----------|----|---------|
+| #30 | Mala detección en fondos claros | [#34](https://github.com/mantunez94/docscanner/pull/34) | CLAHE + Canny adaptativo + sync thresholds |
+| #31 | Loop infinito al retomar captura | [#35](https://github.com/mantunez94/docscanner/pull/35) | Cooldown de 2s tras retake |
+| #32 | Solo B&W sin opción color | [#36](https://github.com/mantunez94/docscanner/pull/36) | Toggle B&W/Color en toolbar |
+| #33 | Flash de tema muestra código fuente | [#37](https://github.com/mantunez94/docscanner/pull/37) | `ValueKey` en MaterialApp para rebuild atómico |
+
+**Architecture audit (2 violations fixed):**
+- Domain: removed `package:intl` from `scanned_document.dart` — pure Dart date formatting
+- Presentation: extracted DI wiring to `data/di/providers.dart` — no direct imports from `data/datasources/` or `data/repositories/`
+
+**App deployed to device:** `adb install -r build/app/outputs/flutter-apk/app-debug.apk`
+
 ### Test Suite
 
 - 37 tests total (4 skipped on host):
@@ -111,5 +128,5 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 
 1. **Widget tests** — search, batch mode, onboarding, OCR, document detail, boundary overlay painters
 2. **Play Store prep** — app icon, splash branding, CI/CD, screenshots, description
-3. **Night detection** — implement CLAHE + adaptive Canny from `night-detection-improvements.md`
+3. **Night detection** — CLAHE + adaptive Canny implemented in #34, verify on device
 4. **Remaining low-priority items** — torch toggle, pinch-to-zoom, text scaling beyond clamped range

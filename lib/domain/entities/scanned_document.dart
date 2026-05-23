@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 class ScannedDocument {
   final String id;
   final List<String> pages;
@@ -11,6 +9,14 @@ class ScannedDocument {
   String get filePath => pages.first;
   int get pageCount => pages.length;
 
+  static const _months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+
+  static String _formatDate(DateTime date) =>
+    '${_months[date.month - 1]} ${date.day}, ${date.year}';
+
   ScannedDocument({
     required this.id,
     required this.pages,
@@ -18,7 +24,7 @@ class ScannedDocument {
     required this.createdAt,
     String? name,
     this.pdfPath,
-  }) : name = name ?? DateFormat('MMM d, yyyy').format(createdAt);
+  }) : name = name ?? _formatDate(createdAt);
 
   ScannedDocument copyWith({
     String? id,

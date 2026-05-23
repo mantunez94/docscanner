@@ -1,9 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
-import 'package:docscanner/presentation/screens/preview_screen.dart';
+import 'package:docscanner/core/image_processing_service.dart';
 
 void main() {
   group('applyDragToCorners', () {
+    final service = ImageProcessingService();
     final initialCorners = [
       cv.Point(100, 100),
       cv.Point(400, 100),
@@ -19,7 +20,7 @@ void main() {
       const imgW = 500;
       const imgH = 700;
 
-      final result = applyDragToCorners(
+      final result = service.applyDragToCorners(
         initialCorners, index, delta, scaleX, scaleY, imgW, imgH,
       );
 
@@ -41,7 +42,7 @@ void main() {
       const delta = Offset(10, 10);
 
       for (var i = 0; i < 4; i++) {
-        final result = applyDragToCorners(
+        final result = service.applyDragToCorners(
           initialCorners, i, delta, scaleX, scaleY, imgW, imgH,
         );
 
@@ -64,7 +65,7 @@ void main() {
       const scaleX = 1.0;
       const scaleY = 1.0;
 
-      final result = applyDragToCorners(
+      final result = service.applyDragToCorners(
         initialCorners, index, const Offset(-500, 600),
         scaleX, scaleY, imgW, imgH,
       );
@@ -82,7 +83,7 @@ void main() {
       const scaleY = 1.0;
 
       final originalCopy = initialCorners.map((p) => cv.Point(p.x, p.y)).toList();
-      applyDragToCorners(initialCorners, index, delta, scaleX, scaleY, imgW, imgH);
+      service.applyDragToCorners(initialCorners, index, delta, scaleX, scaleY, imgW, imgH);
 
       for (var i = 0; i < 4; i++) {
         expect(initialCorners[i].x, originalCopy[i].x);

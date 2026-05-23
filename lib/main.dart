@@ -9,57 +9,20 @@ void main() {
   runApp(const ProviderScope(child: DocScannerApp()));
 }
 
-class DocScannerApp extends ConsumerStatefulWidget {
+class DocScannerApp extends ConsumerWidget {
   const DocScannerApp({super.key});
 
   @override
-  ConsumerState<DocScannerApp> createState() => _DocScannerAppState();
-}
-
-class _DocScannerAppState extends ConsumerState<DocScannerApp>
-    with TickerProviderStateMixin {
-  late final AnimationController _fadeController;
-  late final Animation<double> _fadeAnimation;
-  int _themeVersion = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-    )..value = 1.0;
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(appLightThemeDataProvider);
     final darkTheme = ref.watch(appDarkThemeDataProvider);
     final themeMode = ref.watch(themeModeProvider);
     final currentTheme = ref.watch(themeProvider);
-    final themeKey = currentTheme.hashCode ^ themeMode.hashCode;
 
-    if (_themeVersion != themeKey) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _themeVersion = themeKey;
-          _fadeController
-            ..reset()
-            ..forward();
-        }
-      });
-    }
+    final themeKey = '${currentTheme.name}_${themeMode.name}';
 
     return MaterialApp(
+      key: ValueKey(themeKey),
       title: 'DocScanner',
       debugShowCheckedModeBanner: false,
       theme: theme,
@@ -75,10 +38,7 @@ class _DocScannerAppState extends ConsumerState<DocScannerApp>
                 maxScaleFactor: 1.3,
               ),
             ),
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: child!,
-            ),
+            child: child!,
           ),
         );
       },

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -45,13 +46,21 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   Future<void> _loadImage() async {
     final bytes = await File(widget.imagePath).readAsBytes();
     if (!mounted) return;
-    final codec = await ui.instantiateImageCodec(bytes);
-    final frame = await codec.getNextFrame();
-    _uiImage = frame.image;
     _imageMat = cv.imdecode(bytes, cv.IMREAD_COLOR);
     final src = _imageMat!;
     _imgW = src.cols;
     _imgH = src.rows;
+
+    final rgba = cv.cvtColor(src, cv.COLOR_BGR2RGBA);
+    final pixels = rgba.data;
+    final completer = Completer<ui.Image>();
+    ui.decodeImageFromPixels(
+      pixels, _imgW, _imgH, ui.PixelFormat.rgba8888,
+      (image) => completer.complete(image),
+    );
+    _uiImage = await completer.future;
+    _imageMat = null;
+
     _corners = _imageProcessingService.detectDocumentFromMat(src);
     if (_corners == null && _imgW > 0 && _imgH > 0) {
       final m = 0.1;

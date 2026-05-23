@@ -520,6 +520,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
           _detectedCount = 0;
           _corners = null;
           _startImageStream();
+          setState(() {
+            _autoCaptureCooldownUntil = DateTime.now().add(const Duration(seconds: 2));
+          });
         } else {
           Navigator.pop(context);
         }

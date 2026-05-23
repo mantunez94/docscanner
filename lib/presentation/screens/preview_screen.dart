@@ -77,7 +77,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       final gray = cv.cvtColor(small, cv.COLOR_BGR2GRAY);
       final totalArea = dstW * dstH;
 
-      final clahe = cv.CLAHE.create(clipLimit: 2.0, tileGridSize: (8, 8));
+      final clahe = cv.CLAHE.create(2.0, (8, 8));
       final equalized = clahe.apply(gray);
       final blurred = cv.gaussianBlur(equalized, (5, 5), 0);
       final (_, binary) = cv.threshold(blurred, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
@@ -100,7 +100,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       }
 
       if (bestContour == null) {
-        final mean2 = cv.mean(gray)[0];
+        final mean2 = cv.mean(gray).val1;
         double cLow, cHigh;
         if (mean2 < 50) {
           cLow = 20; cHigh = 60;

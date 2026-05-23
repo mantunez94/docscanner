@@ -43,11 +43,10 @@ class DocumentBoundaryDetector {
 
   List<cv.Point>? _findDocumentContour(cv.Mat gray) {
     final totalArea = gray.cols * gray.rows;
-    final mean = cv.mean(gray)[0];
+    final mean = cv.mean(gray).val1;
 
     try {
-      // CLAHE preprocessing for low-contrast scenes
-      final clahe = cv.CLAHE.create(clipLimit: 2.0, tileGridSize: (8, 8));
+      final clahe = cv.CLAHE.create(2.0, (8, 8));
       final equalized = clahe.apply(gray);
 
       final blurKernel = mean < 50 ? (7, 7) : (5, 5);
@@ -66,7 +65,6 @@ class DocumentBoundaryDetector {
     } catch (_) {}
 
     try {
-      // Adaptive Canny thresholds
       double low, high;
       if (mean < 50) {
         low = 20; high = 60;

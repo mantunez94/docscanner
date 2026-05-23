@@ -104,6 +104,11 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 
 **App deployed to device:** `adb install -r build/app/outputs/flutter-apk/app-debug.apk`
 
+**Production Readiness Audit** — Score: **52/100** — [Full report](PRODUCTION_AUDIT.md)
+- 24 GitHub issues created (#39–#62) covering CRITICAL/HIGH/MEDIUM/LOW findings
+- Top risks: no crash reporting, synchronous I/O on UI thread, no CI/CD, no widget tests
+- **Verdict: NOT READY** — estimated 4 weeks to production-ready
+
 ### Test Suite
 
 - 37 tests total (4 skipped on host):
@@ -126,7 +131,7 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 
 ## Next Steps (suggested order)
 
-1. **Widget tests** — search, batch mode, onboarding, OCR, document detail, boundary overlay painters
-2. **Play Store prep** — app icon, splash branding, CI/CD, screenshots, description
-3. **Night detection** — CLAHE + adaptive Canny implemented in #34, verify on device
-4. **Remaining low-priority items** — torch toggle, pinch-to-zoom, text scaling beyond clamped range
+1. **Phase 1 — Foundation**: Crash reporting + CI/CD + fix setState + fix sync I/O
+2. **Phase 2 — Quality**: Widget tests + ProGuard + app icon + image caching
+3. **Phase 3 — Polish**: Refactor presentation/OpenCV + lints + empty catches
+4. **Phase 4 — Store**: Tablet layout + missing features + Play Store assets

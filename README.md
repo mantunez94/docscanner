@@ -81,10 +81,12 @@ flowchart TB
 | `presentation/` | Domain entities, providers, `data/` services | Directly |
 | `core/` | Any package | UI framework |
 
-- **Domain** has zero external dependencies — pure Dart business logic
-- **Data** implements domain ports with real I/O (JSON, files, PDF, gallery)
-- **Presentation** uses Riverpod to coordinate between services and use cases
-- **Core** holds infrastructure services (OCR, boundary detection, image processing)
+- **Domain** has zero external dependencies — pure Dart business logic.
+  - Date formatting in entities uses pure Dart instead of `package:intl`.
+- **Data** implements domain ports with real I/O (JSON, files, PDF, gallery).
+  - A `data/di/` module wires concrete implementations for dependency injection.
+- **Presentation** uses Riverpod to coordinate between services and use cases.
+- **Core** holds infrastructure services (OCR, boundary detection, image processing).
 
 > Note: Perspective correction and image enhancement are currently inlined in `preview_screen.dart` (presentation layer) for simplicity, using OpenCV directly. This should be refactored into `core/` when time permits.
 
@@ -115,6 +117,8 @@ lib/
 ├── data/
 │   ├── datasources/
 │   │   └── local_datasource.dart    # JSON file persistence
+│   ├── di/
+│   │   └── providers.dart           # Dependency injection wiring
 │   ├── models/
 │   │   └── scanned_document_model.dart
 │   ├── repositories/
@@ -156,10 +160,10 @@ lib/
 
 ## Features
 
-- **Auto-capture + boundary detection**: Real-time document detection in camera preview (Y-plane → downsample → OTSU → morphology → minAreaRect). Canny fallback. Auto-captures after 3 consecutive detections.
+- **Auto-capture + boundary detection**: Real-time document detection in camera preview (Y-plane → downsample → CLAHE → OTSU → morphology → minAreaRect). Adaptive Canny fallback. Auto-captures after 5 consecutive detections.
 - **Perspective correction**: OpenCV `getPerspectiveTransform2f` + `warpPerspective` (bypasses JPEG DNL bug in `flutter_image_perspective_crop`)
-- **Image enhancement**: normalize(NORM_MINMAX) + contrast boost (α=1.2, β=10) + subtle sharpen for clean scan-like output
-- **Manual corner adjustment**: Draggable handles with magnifier (RawMagnifier, pending improvement)
+- **Image enhancement**: normalize(NORM_MINMAX) + contrast boost (α=1.25, β=5) + sharpen kernel center 5 for clean scan-like output. Color mode toggle (B&W enhanced or original color).
+- **Manual corner adjustment**: Draggable handles with magnifier (GPU-accelerated `_MagnifierPainter`, 4× digital zoom)
 - **PDF-first**: Dynamic page format per image aspect ratio, regenerates on page add/remove
 - **OCR**: Google ML Kit text recognition with copy-to-clipboard (labeled "Extract Text" for UX)
 - **Search & batch**: Filter documents by name, multi-select delete
@@ -176,7 +180,7 @@ lib/
 flutter test
 ```
 
-36 tests (4 skipped on host — require native OpenCV lib present on device):
+37 tests (4 skipped on host — require native OpenCV lib present on device):
 - Entity serialization tests
 - Repository implementation tests
 - Use case orchestration tests

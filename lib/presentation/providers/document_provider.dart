@@ -60,7 +60,9 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
     for (final p in paths) {
       try {
         await File(p).delete();
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Failed to cleanup file $p: $e');
+      }
     }
   }
 

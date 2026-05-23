@@ -383,7 +383,9 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                   await ref
                       .read(documentListProvider.notifier)
                       .removePage(widget.document.id, path);
-                } catch (_) {}
+                } catch (e) {
+                  debugPrint('Failed to remove page $path: $e');
+                }
               }
 
               if (!context.mounted) return;

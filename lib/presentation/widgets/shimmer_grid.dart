@@ -31,7 +31,7 @@ class _ShimmerGridState extends State<ShimmerGrid>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0).clamp(0.8, 1.3);
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {

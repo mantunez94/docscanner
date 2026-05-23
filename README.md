@@ -88,7 +88,7 @@ flowchart TB
 - **Presentation** uses Riverpod to coordinate between services and use cases.
 - **Core** holds infrastructure services (OCR, boundary detection, image processing).
 
-> Note: Perspective correction and image enhancement are currently inlined in `preview_screen.dart` (presentation layer) for simplicity, using OpenCV directly. This should be refactored into `core/` when time permits.
+> Image processing (CLAHE, OTSU, contour detection, perspective warp, enhancement) is extracted to `core/image_processing_service.dart`.
 
 ## Tech Stack
 
@@ -113,6 +113,7 @@ lib/
 ├── core/
 │   ├── document_boundary_detector.dart  # Live camera boundary detection
 │   ├── document_processor.dart          # OpenCV auto-enhance pipeline
+│   ├── image_processing_service.dart    # Crop, warp, enhance, encode
 │   └── ocr_service.dart                 # Google ML Kit OCR
 ├── data/
 │   ├── datasources/
@@ -180,15 +181,17 @@ lib/
 flutter test
 ```
 
-37 tests (4 skipped on host — require native OpenCV lib present on device):
+60 tests (4 skipped on host — require native OpenCV lib present on device):
 - Entity serialization tests
 - Repository implementation tests
 - Use case orchestration tests
 - OCR service tests
 - Document model roundtrip tests
+- Widget tests for all 5 screens (Onboarding, Home, Scanner, Preview, DocumentDetail)
+- Corner drag unit tests
 - Boundary detector tests (require OpenCV native lib)
 
-> New features should include unit tests (enforced in `.opencode/instructions/git-workflow.md`).
+> New features should include widget and unit tests.
 
 ## Build
 

@@ -87,7 +87,7 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 - **All 7 GitHub issues (#16–#22) closed**
 - **Device disconnected** — reconnect and run `adb install -r build/app/outputs/flutter-apk/app-debug.apk`
 
-### Recent Changes (2026-05-23)
+### Recent Changes (2026-05-23 — Session 2)
 
 **4 user-reported issues fixed — PRs #34–#37:**
 
@@ -96,7 +96,7 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 | #30 | Mala detección en fondos claros | [#34](https://github.com/mantunez94/docscanner/pull/34) | CLAHE + Canny adaptativo + sync thresholds |
 | #31 | Loop infinito al retomar captura | [#35](https://github.com/mantunez94/docscanner/pull/35) | Cooldown de 2s tras retake |
 | #32 | Solo B&W sin opción color | [#36](https://github.com/mantunez94/docscanner/pull/36) | Toggle B&W/Color en toolbar |
-| #33 | Flash de tema muestra código fuente | [#37](https://github.com/mantunez94/docscanner/pull/37) | `ValueKey` en MaterialApp para rebuild atómico |
+| #33 | Flash de tema muestra código fuente | ~~#37 (ValueKey)~~ → [#66](https://github.com/mantunez94/docscanner/pull/66) | FadeTransition 150ms en builder |
 
 **Architecture audit (2 violations fixed):**
 - Domain: removed `package:intl` from `scanned_document.dart` — pure Dart date formatting
@@ -106,18 +106,40 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 
 **Production Readiness Audit** — Score: **52/100** — [Full report](PRODUCTION_AUDIT.md)
 - 24 GitHub issues created (#39–#62) covering CRITICAL/HIGH/MEDIUM/LOW findings
-- Top risks: no crash reporting, synchronous I/O on UI thread, no CI/CD, no widget tests
 - **Verdict: NOT READY** — estimated 4 weeks to production-ready
+
+### Recent Changes (2026-05-23 — Session 3: Critical & High Issues)
+
+**4 issues fixed — PRs #66–#70:**
+
+| # | Severidad | Problema | PR | Cambios |
+|---|-----------|----------|----|---------|
+| #65 | CRITICAL | Theme flash entre temas no-Professional | [#66](https://github.com/mantunez94/docscanner/pull/66) | `ConsumerStatefulWidget` + `FadeTransition` 150ms, removido `ValueKey` |
+| #41 | CRITICAL | setState cada 10 frames en cámara | [#67](https://github.com/mantunez94/docscanner/pull/67) | Solo setState si esquinas o detección cambian |
+| #40 | CRITICAL | File.existsSync() en UI thread (GridView) | [#68](https://github.com/mantunez94/docscanner/pull/68) | `Image.file` + errorBuilder, removido existsSync |
+| #39 | CRITICAL | ImgProc en Presentation layer (preview_screen) | [#69](https://github.com/mantunez94/docscanner/pull/69) | Nueva `ImageProcessingService` en `core/` |
+| #42 | HIGH | Zero widget tests | [#70](https://github.com/mantunez94/docscanner/pull/70) | 22 tests en 5 pantallas (mocktail + Riverpod overrides) |
+
+**Resumen de cambios:**
+
+- **Theme flash (#33 → #65):** PR #37 usaba `key: ValueKey(currentTheme)` que causaba full remount y solo funcionaba desde Professional. Reemplazado por `FadeTransition` con `AnimationController` en `builder`, cross-fade de 150ms entre cualquier par de temas.
+- **Camera performance (#41):** `_onImage` antes llamaba `setState(() => _corners = corners)` cada 10 frames aunque no cambiaran. Ahora compara old/new corners con `_cornersEqual` y setState solo si cambian o si `_detectedCount` cambió.
+- **Sync I/O (#40):** `File.existsSync()` en `GridView.builder` y `ReorderableListView` bloqueaba UI thread. Reemplazado por `errorBuilder` en `Image.file`.
+- **Arquitectura (#39):** 150 líneas de OpenCV (CLAHE, OTSU, contornos, warp, enhance) extraídas de `preview_screen.dart` a `core/image_processing_service.dart`.
+- **Widget tests (#42):** 22 tests nuevos con mocktail para `DocumentRepository`. Test de las 5 pantallas: Onboarding (8), Home (6), Scanner (3), DocumentDetail (5), Preview (1 widget + 4 unit).
+
+**Score actualizado:** Pendiente — auditoría completa necesita re-evaluación tras fixes críticos.
 
 ### Test Suite
 
-- 37 tests total (4 skipped on host):
+- 60 tests total (4 skipped on host — OpenCV native lib):
 - Entity serialization roundtrip
 - Repository implementation (mocktail)
 - Use case orchestration
 - OCR service
 - Document model
-- Corner drag independence (`applyDragToCorners`) — 4 unit tests
+- Widget tests for all 5 screens
+- Corner drag independence (`ImageProcessingService.applyDragToCorners`) — 4 unit tests
 
 ## System
 
@@ -131,7 +153,6 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 
 ## Next Steps (suggested order)
 
-1. **Phase 1 — Foundation**: Crash reporting + CI/CD + fix setState + fix sync I/O
-2. **Phase 2 — Quality**: Widget tests + ProGuard + app icon + image caching
-3. **Phase 3 — Polish**: Refactor presentation/OpenCV + lints + empty catches
-4. **Phase 4 — Store**: Tablet layout + missing features + Play Store assets
+1. **Phase 2 — Quality**: ProGuard/R8 obfuscation (#59) + app icon/splash (#55) + image caching (#50)
+2. **Phase 3 — Polish**: Strict Dart lints (#58) + empty catch blocks (#54) + mounted checks (#51) + remove unnecessary underscores (#62)
+3. **Phase 4 — Store**: Adaptive tablet layout (#52) + missing features (torch, zoom, re-scan) (#53) + Play Store assets + privacy policy

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -55,7 +54,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   Future<void> _requestCameraPermission() async {
     final status = await Permission.camera.status;
     if (status.isGranted) {
-      _initCamera();
+      await _initCamera();
       return;
     }
 
@@ -101,7 +100,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     if (!mounted) return;
 
     if (result.isGranted) {
-      _initCamera();
+      await _initCamera();
     } else if (result.isPermanentlyDenied) {
       setState(() {
         _error = 'Camera permission is permanently denied. Please enable it in app settings.';

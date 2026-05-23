@@ -192,7 +192,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
   }
 
   Future<void> _openScanner(BuildContext context) async {
-    final result = await Navigator.push<bool>(
+    await Navigator.push<bool>(
       context,
       PageRouteBuilder(
         pageBuilder: (_, _, _) => ScannerScreen(

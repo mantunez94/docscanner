@@ -246,6 +246,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
           children: [
             Image.file(
               File(path),
+              cacheWidth: 400,
               fit: BoxFit.cover,
               semanticLabel: 'Page ${index + 1} thumbnail',
               errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 48),
@@ -322,7 +323,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                 child: SizedBox(
                   width: 60,
                   height: 60,
-              child: Image.file(File(path), fit: BoxFit.cover,
+              child: Image.file(File(path), cacheWidth: 120, fit: BoxFit.cover,
                   semanticLabel: 'Page ${index + 1} thumbnail',
                   errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 24)),
                 ),

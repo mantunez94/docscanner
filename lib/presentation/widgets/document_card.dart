@@ -43,6 +43,7 @@ class DocumentCard extends StatelessWidget {
                 children: [
                   Image.file(
                     File(document.thumbnailPath),
+                    cacheWidth: 400,
                     fit: BoxFit.cover,
                     semanticLabel: 'Thumbnail of ${document.name}',
                     errorBuilder: (_, _, _) => Container(

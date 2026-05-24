@@ -14,7 +14,8 @@ Future<void> showDocumentActionsSheet(
   return showModalBottomSheet(
     context: context,
     builder: (ctx) => SafeArea(
-      child: Column(
+      child: SingleChildScrollView(
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
@@ -66,6 +67,7 @@ Future<void> showDocumentActionsSheet(
           ),
           const SizedBox(height: 8),
         ],
+      ),
       ),
     ),
   );

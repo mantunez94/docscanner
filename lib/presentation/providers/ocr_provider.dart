@@ -8,11 +8,20 @@ final ocrServiceProvider = Provider<OcrService>((ref) {
   return service;
 });
 
-final ocrResultProvider = StateProvider<OcrResult?>((ref) => null);
+final ocrProvider = AsyncNotifierProvider<OcrNotifier, OcrResult?>(OcrNotifier.new);
 
-final ocrLoadingProvider = StateProvider<bool>((ref) => false);
+class OcrNotifier extends AsyncNotifier<OcrResult?> {
+  @override
+  Future<OcrResult?> build() async => null;
 
-final ocrTextProvider = Provider<String>((ref) {
-  final result = ref.watch(ocrResultProvider);
-  return result?.text ?? '';
-});
+  Future<void> recognizeImage(String imagePath) async {
+    state = const AsyncLoading();
+    try {
+      final service = ref.read(ocrServiceProvider);
+      final result = await service.recognizeImage(imagePath);
+      state = AsyncData(result);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+}

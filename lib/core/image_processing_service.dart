@@ -46,8 +46,10 @@ class ImageProcessingService {
           cLow = 20; cHigh = 60;
         } else if (mean2 < 100) {
           cLow = 30; cHigh = 100;
-        } else {
+        } else if (mean2 < 180) {
           cLow = 50; cHigh = 150;
+        } else {
+          cLow = 10; cHigh = 30;
         }
         final edges = cv.canny(blurred, cLow, cHigh);
         final dKernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3));

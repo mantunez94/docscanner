@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart' show Share, XFile;
 import '../../domain/entities/scanned_document.dart';
 import '../providers/document_provider.dart';
@@ -401,10 +403,25 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  void _share(ScannedDocument doc) {
+  Future<void> _share(ScannedDocument doc) async {
     final path = doc.pdfPath ?? doc.filePath;
     final isPdf = doc.pdfPath != null;
-    Share.shareXFiles([XFile(path, name: '${doc.name}${isPdf ? '.pdf' : '.jpg'}')]);
+    final ext = isPdf ? '.pdf' : '.jpg';
+    final safeName = doc.name.replaceAll(RegExp(r'[<>:"/\\|?*]'), '_');
+    final temp = await _tempFile(safeName, ext, path);
+    await Share.shareXFiles([XFile(temp.path)]);
+  }
+
+  Future<File> _tempFile(String baseName, String ext, String sourcePath) async {
+    final dir = await getTemporaryDirectory();
+    var file = File('${dir.path}/$baseName$ext');
+    var counter = 1;
+    while (await file.exists()) {
+      file = File('${dir.path}/$baseName ($counter)$ext');
+      counter++;
+    }
+    await File(sourcePath).copy(file.path);
+    return file;
   }
 
   void _rename(BuildContext context, WidgetRef ref, ScannedDocument doc) {
@@ -482,7 +499,8 @@ class HomeScreen extends ConsumerWidget {
       final pdfFile = await ref.read(documentListProvider.notifier).exportToPdf();
       if (context.mounted) {
         messenger.hideCurrentSnackBar();
-        await Share.shareXFiles([XFile(pdfFile.path, name: 'All documents.pdf')]);
+        final temp = await _tempFile('All documents', '.pdf', pdfFile.path);
+        await Share.shareXFiles([XFile(temp.path)]);
       }
     } catch (_) {
       if (context.mounted) {

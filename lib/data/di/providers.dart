@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../datasources/local_datasource.dart';
 import '../repositories/document_repository_impl.dart';
 import '../services/file_service.dart';
+import '../services/pdf_service.dart';
+import '../services/gallery_service.dart';
 import '../../domain/repositories/document_repository.dart';
 import '../../domain/usecases/add_pages_to_document.dart';
 import '../../domain/usecases/delete_document.dart';
@@ -17,6 +19,14 @@ final repositoryProvider = Provider<DocumentRepository>((ref) {
 
 final fileServiceProvider = Provider<FileService>((ref) {
   return FileService();
+});
+
+final pdfServiceProvider = Provider<PdfService>((ref) {
+  return PdfService();
+});
+
+final galleryServiceProvider = Provider<GalleryService>((ref) {
+  return GalleryService();
 });
 
 final scanDocumentProvider = Provider<ScanDocument>((ref) {

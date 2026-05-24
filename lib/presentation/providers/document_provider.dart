@@ -19,6 +19,8 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
   Future<void> scanFromBytes(Uint8List bytes) async {
     try {
       final fileService = ref.read(fileServiceProvider);
+      final pdfService = ref.read(pdfServiceProvider);
+      final galleryService = ref.read(galleryServiceProvider);
       final id = DateTime.now().millisecondsSinceEpoch.toString();
 
       final scan = ref.read(scanDocumentProvider);
@@ -36,7 +38,7 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
         rethrow;
       }
 
-      final pdfPath = await fileService.generatePdf(id, [filePath]);
+      final pdfPath = await pdfService.generatePdf(id, [filePath]);
       try {
         await ref.read(repositoryProvider).updatePdfPath(id, pdfPath);
       } catch (_) {
@@ -45,7 +47,7 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
       }
 
       try {
-        await fileService.saveToGallery(filePath);
+        await galleryService.saveToGallery(filePath);
       } catch (e) {
         debugPrint('Gallery save failed: $e');
       }
@@ -69,6 +71,8 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
   Future<void> addPageToDocument(String documentId, Uint8List bytes) async {
     try {
       final fileService = ref.read(fileServiceProvider);
+      final pdfService = ref.read(pdfServiceProvider);
+      final galleryService = ref.read(galleryServiceProvider);
       final path = await fileService.savePageImageWithSuffix(documentId, bytes);
 
       final addPages = ref.read(addPagesToDocumentProvider);
@@ -81,7 +85,7 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
         rethrow;
       }
 
-      final pdfPath = await fileService.generatePdf(documentId, updatedPages);
+      final pdfPath = await pdfService.generatePdf(documentId, updatedPages);
       try {
         await ref.read(repositoryProvider).updatePdfPath(documentId, pdfPath);
       } catch (_) {
@@ -90,7 +94,7 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
       }
 
       try {
-        await fileService.saveToGallery(path);
+        await galleryService.saveToGallery(path);
       } catch (e) {
         debugPrint('Gallery save failed: $e');
       }
@@ -114,8 +118,8 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
     try {
       final removePage = ref.read(removePageFromDocumentProvider);
       final updated = await removePage(id, pagePath);
-      final fileService = ref.read(fileServiceProvider);
-      final pdfPath = await fileService.generatePdf(id, updated.pages);
+      final pdfService = ref.read(pdfServiceProvider);
+      final pdfPath = await pdfService.generatePdf(id, updated.pages);
       await ref.read(repositoryProvider).updatePdfPath(id, pdfPath);
       ref.invalidateSelf();
     } catch (e) {
@@ -127,8 +131,8 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
     try {
       final repo = ref.read(repositoryProvider);
       await repo.reorderPages(id, reorderedPages);
-      final fileService = ref.read(fileServiceProvider);
-      final pdfPath = await fileService.generatePdf(id, reorderedPages);
+      final pdfService = ref.read(pdfServiceProvider);
+      final pdfPath = await pdfService.generatePdf(id, reorderedPages);
       await repo.updatePdfPath(id, pdfPath);
       ref.invalidateSelf();
     } catch (e) {
@@ -171,8 +175,8 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
     if (docs.isEmpty) throw Exception('No documents to export');
     final export = ref.watch(exportToPdfProvider);
     final allPagePaths = await export(docs);
-    final fileService = ref.read(fileServiceProvider);
-    final path = await fileService.exportPdf(allPagePaths);
+    final pdfService = ref.read(pdfServiceProvider);
+    final path = await pdfService.exportPdf(allPagePaths);
     return File(path);
   }
 }

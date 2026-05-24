@@ -12,8 +12,13 @@ import '../providers/ocr_provider.dart';
 
 class PreviewScreen extends ConsumerStatefulWidget {
   final String imagePath;
+  final bool initialColorMode;
 
-  const PreviewScreen({super.key, required this.imagePath});
+  const PreviewScreen({
+    super.key,
+    required this.imagePath,
+    this.initialColorMode = false,
+  });
 
   @override
   ConsumerState<PreviewScreen> createState() => _PreviewScreenState();
@@ -23,7 +28,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   Uint8List? _displayBytes;
 
   bool _saving = false;
-  bool _colorMode = false;
+  late bool _colorMode;
   List<cv.Point>? _corners;
   List<cv.Point>? _originalCorners;
   int _imgW = 0;
@@ -38,6 +43,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   @override
   void initState() {
     super.initState();
+    _colorMode = widget.initialColorMode;
     _loadImage();
   }
 
@@ -411,20 +417,6 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                   child: IconButton(
                     onPressed: () => Navigator.pop(context, 'retake'),
                     icon: const Icon(Icons.camera_alt, color: Colors.white, size: 26),
-                  ),
-                ),
-              ),
-              Semantics(
-                label: _colorMode ? 'Switch to black and white' : 'Switch to color',
-                child: Tooltip(
-                  message: _colorMode ? 'B&W mode' : 'Color mode',
-                  child: IconButton(
-                    onPressed: () => setState(() => _colorMode = !_colorMode),
-                    icon: Icon(
-                      _colorMode ? Icons.filter_b_and_w : Icons.color_lens,
-                      color: Colors.white,
-                      size: 26,
-                    ),
                   ),
                 ),
               ),

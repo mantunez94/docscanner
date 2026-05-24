@@ -30,6 +30,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
   bool _streamActive = false;
   int _frameCount = 0;
 
+  bool _colorMode = false;
+
   final _boundaryDetector = DocumentBoundaryDetector();
   List<cv.Point>? _corners;
   int _imageWidth = 0;
@@ -278,6 +280,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
           tooltip: 'Back',
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          Semantics(
+            label: _colorMode ? 'Switch to black and white' : 'Switch to color',
+            child: Tooltip(
+              message: _colorMode ? 'B&W mode' : 'Color mode',
+              child: IconButton(
+                onPressed: () => setState(() => _colorMode = !_colorMode),
+                icon: Icon(_colorMode ? Icons.filter_b_and_w : Icons.color_lens),
+              ),
+            ),
+          ),
+        ],
         ),
         floatingActionButton: FloatingActionButton.large(
           onPressed: _capture,
@@ -356,7 +370,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       final result = await Navigator.push<Object>(
         context,
         MaterialPageRoute(
-          builder: (_) => PreviewScreen(imagePath: copy.path),
+          builder: (_) => PreviewScreen(imagePath: copy.path, initialColorMode: _colorMode),
         ),
       );
 

@@ -21,7 +21,7 @@ class PreviewScreen extends ConsumerStatefulWidget {
 
 class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   Uint8List? _displayBytes;
-  bool _ocrLoading = false;
+
   bool _saving = false;
   bool _colorMode = false;
   List<cv.Point>? _corners;
@@ -119,20 +119,19 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   }
 
   Future<void> _runOcr() async {
-    setState(() => _ocrLoading = true);
-    try {
-      final service = ref.read(ocrServiceProvider);
-      final result = await service.recognizeImage(widget.imagePath);
-      if (!context.mounted) return;
-      setState(() => _ocrLoading = false);
-      _showOcrResult(result);
-    } catch (e) {
-      if (!context.mounted) return;
-      setState(() => _ocrLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Text extraction failed. Please try again.')),
-      );
-    }
+    await ref.read(ocrProvider.notifier).recognizeImage(widget.imagePath);
+    if (!mounted) return;
+    final state = ref.read(ocrProvider);
+    state.whenOrNull(
+      data: (result) {
+        if (result != null) _showOcrResult(result);
+      },
+      error: (e, _) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Text extraction failed. Please try again.')),
+        );
+      },
+    );
   }
 
   void _showOcrResult(OcrResult result) {
@@ -394,8 +393,8 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                 child: Tooltip(
                   message: 'Extract text from this page',
                   child: IconButton(
-                    onPressed: _ocrLoading ? null : _runOcr,
-                    icon: _ocrLoading
+                    onPressed: ref.watch(ocrProvider).isLoading ? null : _runOcr,
+                    icon: ref.watch(ocrProvider).isLoading
                         ? const SizedBox(
                             width: 22,
                             height: 22,

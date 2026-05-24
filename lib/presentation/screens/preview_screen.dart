@@ -45,7 +45,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
 
   Future<void> _loadImage() async {
     final bytes = await File(widget.imagePath).readAsBytes();
-    if (!mounted) return;
+    if (!context.mounted) return;
     _imageMat = cv.imdecode(bytes, cv.IMREAD_COLOR);
     final src = _imageMat!;
     _imgW = src.cols;
@@ -123,11 +123,11 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     try {
       final service = ref.read(ocrServiceProvider);
       final result = await service.recognizeImage(widget.imagePath);
-      if (!mounted) return;
+      if (!context.mounted) return;
       setState(() => _ocrLoading = false);
       _showOcrResult(result);
     } catch (e) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       setState(() => _ocrLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Text extraction failed. Please try again.')),
@@ -249,7 +249,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
             ],
           ),
         );
-        if (confirm == true && mounted) {
+        if (confirm == true && context.mounted) {
           Navigator.pop(context);
         }
       },

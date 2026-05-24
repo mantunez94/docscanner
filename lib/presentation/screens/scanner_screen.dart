@@ -97,7 +97,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
 
     final result = await Permission.camera.request();
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     if (result.isGranted) {
       await _initCamera();
@@ -125,7 +125,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         imageFormatGroup: ImageFormatGroup.yuv420,
       );
       await controller.initialize();
-      if (!mounted) return;
+      if (!context.mounted) return;
       setState(() {
         _controller = controller;
         _initialized = true;
@@ -320,7 +320,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ],
           ),
         );
-        if (confirm == true && mounted) {
+        if (confirm == true && context.mounted) {
           Navigator.pop(context, true);
         }
       },
@@ -456,7 +456,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       final file = await _controller!.takePicture();
       final dir = await getTemporaryDirectory();
       final copy = await File(file.path).copy('${dir.path}/temp_scan.jpg');
-      if (!mounted) return;
+      if (!context.mounted) return;
 
       final result = await Navigator.push<Object>(
         context,
@@ -465,17 +465,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
         ),
       );
 
-      if (!mounted) return;
+      if (!context.mounted) return;
       if (result is Uint8List) {
         if (widget.batchMode && widget.onPageScanned != null) {
           await widget.onPageScanned!(result);
-          if (!mounted) return;
+          if (!context.mounted) return;
           _autoCapturing = false;
           _detectedCount = 0;
           _corners = null;
 
           _stopImageStream();
           await Future.delayed(const Duration(milliseconds: 350));
+          if (!context.mounted) return;
 
           final scanAnother = await showDialog<bool>(
             context: context,
@@ -502,7 +503,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
           );
 
-          if (!mounted) return;
+          if (!context.mounted) return;
           if (scanAnother == true) {
             setState(() {
               _autoCapturing = false;
@@ -556,7 +557,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     } catch (e) {
       _autoCapturing = false;
       _startImageStream();
-      if (mounted) {
+      if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Something went wrong while capturing. Please try again.')),
       );

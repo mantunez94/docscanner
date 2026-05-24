@@ -41,7 +41,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
       widget.document.id,
       _reorderablePages,
     );
-    if (!mounted) return;
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Pages reordered')),
     );

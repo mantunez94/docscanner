@@ -1,6 +1,6 @@
 # DocScanner
 
-Multi-theme document scanner for Android with real-time boundary detection, auto-capture, OCR, PDF export, and automatic image enhancement.
+Multi-theme document scanner for Android with real-time boundary detection, OCR, PDF export, and automatic image enhancement.
 
 ## Architecture
 
@@ -101,9 +101,10 @@ flowchart TB
 | PDF generation | `pdf` |
 | Gallery save | `gal` |
 | Persistence | JSON file via `path_provider` |
-| Perspective crop | OpenCV `getPerspectiveTransform2f` + `warpPerspective` (replaced `flutter_image_perspective_crop`) |
-| Boundary detection | OpenCV OTSU + morphology + minAreaRect (preview + photo) |
+| Perspective crop | OpenCV `getPerspectiveTransform2f` + `warpPerspective` |
+| Boundary detection | OpenCV CLAHE + OTSU + morphology + Canny fallback |
 | Themes | 3 themes (Arcade, Kawaii, Professional) |
+| App icon | Custom SVG (magnifying glass + document), indigo adaptive icon |
 
 ## Project Structure
 
@@ -161,19 +162,60 @@ lib/
 
 ## Features
 
-- **Auto-capture + boundary detection**: Real-time document detection in camera preview (Y-plane → downsample → CLAHE → OTSU → morphology → minAreaRect). Adaptive Canny fallback. Auto-captures after 5 consecutive detections.
-- **Perspective correction**: OpenCV `getPerspectiveTransform2f` + `warpPerspective` (bypasses JPEG DNL bug in `flutter_image_perspective_crop`)
-- **Image enhancement**: normalize(NORM_MINMAX) + contrast boost (α=1.25, β=5) + sharpen kernel center 5 for clean scan-like output. Color mode toggle (B&W enhanced or original color).
-- **Manual corner adjustment**: Draggable handles with magnifier (GPU-accelerated `_MagnifierPainter`, 4× digital zoom)
+- **Boundary detection**: Real-time document detection in camera preview via OpenCV (Y-plane → downsample → CLAHE → OTSU → morphology → minAreaRect). Adaptive Canny fallback for edge-based detection. Bright scene detection with specialized low thresholds for light-on-light scenarios.
+- **Perspective correction**: OpenCV `getPerspectiveTransform2f` + `warpPerspective`
+- **Image enhancement**: Two modes selected before capture:
+  - **B&W**: Grayscale + NORM_MINMAX normalization + contrast boost (α=1.25, β=5) + sharpen kernel
+  - **Color**: Preserved colors + gentle contrast (α=1.1, β=5) + sharpen kernel
+- **Manual corner adjustment**: Draggable handles with magnifier (4× digital zoom) for fine-tuning crop
+- **Color mode persistence**: Choice of color/B&W persists across pages during a scanning session; toggle is in the scanner (pre-capture), not post-processing
 - **PDF-first**: Dynamic page format per image aspect ratio, regenerates on page add/remove
-- **OCR**: Google ML Kit text recognition with copy-to-clipboard (labeled "Extract Text" for UX)
-- **Search & batch**: Filter documents by name, multi-select delete
+- **OCR**: Google ML Kit text recognition with copy-to-clipboard
+- **Search & batch**: Filter documents by name, multi-select delete, batch page management
 - **Page management**: View/delete individual pages within multi-page documents
-- **Pull-to-refresh**: Refresh document list
+- **Image caching**: `cacheWidth` on all thumbnails (400px cards, 120px reorder) to prevent full-resolution decode
 - **3 themes**: Arcade (neon retro), Kawaii (pastel cute), Professional (clean)
-- **Onboarding**: 4-page first-run carousel persisted via SharedPreferences
+- **Onboarding**: 4-page first-run carousel with fade transitions, persisted via SharedPreferences
 - **Gallery save**: JPG saved to phone gallery automatically
-- **Share**: Shares PDF when available, falls back to JPG
+- **Share**: PDF with document name as filename (copied to temp dir before sharing)
+
+## Issues Fixed
+
+All 16 of 22 actionable production-readiness issues resolved:
+
+| # | Issue | Status |
+|---|-------|--------|
+| #65 | Theme flash on app start (FadeTransition + ValueKey) | ✅ Fixed |
+| #41 | `setState` every 10th frame even when corners unchanged (`_cornersEqual`) | ✅ Fixed |
+| #40 | `File.existsSync` on UI thread → `Image.file` errorBuilder | ✅ Fixed |
+| #39 | Image processing coupled to UI → extracted to service | ✅ Fixed |
+| #57 | ShimmerGrid missing `RepaintBoundary` | ✅ Fixed |
+| #54 | Empty catch blocks → added `debugPrint` | ✅ Fixed |
+| #45 | Double memory load (two OpenCV decodes) → single decode | ✅ Fixed |
+| #62 | Underscore params → `_` wildcard | ✅ Fixed |
+| #61 | Onboarding transitions | ✅ Fixed |
+| #47 | textScaleFactor clamp | ✅ Fixed |
+| #59 | ProGuard rules | ✅ Fixed |
+| #58 | Strict lint rules → 0 analyze errors | ✅ Fixed |
+| #51 | `mounted` checks | ✅ Fixed |
+| #46 | FileService SRP split | ✅ Fixed |
+| #56 | OCR provider consolidation | ✅ Fixed |
+| #84 | Unreliable auto-capture | ✅ Removed |
+| #86 | PDF sharing filename on Android (FileProvider ignores XFile name) | ✅ Fixed |
+| #50 | No image caching (`cacheWidth` on Image.file calls) | ✅ Fixed |
+| #42 | Zero widget tests → 47 presentation tests, 80 total | ✅ Fixed |
+| #88 | Poor edge detection on light backgrounds (adaptive Canny thresholds) | ✅ Fixed |
+| #89 | Missing app icon (magnifying glass + document SVG) | ✅ Fixed |
+| #90 | Color mode toggle in post-processing (moved to scanner, persisted) | ✅ Fixed |
+
+## Remaining
+
+| # | Issue | Severity |
+|---|-------|----------|
+| #53 | Torch toggle, pinch-to-zoom, page re-scan | 🟡 MEDIUM |
+| #52 | Adaptive tablet/landscape layout | 🟡 MEDIUM |
+| #49 | Integration / golden tests | 🟡 MEDIUM |
+| #48 | Anemic domain model (business logic in UI) | 🟡 MEDIUM |
 
 ## Testing
 
@@ -181,15 +223,10 @@ lib/
 flutter test
 ```
 
-60 tests (4 skipped on host — require native OpenCV lib present on device):
-- Entity serialization tests
-- Repository implementation tests
-- Use case orchestration tests
-- OCR service tests
-- Document model roundtrip tests
-- Widget tests for all 5 screens (Onboarding, Home, Scanner, Preview, DocumentDetail)
-- Corner drag unit tests
-- Boundary detector tests (require OpenCV native lib)
+80 tests (4 skipped on host — require native OpenCV lib present on device):
+- 33 domain + data layer tests (entities, models, repositories, use cases)
+- 47 presentation widget tests (5 screens, 3 widgets)
+- 0 flutter analyze errors
 
 > New features should include widget and unit tests.
 

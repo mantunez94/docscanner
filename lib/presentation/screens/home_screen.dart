@@ -403,7 +403,8 @@ class HomeScreen extends ConsumerWidget {
 
   void _share(ScannedDocument doc) {
     final path = doc.pdfPath ?? doc.filePath;
-    Share.shareXFiles([XFile(path)]);
+    final isPdf = doc.pdfPath != null;
+    Share.shareXFiles([XFile(path, name: '${doc.name}${isPdf ? '.pdf' : '.jpg'}')]);
   }
 
   void _rename(BuildContext context, WidgetRef ref, ScannedDocument doc) {
@@ -481,7 +482,7 @@ class HomeScreen extends ConsumerWidget {
       final pdfFile = await ref.read(documentListProvider.notifier).exportToPdf();
       if (context.mounted) {
         messenger.hideCurrentSnackBar();
-        await Share.shareXFiles([XFile(pdfFile.path)]);
+        await Share.shareXFiles([XFile(pdfFile.path, name: 'All documents.pdf')]);
       }
     } catch (_) {
       if (context.mounted) {

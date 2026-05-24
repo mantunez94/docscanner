@@ -9,13 +9,11 @@ import '../../core/document_boundary_detector.dart';
 import 'preview_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
-  final bool autoCapture;
   final bool batchMode;
   final Future<void> Function(Uint8List bytes)? onPageScanned;
 
   const ScannerScreen({
     super.key,
-    this.autoCapture = true,
     this.batchMode = false,
     this.onPageScanned,
   });
@@ -34,16 +32,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   final _boundaryDetector = DocumentBoundaryDetector();
   List<cv.Point>? _corners;
-  bool _autoCapturing = false;
   int _imageWidth = 0;
   int _imageHeight = 0;
-
-  int _detectedCount = 0;
-  DateTime? _autoCaptureCooldownUntil;
-
-  bool get _isCoolingDown =>
-      _autoCaptureCooldownUntil != null &&
-      DateTime.now().isBefore(_autoCaptureCooldownUntil!);
 
   @override
   void initState() {
@@ -171,27 +161,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       final cornersChanged = !_cornersEqual(_corners, newCorners);
       if (cornersChanged) {
         _corners = newCorners;
-      }
-
-      var detectedChanged = false;
-      if (widget.autoCapture && !_autoCapturing) {
-        if (_isCoolingDown) {
-          if (_detectedCount != 0) {
-            _detectedCount = 0;
-            detectedChanged = true;
-          }
-        } else {
-          _autoCaptureCooldownUntil = null;
-          final prevDetected = _detectedCount;
-          _checkAutoCapture(newCorners);
-          if (_detectedCount != prevDetected) {
-            detectedChanged = true;
-          }
-        }
-      }
-
-      if (mounted && (cornersChanged || detectedChanged)) {
-        setState(() {});
+        if (mounted) setState(() {});
       }
     } catch (e) {
       debugPrint('Error processing frame: $e');
@@ -206,30 +176,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (a[i].x != b[i].x || a[i].y != b[i].y) return false;
     }
     return true;
-  }
-
-  void _checkAutoCapture(List<cv.Point>? corners) {
-    if (corners == null || corners.length < 4) {
-      _detectedCount = 0;
-      return;
-    }
-
-    final area = _boundaryDetector.computeAreaFraction(corners, _imageWidth, _imageHeight);
-    if (area < 0.12) {
-      _detectedCount = 0;
-      return;
-    }
-
-    _detectedCount++;
-    if (_detectedCount >= 5) {
-      _triggerAutoCapture();
-    }
-  }
-
-  void _triggerAutoCapture() {
-    HapticFeedback.mediumImpact();
-    _autoCapturing = true;
-    _capture();
   }
 
   @override
@@ -332,74 +278,24 @@ class _ScannerScreenState extends State<ScannerScreen> {
           tooltip: 'Back',
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          if (_autoCapturing)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            )
-          else if (_isCoolingDown)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Tooltip(
-                message: 'Cooldown',
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.timer_outlined, size: 16,
-                      color: Theme.of(context).colorScheme.onSurface.withAlpha(100)),
-                    const SizedBox(width: 4),
-                    Text('wait',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withAlpha(100))),
-                  ],
-                ),
-              ),
-            )
-          else if (widget.autoCapture && _detectedCount > 0)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: List.generate(5, (i) {
-                  final filled = i < _detectedCount;
-                  return Container(
-                    width: 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: filled
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.onSurface.withAlpha(40),
-                    ),
-                  );
-                }),
-              ),
-            ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.large(
-        onPressed: _capture,
-        tooltip: 'Capture photo',
-        child: const Icon(Icons.camera_alt),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        ),
+        floatingActionButton: FloatingActionButton.large(
+          onPressed: _capture,
+          tooltip: 'Capture photo',
+          child: const Icon(Icons.camera_alt),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
 
-      body: !_initialized
-          ? const Center(child: CircularProgressIndicator())
-          : Stack(
-              children: [
-                CameraPreview(_controller!),
-                Positioned.fill(child: _buildOverlay()),
-              ],
-            ),
-      ),
-    );
+        body: !_initialized
+            ? const Center(child: CircularProgressIndicator())
+            : Stack(
+                children: [
+                  CameraPreview(_controller!),
+                  Positioned.fill(child: _buildOverlay()),
+                ],
+              ),
+        ),
+      );
   }
 
   Widget _buildOverlay() {
@@ -443,7 +339,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
             sensorOrientation: _controller!.value.description.sensorOrientation,
             imageWidth: _imageWidth,
             imageHeight: _imageHeight,
-            isAutoCapturing: _autoCapturing,
           ),
           ),
         );
@@ -470,8 +365,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
         if (widget.batchMode && widget.onPageScanned != null) {
           await widget.onPageScanned!(result);
           if (!context.mounted) return;
-          _autoCapturing = false;
-          _detectedCount = 0;
           _corners = null;
 
           _stopImageStream();
@@ -506,14 +399,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
           if (!context.mounted) return;
           if (scanAnother == true) {
             setState(() {
-              _autoCapturing = false;
-              _detectedCount = 0;
               _corners = null;
             });
             _startImageStream();
-            setState(() {
-              _autoCaptureCooldownUntil = DateTime.now().add(const Duration(milliseconds: 1500));
-            });
           } else {
             Navigator.pop(context, true);
           }
@@ -541,21 +429,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
         );
         if (!context.mounted) return;
         if (confirm == true) {
-          _autoCapturing = false;
-          _detectedCount = 0;
           _corners = null;
           _startImageStream();
-          setState(() {
-            _autoCaptureCooldownUntil = DateTime.now().add(const Duration(seconds: 2));
-          });
         } else {
           Navigator.pop(context);
         }
-      } else {
-        _autoCapturing = false;
       }
     } catch (e) {
-      _autoCapturing = false;
       _startImageStream();
       if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -577,7 +457,6 @@ class _BoundaryOverlayPainter extends CustomPainter {
   final int sensorOrientation;
   final int imageWidth;
   final int imageHeight;
-  final bool isAutoCapturing;
 
   _BoundaryOverlayPainter({
     this.corners,
@@ -590,7 +469,6 @@ class _BoundaryOverlayPainter extends CustomPainter {
     required this.sensorOrientation,
     required this.imageWidth,
     required this.imageHeight,
-    this.isAutoCapturing = false,
   });
 
   @override
@@ -600,12 +478,12 @@ class _BoundaryOverlayPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final borderPaint = Paint()
-      ..color = isAutoCapturing ? Colors.greenAccent : Colors.cyanAccent
+      ..color = Colors.cyanAccent
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
 
     final cornerPaint = Paint()
-      ..color = isAutoCapturing ? Colors.greenAccent : Colors.cyanAccent
+      ..color = Colors.cyanAccent
       ..style = PaintingStyle.fill;
 
     if (corners != null && corners!.length >= 4) {
@@ -696,7 +574,6 @@ class _BoundaryOverlayPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _BoundaryOverlayPainter oldDelegate) {
     return oldDelegate.corners != corners ||
-        oldDelegate.isAutoCapturing != isAutoCapturing ||
         oldDelegate.previewOffsetX != previewOffsetX ||
         oldDelegate.previewOffsetY != previewOffsetY ||
         oldDelegate.previewPaintWidth != previewPaintWidth ||

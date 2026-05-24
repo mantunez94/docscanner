@@ -72,8 +72,10 @@ class DocumentBoundaryDetector {
         low = 20; high = 60;
       } else if (mean < 100) {
         low = 30; high = 100;
-      } else {
+      } else if (mean < 180) {
         low = 50; high = 150;
+      } else {
+        low = 10; high = 30;
       }
 
       final blurred = cv.gaussianBlur(gray, (5, 5), 0);

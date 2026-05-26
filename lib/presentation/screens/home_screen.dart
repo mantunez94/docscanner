@@ -5,6 +5,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart' show Share, XFile;
 import '../../domain/entities/scanned_document.dart';
 import '../providers/document_provider.dart';
+import '../providers/document_admin_provider.dart';
+import '../providers/document_export_provider.dart';
+import '../providers/document_page_provider.dart';
+import '../providers/document_scan_provider.dart';
 import '../providers/theme_provider.dart';
 import '../theme/themes.dart';
 import '../widgets/document_actions_sheet.dart';
@@ -310,7 +314,7 @@ class HomeScreen extends ConsumerWidget {
             onPressed: () {
               Navigator.pop(ctx);
               for (final id in ids) {
-                ref.read(documentListProvider.notifier).delete(id);
+                ref.read(documentAdminProvider).delete(id);
               }
               ref.read(batchModeProvider.notifier).state = false;
               ref.read(selectedIdsProvider.notifier).state = {};
@@ -323,7 +327,7 @@ class HomeScreen extends ConsumerWidget {
                       label: 'Undo',
                       onPressed: () {
                         for (final doc in deletedDocs) {
-                          ref.read(documentListProvider.notifier).restore(doc);
+                          ref.read(documentAdminProvider).restore(doc);
                         }
                       },
                     ),
@@ -350,9 +354,9 @@ class HomeScreen extends ConsumerWidget {
           existingNames: existingNames,
           onPagesSaved: (pages, name) async {
             if (documentId == null) {
-              await ref.read(documentListProvider.notifier).scanFromMultipleBytes(pages, name);
+              await ref.read(documentScanProvider).scanFromMultipleBytes(pages, name);
             } else {
-              await ref.read(documentListProvider.notifier).addMultiplePagesToDocument(documentId, pages);
+              await ref.read(documentPageProvider).addMultiplePagesToDocument(documentId, pages);
             }
           },
         ),
@@ -437,7 +441,7 @@ class HomeScreen extends ConsumerWidget {
           onSubmitted: (value) {
             final trimmed = value.trim();
             if (trimmed.isNotEmpty) {
-              ref.read(documentListProvider.notifier).rename(doc.id, trimmed);
+              ref.read(documentAdminProvider).rename(doc.id, trimmed);
             }
             Navigator.pop(ctx);
           },
@@ -448,7 +452,7 @@ class HomeScreen extends ConsumerWidget {
             onPressed: () {
               final trimmed = controller.text.trim();
               if (trimmed.isNotEmpty) {
-                ref.read(documentListProvider.notifier).rename(doc.id, trimmed);
+                ref.read(documentAdminProvider).rename(doc.id, trimmed);
               }
               Navigator.pop(ctx);
             },
@@ -470,14 +474,14 @@ class HomeScreen extends ConsumerWidget {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
-              ref.read(documentListProvider.notifier).delete(doc.id);
+              ref.read(documentAdminProvider).delete(doc.id);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('"${doc.name}" deleted'),
                   duration: const Duration(seconds: 4),
                   action: SnackBarAction(
                     label: 'Undo',
-                    onPressed: () => ref.read(documentListProvider.notifier).restore(doc),
+                    onPressed: () => ref.read(documentAdminProvider).restore(doc),
                   ),
                 ),
               );
@@ -493,7 +497,7 @@ class HomeScreen extends ConsumerWidget {
     try {
       final messenger = ScaffoldMessenger.of(context);
       messenger.showSnackBar(const SnackBar(content: Text('Generating PDF...')));
-      final pdfFile = await ref.read(documentListProvider.notifier).exportToPdf();
+      final pdfFile = await ref.read(documentExportProvider).exportToPdf();
       if (context.mounted) {
         messenger.hideCurrentSnackBar();
         final temp = await _tempFile('All documents', '.pdf', pdfFile.path);

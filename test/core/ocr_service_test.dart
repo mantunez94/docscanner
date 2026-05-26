@@ -1,9 +1,10 @@
 import 'package:docscanner/core/ocr_service.dart';
 import 'package:docscanner/domain/entities/ocr_result.dart';
+import 'package:docscanner/domain/repositories/text_recognizer.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockTextRecognizer extends Mock implements TextRecognizerInterface {}
+class MockTextRecognizer extends Mock implements OcrTextRecognizer {}
 
 void main() {
   late MockTextRecognizer mockRecognizer;

@@ -2,8 +2,9 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
+import '../../domain/repositories/file_storage.dart';
 
-class FileService {
+class FileService implements FileStorage {
   Future<String> get _documentsDir async {
     final dir = await getApplicationDocumentsDirectory();
     final docDir = Directory('${dir.path}/documents');

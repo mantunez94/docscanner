@@ -31,6 +31,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   int _frameCount = 0;
 
   bool _colorMode = false;
+  bool _torchOn = false;
 
   final _boundaryDetector = DocumentBoundaryDetector();
   List<cv.Point>? _corners;
@@ -180,9 +181,24 @@ class _ScannerScreenState extends State<ScannerScreen> {
     return true;
   }
 
+  Future<void> _toggleTorch() async {
+    try {
+      final mode = _torchOn ? FlashMode.off : FlashMode.torch;
+      await _controller?.setFlashMode(mode);
+      if (mounted) setState(() => _torchOn = !_torchOn);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Torch not available on this device')),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
     _stopImageStream();
+    _controller?.setFlashMode(FlashMode.off);
     _controller?.dispose();
     super.dispose();
   }
@@ -281,6 +297,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          Semantics(
+            label: _torchOn ? 'Turn off torch' : 'Turn on torch',
+            child: Tooltip(
+              message: _torchOn ? 'Torch on' : 'Torch off',
+              child: IconButton(
+                onPressed: _toggleTorch,
+                icon: Icon(_torchOn ? Icons.flash_on : Icons.flash_off),
+              ),
+            ),
+          ),
           Semantics(
             label: _colorMode ? 'Switch to black and white' : 'Switch to color',
             child: Tooltip(

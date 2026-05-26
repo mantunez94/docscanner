@@ -196,7 +196,6 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
       context,
       PageRouteBuilder(
         pageBuilder: (_, _, _) => ScannerScreen(
-          batchMode: true,
           onPageScanned: (bytes) async {
             await ref.read(documentListProvider.notifier).addPageToDocument(
               widget.document.id,

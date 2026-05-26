@@ -170,7 +170,7 @@ lib/
   - **Color**: Preserved colors + gentle contrast (α=1.1, β=5) + sharpen kernel
 - **Manual corner adjustment**: Draggable handles with magnifier (4× digital zoom) for fine-tuning crop
 - **Torch**: Flashlight toggle in scanner AppBar for low-light document scanning; turns off automatically on screen exit
-- **Multi-page scan**: Capture multiple pages in sequence without leaving the scanner; auto-processes each page (crop + enhance); thumbnail strip shows captured pages; review screen for reorder, edit, and delete before saving as a single multi-page document
+- **Multi-page scan (always on)**: Capture multiple pages in sequence without leaving the scanner; auto-processes each page (crop + enhance, no PreviewScreen detour); live thumbnail strip with page count; "Done" button opens review screen for reorder, edit, delete, and save as a single multi-page document
 - **Color mode persistence**: Choice of color/B&W persists across pages during a scanning session; toggle is in the scanner (pre-capture), not post-processing
 - **PDF-first**: Dynamic page format per image aspect ratio, regenerates on page add/remove
 - **OCR**: Google ML Kit text recognition with copy-to-clipboard

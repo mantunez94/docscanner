@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/scanned_document.dart';
+import '../providers/document_admin_provider.dart';
+import '../providers/document_page_provider.dart';
 import '../providers/document_provider.dart';
 import 'preview_screen.dart';
 import 'scanner_screen.dart';
@@ -37,7 +39,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
   }
 
   Future<void> _saveReorder() async {
-    await ref.read(documentListProvider.notifier).reorderPages(
+    await ref.read(documentPageProvider).reorderPages(
       widget.document.id,
       _reorderablePages,
     );
@@ -185,7 +187,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
     );
     if (!context.mounted || result == null) return;
     await File(path).writeAsBytes(result);
-    await ref.read(documentListProvider.notifier).reorderPages(
+    await ref.read(documentPageProvider).reorderPages(
       widget.document.id,
       List<String>.from(widget.document.pages),
     );
@@ -197,7 +199,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
       PageRouteBuilder(
         pageBuilder: (_, _, _) => ScannerScreen(
           onPagesSaved: (pages, _) async {
-            await ref.read(documentListProvider.notifier).addMultiplePagesToDocument(
+            await ref.read(documentPageProvider).addMultiplePagesToDocument(
               widget.document.id,
               pages,
             );
@@ -351,7 +353,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
               ? SnackBarAction(
                   label: 'Delete document',
                   onPressed: () {
-                    ref.read(documentListProvider.notifier).delete(widget.document.id);
+                    ref.read(documentAdminProvider).delete(widget.document.id);
                     Navigator.pop(context);
                   },
                 )
@@ -381,7 +383,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
               for (final path in pathsToRemove) {
                 try {
                   await ref
-                      .read(documentListProvider.notifier)
+                      .read(documentPageProvider)
                       .removePage(widget.document.id, path);
                 } catch (e) {
                   debugPrint('Failed to remove page $path: $e');

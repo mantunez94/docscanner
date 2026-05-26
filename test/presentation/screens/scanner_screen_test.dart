@@ -30,4 +30,13 @@ void main() {
 
     expect(find.byIcon(Icons.camera_alt), findsOneWidget);
   });
+
+  testWidgets('shows torch toggle in appbar', (tester) async {
+    await tester.pumpWidget(createTestApp());
+    await tester.pump();
+
+    expect(find.byTooltip('Torch off'), findsOneWidget);
+    expect(find.byTooltip('Color mode'), findsOneWidget);
+    expect(find.byTooltip('Capture photo'), findsOneWidget);
+  });
 }

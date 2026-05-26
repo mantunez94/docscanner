@@ -51,6 +51,22 @@ presentation/  →  domain/   ←  data/
 - `DocumentRepository` (interface in `domain/repositories/`) → `DocumentRepositoryImpl` (in `data/repositories/`)
 - Use cases depend on the abstract repository interface, never on the concrete implementation
 
+## Current Compliance Gaps
+
+Score: **68/100** — checklist priorizado para próxima sesión:
+
+| # | Gap | Violación | Impacto | Esfuerzo |
+|---|-----|-----------|---------|----------|
+| 1 | `LocalDataSource implements DocumentDataSource` | DIP | Bajo | 15min |
+| 2 | Interfaz `ImageProcessor` en `domain/repositories/` + `ImageProcessingService implements ImageProcessor` | DIP | Medio | 30min |
+| 3 | Inyectar `ImageProcessor` vía provider en screens | DIP | Medio | 30min |
+| 4 | `CameraService` interfaz en `domain/repositories/` + implementación en `data/services/` | DIP + SRP | Alto | 2-3h |
+| 5 | Extraer lógica de cámara de `ScannerScreen` → `CameraService` | SRP | Alto | 2-3h |
+| 6 | Dividir `DocumentRepository` en interfaces pequeñas (ej. `DocumentReader`, `DocumentWriter`, `DocumentPageEditor`) | ISP | Bajo | 1h |
+| 7 | Mover lógica de negocio a entidades dominio (`ScannedDocument` con factory methods, validación) | OCP | Medio | 2h |
+
+**Para mañana**: Items 1→3 son quick wins (~1h total). Items 4→5 son el bloque grande pendiente.
+
 ## Test Structure
 - Tests mirror `lib/` structure in `test/`
 - Domain tests mock repository interfaces with `mocktail`

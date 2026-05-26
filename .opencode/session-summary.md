@@ -69,6 +69,7 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 
 1. **4 OpenCV tests skipped on host** — native lib not available on host test runner; run on device only.
 2. **Night/low-light boundary detection degrades** — mitigation ideas saved in `.opencode/night-detection-improvements.md` (CLAHE, adaptive Canny thresholds).
+3. **Device USB disconnects after `adb install`** — app installs correctly but `flutter run` loses connection; launch manually from launcher.
 
 ### Recent Changes (2026-05-22)
 
@@ -151,8 +152,71 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 - Remote: `https://github.com/mantunez94/docscanner`
 - GPG key: `4FF9A0F2703EB38B7361978504F984B3F3189DA9`
 
-## Next Steps (suggested order)
+### Recent Changes (2026-05-26 — Session 4: Torch + Multi-page + Save-As + Hexagonal)
 
-1. **Phase 2 — Quality**: ProGuard/R8 obfuscation (#59) + app icon/splash (#55) + image caching (#50)
-2. **Phase 3 — Polish**: Strict Dart lints (#58) + empty catch blocks (#54) + mounted checks (#51) + remove unnecessary underscores (#62)
-3. **Phase 4 — Store**: Adaptive tablet layout (#52) + missing features (torch, zoom, re-scan) (#53) + Play Store assets + privacy policy
+**4 PRs merged:**
+
+| PR | Descripción |
+|----|-------------|
+| [#93](https://github.com/mantunez94/docscanner/pull/93) | **Torch toggle**: `FlashMode.torch` button in scanner AppBar, auto-off on dispose, widget test |
+| [#94](https://github.com/mantunez94/docscanner/pull/94) | **Multi-page scan mode**: separate toggle, thumbnail strip, `MultiPageReviewScreen` |
+| [#95](https://github.com/mantunez94/docscanner/pull/95) | **Always multi-page**: removed toggle, multi-page is now the default scanner behavior |
+| [#96](https://github.com/mantunez94/docscanner/pull/96) | **Save-As + single document**: all captured pages save as one document; Save-As dialog with editable filename + duplicate detection; camera dispose crash fixes |
+| [#98](https://github.com/mantunez94/docscanner/pull/98) | **Hexagonal architecture**: 5 domain interfaces, god class split, DIP in DI layer |
+
+**Arquitectura (score: 45 → 68/100):**
+- 5 interfaces en `lib/domain/repositories/`: `FileStorage`, `PdfGenerator`, `GallerySaver`, `DocumentDataSource`, `OcrTextRecognizer`
+- `DocumentListNotifier` → 5 providers enfocados: `DocumentScan`, `DocumentPageManager`, `DocumentAdmin`, `DocumentExport`, `DocumentListNotifier`
+- `MlKitTextRecognizer implements OcrTextRecognizer`; DI retorna interfaces
+- `flutter analyze`: 0 errores | `flutter test`: 81/81 pass (4 skip)
+
+**Bugs corregidos:**
+- **Crash en dispose**: `CameraException` por `stopImageStream` duplicado + `CameraController used after disposed` por `setFlashMode` asíncrono — ambos con guardas y try-catch
+
+**Deployed:** `adb install -r build/app/outputs/flutter-apk/app-debug.apk` — app launches and renders (verified via logcat)
+
+### Architecture items deffered from this session
+
+| Item | SOLID | Razón |
+|------|-------|-------|
+| `LocalDataSource implements DocumentDataSource` | DIP | Low priority — `DocumentRepositoryImpl` already bridges correctly |
+| `ImageProcessingService` → interfaz `ImageProcessor` en `domain/repositories/` | DIP | Clase concreta sin puerto; `ScannerScreen`/`PreviewScreen` la importan directamente |
+| Inyectar image processing vía DI en screens | DIP | Screens instancian `ImageProcessingService()` directamente sin pasar por provider |
+| Extraer lógica de cámara de `ScannerScreen` | DIP + SRP | `_ScannerScreenState` maneja `CameraController`, stream, auto-capture, torch, flash — todo junto |
+| `CameraService` interfaz en `domain/repositories/` | DIP | Sin abstracción, la screen depende directamente de `package:camera` |
+| ISP para `DocumentRepository` | ISP | 8 métodos; `ScanDocument` solo usa `save`, `GetAllDocuments` solo `getAll` — cada use case depende de métodos que no necesita |
+| Anemic domain model (#48) | OCP | `ScannedDocument` es data class sin comportamiento; lógica de negocio (validación, factory methods) en providers/screens |
+
+### Test Suite
+
+- **81 tests total** (4 skipped on host — OpenCV native lib):
+- 60 pre-existing (entity, repository, use case, OCR, widget, corner drag)
+- **+21 new**: torch toggle (3), multi-page review (4), scanner capture flow (6), save-as dialog (4), document save (4)
+
+## System
+
+- Flutter SDK: `/opt/flutter/bin` (v3.32.1, Dart 3.11.4)
+- Android SDK: `/opt/android-sdk` (platform 35, ndk 27.0.12077973)
+- Device: SM A137F (Samsung A13), serial RZ8T81FCDMM, Android 14 API 34, armeabi-v7a
+- Platform: Arch Linux, user `miguelaaga`
+- Project: `/home/miguelaaga/Projects/docscanner`
+- Remote: `https://github.com/mantunez94/docscanner`
+- GPG key: `4FF9A0F2703EB38B7361978504F984B3F3189DA9`
+
+## Next Steps
+
+### Mañana — Quick wins (~1h)
+1. ✅ PR #98 ya mergeado — `git pull` en main
+2. `LocalDataSource implements DocumentDataSource`
+3. Interfaz `ImageProcessor` en `domain/repositories/` + implementación
+4. Inyectar `ImageProcessor` vía provider en `ScannerScreen` y `PreviewScreen`
+5. Desplegar: `flutter build apk --debug && adb install -r build/app/outputs/flutter-apk/app-debug.apk`
+
+### Mañana — Bloque grande (2-3h)
+6. Interfaz `CameraService` en `domain/repositories/`
+7. Extraer cámara/pipeline de `ScannerScreen` → `CameraServiceImpl` en `data/services/`
+
+### Próximas sesiones
+- ISP: dividir `DocumentRepository` en interfaces pequeñas
+- Anemic domain model (#48): mover lógica a `ScannedDocument`
+- Producción (#52, #53, #55, #56): tablet layout, features faltantes, assets Play Store

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,8 @@ import 'package:opencv_dart/opencv_dart.dart' as cv;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../core/document_boundary_detector.dart';
+import '../../core/image_processing_service.dart';
+import 'multi_page_review_screen.dart';
 import 'preview_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
@@ -32,8 +35,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   bool _colorMode = false;
   bool _torchOn = false;
+  bool _isMultiPage = false;
+  final _capturedPages = <String>[];
+  bool _processing = false;
+  final _pageScrollController = ScrollController();
 
   final _boundaryDetector = DocumentBoundaryDetector();
+  final _imageProcessingService = ImageProcessingService();
   List<cv.Point>? _corners;
   int _imageWidth = 0;
   int _imageHeight = 0;
@@ -200,7 +208,17 @@ class _ScannerScreenState extends State<ScannerScreen> {
     _stopImageStream();
     _controller?.setFlashMode(FlashMode.off);
     _controller?.dispose();
+    _cleanupTempFiles();
+    _pageScrollController.dispose();
     super.dispose();
+  }
+
+  void _cleanupTempFiles() {
+    for (final path in _capturedPages) {
+      try {
+        File(path).deleteSync();
+      } catch (_) {}
+    }
   }
 
   @override
@@ -317,21 +335,72 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ),
             ),
           ),
+          Semantics(
+            label: _isMultiPage ? 'Switch to single page mode' : 'Switch to multi-page mode',
+            child: Tooltip(
+              message: _isMultiPage ? 'Multi-page' : 'Single page',
+              child: IconButton(
+                onPressed: () {
+                  if (_capturedPages.isNotEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Finish or discard the current batch first')),
+                    );
+                    return;
+                  }
+                  setState(() => _isMultiPage = !_isMultiPage);
+                },
+                icon: Icon(_isMultiPage ? Icons.collections_bookmark : Icons.note_add_outlined),
+              ),
+            ),
+          ),
         ],
         ),
-        floatingActionButton: FloatingActionButton.large(
-          onPressed: _capture,
-          tooltip: 'Capture photo',
-          child: const Icon(Icons.camera_alt),
-        ),
+        floatingActionButton: _capturedPages.isNotEmpty && !_processing
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FloatingActionButton.small(
+                    heroTag: 'review',
+                    onPressed: _reviewPages,
+                    tooltip: 'Review pages',
+                    child: const Icon(Icons.checklist),
+                  ),
+                  const SizedBox(height: 12),
+                  FloatingActionButton.large(
+                    heroTag: 'capture',
+                    onPressed: _capture,
+                    tooltip: 'Capture photo',
+                    child: const Icon(Icons.camera_alt),
+                  ),
+                ],
+              )
+            : FloatingActionButton.large(
+                heroTag: 'capture',
+                onPressed: _capture,
+                tooltip: 'Capture photo',
+                child: _processing
+                    ? const SizedBox(
+                        width: 28, height: 28,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.camera_alt),
+              ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
 
         body: !_initialized
             ? const Center(child: CircularProgressIndicator())
-            : Stack(
+            : Column(
                 children: [
-                  CameraPreview(_controller!),
-                  Positioned.fill(child: _buildOverlay()),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        CameraPreview(_controller!),
+                        Positioned.fill(child: _buildOverlay()),
+                      ],
+                    ),
+                  ),
+                  if (_capturedPages.isNotEmpty)
+                    _buildPageStrip(),
                 ],
               ),
         ),
@@ -386,101 +455,240 @@ class _ScannerScreenState extends State<ScannerScreen> {
     );
   }
 
-  Future<void> _capture() async {
-    try {
-      final file = await _controller!.takePicture();
-      final dir = await getTemporaryDirectory();
-      final copy = await File(file.path).copy('${dir.path}/temp_scan.jpg');
-      if (!context.mounted) return;
-
-      final result = await Navigator.push<Object>(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PreviewScreen(imagePath: copy.path, initialColorMode: _colorMode),
-        ),
-      );
-
-      if (!context.mounted) return;
-      if (result is Uint8List) {
-        if (widget.batchMode && widget.onPageScanned != null) {
-          await widget.onPageScanned!(result);
-          if (!context.mounted) return;
-          _corners = null;
-
-          _stopImageStream();
-          await Future.delayed(const Duration(milliseconds: 350));
-          if (!context.mounted) return;
-
-          final scanAnother = await showDialog<bool>(
-            context: context,
-            barrierDismissible: true,
-            builder: (ctx) => PopScope(
-              canPop: false,
-              onPopInvokedWithResult: (didPop, _) {
-                if (!didPop) Navigator.pop(ctx, false);
-              },
-              child: AlertDialog(
-                title: const Text('Page saved'),
-                content: const Text('Scan another page?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('Done'),
-                  ),
-                  FilledButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Scan another'),
-                  ),
-                ],
+  Widget _buildPageStrip() {
+    return Container(
+      height: 80,
+      color: Colors.black87,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Row(
+        children: [
+          Semantics(
+            label: '${_capturedPages.length} pages captured',
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              alignment: Alignment.center,
+              child: Text(
+                '${_capturedPages.length}',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ),
-          );
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: ListView.separated(
+              controller: _pageScrollController,
+              scrollDirection: Axis.horizontal,
+              itemCount: _capturedPages.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 6),
+              itemBuilder: (context, index) {
+                return Semantics(
+                  label: 'Page ${index + 1} thumbnail',
+                  child: GestureDetector(
+                    onTap: () => _editPage(index),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: Image.file(
+                        File(_capturedPages[index]),
+                        width: 56,
+                        height: 72,
+                        fit: BoxFit.cover,
+                        cacheWidth: 120,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-          if (!context.mounted) return;
-          if (scanAnother == true) {
+  Future<void> _editPage(int index) async {
+    final result = await Navigator.push<Object>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PreviewScreen(
+          imagePath: _capturedPages[index],
+          initialColorMode: _colorMode,
+        ),
+      ),
+    );
+    if (!context.mounted) return;
+    if (result is Uint8List) {
+      final dir = await getTemporaryDirectory();
+      final path = '${dir.path}/multipage_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      await File(path).writeAsBytes(result);
+      setState(() => _capturedPages[index] = path);
+    }
+  }
+
+  Future<void> _reviewPages() async {
+    _stopImageStream();
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MultiPageReviewScreen(
+          pagePaths: List.from(_capturedPages),
+          colorMode: _colorMode,
+          onSave: (paths) async {
+            for (final path in paths) {
+              final bytes = await File(path).readAsBytes();
+              if (widget.onPageScanned != null) {
+                await widget.onPageScanned!(bytes);
+              }
+            }
+          },
+        ),
+      ),
+    );
+    if (!context.mounted) return;
+    if (result == true) {
+      _capturedPages.clear();
+      if (widget.batchMode) {
+        Navigator.pop(context, true);
+      } else {
+        Navigator.pop<bool>(context, true);
+      }
+    } else {
+      _startImageStream();
+    }
+  }
+
+  Future<void> _capture() async {
+    if (_processing) return;
+    try {
+      final file = await _controller!.takePicture();
+      final rawBytes = await file.readAsBytes();
+      if (!context.mounted) return;
+
+      if (_isMultiPage) {
+        setState(() => _processing = true);
+        try {
+          final src = cv.imdecode(rawBytes, cv.IMREAD_COLOR);
+          final corners = src.rows > 0
+              ? _imageProcessingService.detectDocumentFromMat(src)
+              : null;
+          final (processed, _) = _imageProcessingService.processScan(
+            rawBytes, corners, _colorMode,
+          );
+          final dir = await getTemporaryDirectory();
+          final path = '${dir.path}/multipage_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          await File(path).writeAsBytes(processed);
+          if (context.mounted) {
             setState(() {
-              _corners = null;
+              _capturedPages.add(path);
+              _processing = false;
             });
-            _startImageStream();
-          } else {
-            Navigator.pop(context, true);
+            unawaited(
+              _pageScrollController.animateTo(
+                _pageScrollController.position.maxScrollExtent,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+              ),
+            );
           }
-        } else {
-          Navigator.pop<Uint8List>(context, result);
+        } catch (e) {
+          debugPrint('Multi-page processing failed: $e');
+          if (context.mounted) setState(() => _processing = false);
         }
-      } else if (result == 'retake') {
-        _stopImageStream();
-        final confirm = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Retake?'),
-            content: const Text('The current page will be discarded.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Keep'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Retake'),
-              ),
-            ],
+      } else {
+        final dir = await getTemporaryDirectory();
+        final copy = await File(file.path).copy('${dir.path}/temp_scan.jpg');
+        if (!context.mounted) return;
+
+        final result = await Navigator.push<Object>(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PreviewScreen(imagePath: copy.path, initialColorMode: _colorMode),
           ),
         );
+
         if (!context.mounted) return;
-        if (confirm == true) {
-          _corners = null;
-          _startImageStream();
-        } else {
-          Navigator.pop(context);
+        if (result is Uint8List) {
+          if (widget.batchMode && widget.onPageScanned != null) {
+            await widget.onPageScanned!(result);
+            if (!context.mounted) return;
+            _corners = null;
+
+            _stopImageStream();
+            await Future.delayed(const Duration(milliseconds: 350));
+            if (!context.mounted) return;
+
+            final scanAnother = await showDialog<bool>(
+              context: context,
+              barrierDismissible: true,
+              builder: (ctx) => PopScope(
+                canPop: false,
+                onPopInvokedWithResult: (didPop, _) {
+                  if (!didPop) Navigator.pop(ctx, false);
+                },
+                child: AlertDialog(
+                  title: const Text('Page saved'),
+                  content: const Text('Scan another page?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Done'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Scan another'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+
+            if (!context.mounted) return;
+            if (scanAnother == true) {
+              setState(() {
+                _corners = null;
+              });
+              _startImageStream();
+            } else {
+              Navigator.pop(context, true);
+            }
+          } else {
+            Navigator.pop<Uint8List>(context, result);
+          }
+        } else if (result == 'retake') {
+          _stopImageStream();
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Retake?'),
+              content: const Text('The current page will be discarded.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Keep'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Retake'),
+                ),
+              ],
+            ),
+          );
+          if (!context.mounted) return;
+          if (confirm == true) {
+            _corners = null;
+            _startImageStream();
+          } else {
+            Navigator.pop(context);
+          }
         }
       }
     } catch (e) {
-      _startImageStream();
+      debugPrint('Capture failed: $e');
+      _processing = false;
+      if (mounted) setState(() {});
       if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Something went wrong while capturing. Please try again.')),
-      );
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Something went wrong while capturing. Please try again.')),
+        );
       }
     }
   }

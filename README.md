@@ -150,8 +150,9 @@ lib/
     │   ├── document_detail_screen.dart  # Page grid + batch delete
     │   ├── home_screen.dart          # Document list + search + batch
     │   ├── onboarding_screen.dart    # First-run carousel
-    │   ├── preview_screen.dart       # Crop + OCR + enhance
-    │   └── scanner_screen.dart       # Camera capture + auto-detect
+    │   ├── multi_page_review_screen.dart  # Multi-page review, reorder, edit, save
+    │   ├── preview_screen.dart            # Crop + OCR + enhance
+    │   └── scanner_screen.dart            # Camera capture + auto-detect + multi-page
     ├── theme/
     │   └── themes.dart               # Arcade / Kawaii / Professional
     └── widgets/
@@ -168,6 +169,8 @@ lib/
   - **B&W**: Grayscale + NORM_MINMAX normalization + contrast boost (α=1.25, β=5) + sharpen kernel
   - **Color**: Preserved colors + gentle contrast (α=1.1, β=5) + sharpen kernel
 - **Manual corner adjustment**: Draggable handles with magnifier (4× digital zoom) for fine-tuning crop
+- **Torch**: Flashlight toggle in scanner AppBar for low-light document scanning; turns off automatically on screen exit
+- **Multi-page scan**: Capture multiple pages in sequence without leaving the scanner; auto-processes each page (crop + enhance); thumbnail strip shows captured pages; review screen for reorder, edit, and delete before saving as a single multi-page document
 - **Color mode persistence**: Choice of color/B&W persists across pages during a scanning session; toggle is in the scanner (pre-capture), not post-processing
 - **PDF-first**: Dynamic page format per image aspect ratio, regenerates on page add/remove
 - **OCR**: Google ML Kit text recognition with copy-to-clipboard
@@ -207,12 +210,14 @@ All 16 of 22 actionable production-readiness issues resolved:
 | #88 | Poor edge detection on light backgrounds (adaptive Canny thresholds) | ✅ Fixed |
 | #89 | Missing app icon (magnifying glass + document SVG) | ✅ Fixed |
 | #90 | Color mode toggle in post-processing (moved to scanner, persisted) | ✅ Fixed |
+| #93 | Torch toggle (FlashMode.torch in scanner AppBar) | ✅ Fixed |
+| #94 | Multi-page scan with thumbnail strip and review screen | ✅ Fixed |
 
 ## Remaining
 
 | # | Issue | Severity |
 |---|-------|----------|
-| #53 | Torch toggle, pinch-to-zoom, page re-scan | 🟡 MEDIUM |
+| #93 | Pinch-to-zoom, page re-scan | 🟡 MEDIUM |
 | #52 | Adaptive tablet/landscape layout | 🟡 MEDIUM |
 | #49 | Integration / golden tests | 🟡 MEDIUM |
 | #48 | Anemic domain model (business logic in UI) | 🟡 MEDIUM |
@@ -223,7 +228,7 @@ All 16 of 22 actionable production-readiness issues resolved:
 flutter test
 ```
 
-80 tests (4 skipped on host — require native OpenCV lib present on device):
+81 tests (4 skipped on host — require native OpenCV lib present on device):
 - 33 domain + data layer tests (entities, models, repositories, use cases)
 - 47 presentation widget tests (5 screens, 3 widgets)
 - 0 flutter analyze errors

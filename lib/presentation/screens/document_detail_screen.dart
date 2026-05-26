@@ -196,10 +196,10 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
       context,
       PageRouteBuilder(
         pageBuilder: (_, _, _) => ScannerScreen(
-          onPageScanned: (bytes) async {
-            await ref.read(documentListProvider.notifier).addPageToDocument(
+          onPagesSaved: (pages, _) async {
+            await ref.read(documentListProvider.notifier).addMultiplePagesToDocument(
               widget.document.id,
-              bytes,
+              pages,
             );
           },
         ),

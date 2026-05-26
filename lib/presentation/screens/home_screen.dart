@@ -339,19 +339,21 @@ class HomeScreen extends ConsumerWidget {
   }
 
   static Future<void> _openScanner(BuildContext context, WidgetRef ref, String? documentId) async {
-    var pagesSaved = 0;
-
+    final existingNames = ref.read(documentListProvider)
+        .valueOrNull
+        ?.map((d) => d.name)
+        .toSet() ?? {};
     final result = await Navigator.push<bool>(
       context,
       PageRouteBuilder(
         pageBuilder: (_, _, _) => ScannerScreen(
-          onPageScanned: (bytes) async {
+          existingNames: existingNames,
+          onPagesSaved: (pages, name) async {
             if (documentId == null) {
-              await ref.read(documentListProvider.notifier).scanFromBytes(bytes);
+              await ref.read(documentListProvider.notifier).scanFromMultipleBytes(pages, name);
             } else {
-              await ref.read(documentListProvider.notifier).addPageToDocument(documentId, bytes);
+              await ref.read(documentListProvider.notifier).addMultiplePagesToDocument(documentId, pages);
             }
-            pagesSaved++;
           },
         ),
         transitionsBuilder: (_, animation, _, child) =>
@@ -366,7 +368,7 @@ class HomeScreen extends ConsumerWidget {
     );
     if (!context.mounted) return;
     ref.invalidate(documentListProvider);
-    if (result == true || pagesSaved > 0) {
+    if (result == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(documentId != null ? 'Pages added' : 'Document saved'),

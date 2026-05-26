@@ -6,13 +6,15 @@ import 'preview_screen.dart';
 class MultiPageReviewScreen extends StatefulWidget {
   final List<String> pagePaths;
   final bool colorMode;
-  final Future<void> Function(List<String> paths) onSave;
+  final Future<void> Function(List<String> paths, String name) onSave;
+  final Set<String> existingNames;
 
   const MultiPageReviewScreen({
     super.key,
     required this.pagePaths,
     required this.colorMode,
     required this.onSave,
+    this.existingNames = const {},
   });
 
   @override
@@ -135,11 +137,31 @@ class _MultiPageReviewScreenState extends State<MultiPageReviewScreen> {
     }
   }
 
+  String _defaultName() {
+    final now = DateTime.now();
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '${months[now.month - 1]} ${now.day}, ${now.year}';
+  }
+
   Future<void> _save() async {
+    final nameController = TextEditingController(text: _defaultName());
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => _SaveAsDialog(
+        controller: nameController,
+        defaultName: _defaultName(),
+        existingNames: widget.existingNames,
+      ),
+    );
+    if (name == null || !context.mounted) return;
+
     setState(() => _saving = true);
     try {
       final paths = _pages.map((p) => p.path).toList();
-      await widget.onSave(paths);
+      await widget.onSave(paths, name);
       if (context.mounted) Navigator.pop(context, true);
     } catch (e) {
       debugPrint('Save failed: $e');
@@ -150,6 +172,68 @@ class _MultiPageReviewScreenState extends State<MultiPageReviewScreen> {
         );
       }
     }
+  }
+}
+
+class _SaveAsDialog extends StatefulWidget {
+  final TextEditingController controller;
+  final String defaultName;
+  final Set<String> existingNames;
+
+  const _SaveAsDialog({
+    required this.controller,
+    required this.defaultName,
+    required this.existingNames,
+  });
+
+  @override
+  State<_SaveAsDialog> createState() => _SaveAsDialogState();
+}
+
+class _SaveAsDialogState extends State<_SaveAsDialog> {
+  String? _error;
+
+  String _sanitize(String value) => value.trim().isEmpty ? widget.defaultName : value.trim();
+
+  void _submit() {
+    final name = _sanitize(widget.controller.text);
+    if (widget.existingNames.contains(name)) {
+      setState(() => _error = 'A document named "$name" already exists.');
+      return;
+    }
+    Navigator.pop(context, name);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Save as'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: widget.controller,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: 'Document name',
+              border: const OutlineInputBorder(),
+              errorText: _error,
+            ),
+            onSubmitted: (_) => _submit(),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: const Text('Save'),
+        ),
+      ],
+    );
   }
 }
 

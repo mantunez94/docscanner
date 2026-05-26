@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' show DeviceOrientation;
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -12,11 +13,13 @@ import 'multi_page_review_screen.dart';
 import 'preview_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
-  final Future<void> Function(Uint8List bytes)? onPageScanned;
+  final Future<void> Function(List<Uint8List> pages, String name)? onPagesSaved;
+  final Set<String> existingNames;
 
   const ScannerScreen({
     super.key,
-    this.onPageScanned,
+    this.onPagesSaved,
+    this.existingNames = const {},
   });
 
   @override
@@ -141,6 +144,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   void _stopImageStream() {
+    if (!_streamActive) return;
     _streamActive = false;
     try {
       _controller?.stopImageStream();
@@ -203,7 +207,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   void dispose() {
     _stopImageStream();
-    _controller?.setFlashMode(FlashMode.off);
+    try {
+      _controller?.setFlashMode(FlashMode.off);
+    } catch (_) {}
     _controller?.dispose();
     _cleanupTempFiles();
     _pageScrollController.dispose();
@@ -511,12 +517,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
         builder: (_) => MultiPageReviewScreen(
           pagePaths: List.from(_capturedPages),
           colorMode: _colorMode,
-          onSave: (paths) async {
+          existingNames: widget.existingNames,
+          onSave: (paths, name) async {
+            final bytesList = <Uint8List>[];
             for (final path in paths) {
-              final bytes = await File(path).readAsBytes();
-              if (widget.onPageScanned != null) {
-                await widget.onPageScanned!(bytes);
-              }
+              bytesList.add(await File(path).readAsBytes());
+            }
+            if (widget.onPagesSaved != null) {
+              await widget.onPagesSaved!(bytesList, name);
             }
           },
         ),

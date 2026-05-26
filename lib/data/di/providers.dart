@@ -5,6 +5,9 @@ import '../services/file_service.dart';
 import '../services/pdf_service.dart';
 import '../services/gallery_service.dart';
 import '../../domain/repositories/document_repository.dart';
+import '../../domain/repositories/file_storage.dart';
+import '../../domain/repositories/pdf_generator.dart';
+import '../../domain/repositories/gallery_saver.dart';
 import '../../domain/usecases/add_pages_to_document.dart';
 import '../../domain/usecases/delete_document.dart';
 import '../../domain/usecases/export_to_pdf.dart';
@@ -17,15 +20,15 @@ final repositoryProvider = Provider<DocumentRepository>((ref) {
   return DocumentRepositoryImpl(LocalDataSource());
 });
 
-final fileServiceProvider = Provider<FileService>((ref) {
+final fileServiceProvider = Provider<FileStorage>((ref) {
   return FileService();
 });
 
-final pdfServiceProvider = Provider<PdfService>((ref) {
+final pdfServiceProvider = Provider<PdfGenerator>((ref) {
   return PdfService();
 });
 
-final galleryServiceProvider = Provider<GalleryService>((ref) {
+final galleryServiceProvider = Provider<GallerySaver>((ref) {
   return GalleryService();
 });
 

@@ -4,8 +4,9 @@ import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import '../../domain/repositories/pdf_generator.dart';
 
-class PdfService {
+class PdfService implements PdfGenerator {
   PdfPageFormat _pageFormatForBytes(Uint8List imageBytes) {
     final decoded = img.decodeImage(imageBytes);
     if (decoded == null) return PdfPageFormat.a4;

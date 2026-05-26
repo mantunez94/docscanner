@@ -1,13 +1,9 @@
 import 'dart:io';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import '../domain/entities/ocr_result.dart' as domain;
+import '../domain/repositories/text_recognizer.dart';
 
-abstract class TextRecognizerInterface {
-  Future<domain.OcrResult> recognizeImage(String imagePath);
-  void close();
-}
-
-class MlKitTextRecognizer implements TextRecognizerInterface {
+class MlKitTextRecognizer implements OcrTextRecognizer {
   final TextRecognizer _inner;
 
   MlKitTextRecognizer() : _inner = TextRecognizer();
@@ -44,9 +40,9 @@ class MlKitTextRecognizer implements TextRecognizerInterface {
 }
 
 class OcrService {
-  final TextRecognizerInterface _recognizer;
+  final OcrTextRecognizer _recognizer;
 
-  OcrService({TextRecognizerInterface? recognizer})
+  OcrService({OcrTextRecognizer? recognizer})
       : _recognizer = recognizer ?? MlKitTextRecognizer();
 
   Future<domain.OcrResult> recognizeImage(String imagePath) =>

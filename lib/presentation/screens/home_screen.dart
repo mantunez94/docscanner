@@ -339,23 +339,19 @@ class HomeScreen extends ConsumerWidget {
   }
 
   static Future<void> _openScanner(BuildContext context, WidgetRef ref, String? documentId) async {
-    String? docId = documentId;
-    var pagesScanned = 0;
+    var pagesSaved = 0;
 
     final result = await Navigator.push<bool>(
       context,
       PageRouteBuilder(
         pageBuilder: (_, _, _) => ScannerScreen(
-          batchMode: true,
           onPageScanned: (bytes) async {
-            if (docId == null) {
+            if (documentId == null) {
               await ref.read(documentListProvider.notifier).scanFromBytes(bytes);
-              final docs = ref.read(documentListProvider).valueOrNull ?? [];
-              if (docs.isNotEmpty) docId = docs.last.id;
             } else {
-              await ref.read(documentListProvider.notifier).addPageToDocument(docId!, bytes);
+              await ref.read(documentListProvider.notifier).addPageToDocument(documentId, bytes);
             }
-            pagesScanned++;
+            pagesSaved++;
           },
         ),
         transitionsBuilder: (_, animation, _, child) =>
@@ -370,8 +366,7 @@ class HomeScreen extends ConsumerWidget {
     );
     if (!context.mounted) return;
     ref.invalidate(documentListProvider);
-    final scanned = result == true || pagesScanned > 0;
-    if (scanned) {
+    if (result == true || pagesSaved > 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(documentId != null ? 'Pages added' : 'Document saved'),

@@ -12,12 +12,10 @@ import 'multi_page_review_screen.dart';
 import 'preview_screen.dart';
 
 class ScannerScreen extends StatefulWidget {
-  final bool batchMode;
   final Future<void> Function(Uint8List bytes)? onPageScanned;
 
   const ScannerScreen({
     super.key,
-    this.batchMode = false,
     this.onPageScanned,
   });
 
@@ -35,7 +33,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   bool _colorMode = false;
   bool _torchOn = false;
-  bool _isMultiPage = false;
   final _capturedPages = <String>[];
   bool _processing = false;
   final _pageScrollController = ScrollController();
@@ -279,16 +276,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
 
     return PopScope(
-      canPop: !widget.batchMode,
+      canPop: _capturedPages.isEmpty,
       onPopInvokedWithResult: (didPop, _) async {
-        if (didPop || !widget.batchMode) return;
+        if (didPop) return;
         final ctx = context;
         final confirm = await showDialog<bool>(
           context: ctx,
           builder: (ctx) => AlertDialog(
-            title: const Text('Discard batch?'),
-            content: const Text(
-              'You have pages in the current batch. Do you want to discard them and go back?',
+            title: const Text('Discard pages?'),
+            content: Text(
+              'You have ${_capturedPages.length} page${_capturedPages.length == 1 ? '' : 's'} in progress. Discard them?',
             ),
             actions: [
               TextButton(
@@ -297,18 +294,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Exit'),
+                child: const Text('Discard'),
               ),
             ],
           ),
         );
         if (confirm == true && context.mounted) {
-          Navigator.pop(context, true);
+          Navigator.pop(context);
         }
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.batchMode ? 'Batch Scan' : 'Scan Document'),
+          title: Text(_capturedPages.isEmpty ? 'Scan Document' : 'Scan (${_capturedPages.length} page${_capturedPages.length == 1 ? '' : 's'})'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Back',
@@ -335,24 +332,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ),
             ),
           ),
-          Semantics(
-            label: _isMultiPage ? 'Switch to single page mode' : 'Switch to multi-page mode',
-            child: Tooltip(
-              message: _isMultiPage ? 'Multi-page' : 'Single page',
-              child: IconButton(
-                onPressed: () {
-                  if (_capturedPages.isNotEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Finish or discard the current batch first')),
-                    );
-                    return;
-                  }
-                  setState(() => _isMultiPage = !_isMultiPage);
-                },
-                icon: Icon(_isMultiPage ? Icons.collections_bookmark : Icons.note_add_outlined),
-              ),
-            ),
-          ),
         ],
         ),
         floatingActionButton: _capturedPages.isNotEmpty && !_processing
@@ -360,10 +339,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   FloatingActionButton.small(
-                    heroTag: 'review',
+                    heroTag: 'done',
                     onPressed: _reviewPages,
-                    tooltip: 'Review pages',
-                    child: const Icon(Icons.checklist),
+                    tooltip: 'Done scanning',
+                    child: const Icon(Icons.check),
                   ),
                   const SizedBox(height: 12),
                   FloatingActionButton.large(
@@ -546,11 +525,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     if (!context.mounted) return;
     if (result == true) {
       _capturedPages.clear();
-      if (widget.batchMode) {
-        Navigator.pop(context, true);
-      } else {
-        Navigator.pop<bool>(context, true);
-      }
+      Navigator.pop<bool>(context, true);
     } else {
       _startImageStream();
     }
@@ -563,128 +538,43 @@ class _ScannerScreenState extends State<ScannerScreen> {
       final rawBytes = await file.readAsBytes();
       if (!context.mounted) return;
 
-      if (_isMultiPage) {
-        setState(() => _processing = true);
-        try {
-          final src = cv.imdecode(rawBytes, cv.IMREAD_COLOR);
-          final corners = src.rows > 0
-              ? _imageProcessingService.detectDocumentFromMat(src)
-              : null;
-          final (processed, _) = _imageProcessingService.processScan(
-            rawBytes, corners, _colorMode,
-          );
-          final dir = await getTemporaryDirectory();
-          final path = '${dir.path}/multipage_${DateTime.now().millisecondsSinceEpoch}.jpg';
-          await File(path).writeAsBytes(processed);
-          if (context.mounted) {
-            setState(() {
-              _capturedPages.add(path);
-              _processing = false;
-            });
-            unawaited(
-              _pageScrollController.animateTo(
-                _pageScrollController.position.maxScrollExtent,
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeOut,
-              ),
-            );
-          }
-        } catch (e) {
-          debugPrint('Multi-page processing failed: $e');
-          if (context.mounted) setState(() => _processing = false);
-        }
-      } else {
-        final dir = await getTemporaryDirectory();
-        final copy = await File(file.path).copy('${dir.path}/temp_scan.jpg');
-        if (!context.mounted) return;
-
-        final result = await Navigator.push<Object>(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PreviewScreen(imagePath: copy.path, initialColorMode: _colorMode),
-          ),
+      setState(() => _processing = true);
+      try {
+        final src = cv.imdecode(rawBytes, cv.IMREAD_COLOR);
+        final corners = src.rows > 0
+            ? _imageProcessingService.detectDocumentFromMat(src)
+            : null;
+        final (processed, _) = _imageProcessingService.processScan(
+          rawBytes, corners, _colorMode,
         );
-
-        if (!context.mounted) return;
-        if (result is Uint8List) {
-          if (widget.batchMode && widget.onPageScanned != null) {
-            await widget.onPageScanned!(result);
-            if (!context.mounted) return;
-            _corners = null;
-
-            _stopImageStream();
-            await Future.delayed(const Duration(milliseconds: 350));
-            if (!context.mounted) return;
-
-            final scanAnother = await showDialog<bool>(
-              context: context,
-              barrierDismissible: true,
-              builder: (ctx) => PopScope(
-                canPop: false,
-                onPopInvokedWithResult: (didPop, _) {
-                  if (!didPop) Navigator.pop(ctx, false);
-                },
-                child: AlertDialog(
-                  title: const Text('Page saved'),
-                  content: const Text('Scan another page?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Done'),
-                    ),
-                    FilledButton(
-                      onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('Scan another'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-
-            if (!context.mounted) return;
-            if (scanAnother == true) {
-              setState(() {
-                _corners = null;
-              });
-              _startImageStream();
-            } else {
-              Navigator.pop(context, true);
-            }
-          } else {
-            Navigator.pop<Uint8List>(context, result);
-          }
-        } else if (result == 'retake') {
-          _stopImageStream();
-          final confirm = await showDialog<bool>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text('Retake?'),
-              content: const Text('The current page will be discarded.'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, false),
-                  child: const Text('Keep'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, true),
-                  child: const Text('Retake'),
-                ),
-              ],
+        final dir = await getTemporaryDirectory();
+        final path = '${dir.path}/page_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        await File(path).writeAsBytes(processed);
+        if (context.mounted) {
+          setState(() {
+            _capturedPages.add(path);
+            _processing = false;
+          });
+          unawaited(
+            _pageScrollController.animateTo(
+              _pageScrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOut,
             ),
           );
-          if (!context.mounted) return;
-          if (confirm == true) {
-            _corners = null;
-            _startImageStream();
-          } else {
-            Navigator.pop(context);
-          }
+        }
+      } catch (e) {
+        debugPrint('Processing failed: $e');
+        if (context.mounted) {
+          setState(() => _processing = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to process page. Please try again.')),
+          );
         }
       }
     } catch (e) {
       debugPrint('Capture failed: $e');
-      _processing = false;
-      if (mounted) setState(() {});
+      if (mounted) setState(() => _processing = false);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Something went wrong while capturing. Please try again.')),

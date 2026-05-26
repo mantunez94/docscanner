@@ -68,6 +68,101 @@ class DocumentListNotifier extends AsyncNotifier<List<ScannedDocument>> {
     }
   }
 
+  Future<void> scanFromMultipleBytes(List<Uint8List> bytesList, [String? name]) async {
+    try {
+      final fileService = ref.read(fileServiceProvider);
+      final pdfService = ref.read(pdfServiceProvider);
+      final galleryService = ref.read(galleryServiceProvider);
+      final id = DateTime.now().millisecondsSinceEpoch.toString();
+
+      final paths = <String>[];
+      for (var i = 0; i < bytesList.length; i++) {
+        paths.add(await fileService.savePageImage('${id}_$i', bytesList[i]));
+      }
+      final thumbPath = await fileService.saveThumbnail(id, bytesList.first);
+      final document = ScannedDocument(
+        id: id,
+        pages: [paths.first],
+        thumbnailPath: thumbPath,
+        createdAt: DateTime.now(),
+        pdfPath: '',
+        name: name,
+      );
+      try {
+        await ref.read(repositoryProvider).save(document);
+      } catch (_) {
+        await _cleanupFiles(paths + [thumbPath]);
+        rethrow;
+      }
+
+      if (paths.length > 1) {
+        final addPages = ref.read(addPagesToDocumentProvider);
+        await addPages(id, paths.sublist(1));
+      }
+
+      final pdfPath = await pdfService.generatePdf(id, paths);
+      try {
+        await ref.read(repositoryProvider).updatePdfPath(id, pdfPath);
+      } catch (_) {
+        await _cleanupFiles([pdfPath]);
+        rethrow;
+      }
+
+      try {
+        for (final path in paths) {
+          await galleryService.saveToGallery(path);
+        }
+      } catch (e) {
+        debugPrint('Gallery save failed: $e');
+      }
+
+      state = AsyncData(await ref.read(getAllDocumentsProvider).call());
+    } catch (e) {
+      state = AsyncError(e, StackTrace.current);
+    }
+  }
+
+  Future<void> addMultiplePagesToDocument(String documentId, List<Uint8List> bytesList) async {
+    try {
+      final fileService = ref.read(fileServiceProvider);
+      final pdfService = ref.read(pdfServiceProvider);
+      final galleryService = ref.read(galleryServiceProvider);
+      final paths = <String>[];
+      for (final bytes in bytesList) {
+        paths.add(await fileService.savePageImageWithSuffix(documentId, bytes));
+      }
+
+      final addPages = ref.read(addPagesToDocumentProvider);
+      List<String> updatedPages;
+      try {
+        final updated = await addPages(documentId, paths);
+        updatedPages = updated.pages;
+      } catch (_) {
+        await _cleanupFiles(paths);
+        rethrow;
+      }
+
+      final pdfPath = await pdfService.generatePdf(documentId, updatedPages);
+      try {
+        await ref.read(repositoryProvider).updatePdfPath(documentId, pdfPath);
+      } catch (_) {
+        await _cleanupFiles([pdfPath]);
+        rethrow;
+      }
+
+      try {
+        for (final path in paths) {
+          await galleryService.saveToGallery(path);
+        }
+      } catch (e) {
+        debugPrint('Gallery save failed: $e');
+      }
+      ref.invalidateSelf();
+    } catch (e) {
+      state = AsyncError(e, StackTrace.current);
+    }
+  }
+
   Future<void> addPageToDocument(String documentId, Uint8List bytes) async {
     try {
       final fileService = ref.read(fileServiceProvider);

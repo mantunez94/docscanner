@@ -203,20 +203,26 @@ DocScanner is a Flutter Android document scanner with real-time boundary detecti
 - Remote: `https://github.com/mantunez94/docscanner`
 - GPG key: `4FF9A0F2703EB38B7361978504F984B3F3189DA9`
 
+### Recent Changes (2026-05-31 — Session 5: All 4 open issues resolved)
+
+**4 PRs creados para los 4 issues abiertos en GitHub:**
+
+| PR | Issue | Descripción |
+|----|-------|-------------|
+| [#100](https://github.com/mantunez94/docscanner/pull/100) | #53 | **Pinch-to-zoom**: `InteractiveViewer` (1×–4×) en PreviewScreen. Torch (ya hecho en #93) y re-scan (ya funciona vía tap en page card) |
+| [#101](https://github.com/mantunez94/docscanner/pull/101) | #52 | **Adaptive layout**: `responsiveCrossAxisCount()` — 2 cols (<600dp), 3 cols (600–840dp), 4 cols (840dp+) en HomeScreen, DocumentDetailScreen, ShimmerGrid |
+| [#102](https://github.com/mantunez94/docscanner/pull/102) | #49 | **Golden + integration tests**: 2 golden tests (home empty, home with docs), integration test scaffold (`integration_test/`). OpenCV skipped tests mantenidos (requieren `libdartcv.so` nativa) |
+| [#103](https://github.com/mantunez94/docscanner/pull/103) | #48 | **Domain entity enhancement**: `validateName()`, `addPage()`, `removePage()`, `replacePage()`, `reorderPages()`, `updatePdfPath()` en `ScannedDocument`. 10 tests nuevos |
+
+**Test suite:** 91 tests total (+4 skip en host por OpenCV)
+
+**Architecture score:** 68/100 (sin cambios — items arquitectónicos diferidos)
+
 ## Next Steps
 
-### Mañana — Quick wins (~1h)
-1. ✅ PR #98 ya mergeado — `git pull` en main
-2. `LocalDataSource implements DocumentDataSource`
-3. Interfaz `ImageProcessor` en `domain/repositories/` + implementación
-4. Inyectar `ImageProcessor` vía provider en `ScannerScreen` y `PreviewScreen`
+### Pendientes arquitectónicos (de session-summary anterior)
+1. `LocalDataSource implements DocumentDataSource`
+2. `ImageProcessor` interfaz en `domain/repositories/` + inyectar vía provider
+3. `CameraService` interfaz + extraer lógica de `ScannerScreen`
+4. ISP: dividir `DocumentRepository` en interfaces pequeñas
 5. Desplegar: `flutter build apk --debug && adb install -r build/app/outputs/flutter-apk/app-debug.apk`
-
-### Mañana — Bloque grande (2-3h)
-6. Interfaz `CameraService` en `domain/repositories/`
-7. Extraer cámara/pipeline de `ScannerScreen` → `CameraServiceImpl` en `data/services/`
-
-### Próximas sesiones
-- ISP: dividir `DocumentRepository` en interfaces pequeñas
-- Anemic domain model (#48): mover lógica a `ScannedDocument`
-- Producción (#52, #53, #55, #56): tablet layout, features faltantes, assets Play Store

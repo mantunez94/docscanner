@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:docscanner/l10n/app_localizations.dart';
+import '../providers/theme_provider.dart';
+import '../theme/themes.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -17,24 +20,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   List<_OnboardingPage> _buildPages(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = ProviderScope.containerOf(context).read(themeProvider);
     return [
       _OnboardingPage(
-        icon: Icons.document_scanner_outlined,
+        icon: scanIcon(theme),
         title: l10n.onboardingScanTitle,
         description: l10n.onboardingScanDesc,
       ),
       _OnboardingPage(
-        icon: Icons.tune_outlined,
+        icon: Icons.tune,
         title: l10n.onboardingAdjustTitle,
         description: l10n.onboardingAdjustDesc,
       ),
       _OnboardingPage(
-        icon: Icons.text_snippet_outlined,
+        icon: descriptionIcon(theme),
         title: l10n.onboardingOcrTitle,
         description: l10n.onboardingOcrDesc,
       ),
       _OnboardingPage(
-        icon: Icons.picture_as_pdf_outlined,
+        icon: pdfIcon(theme),
         title: l10n.onboardingExportTitle,
         description: l10n.onboardingExportDesc,
       ),

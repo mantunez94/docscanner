@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:docscanner/l10n/app_localizations.dart';
@@ -11,10 +12,12 @@ void main() {
 
   Future<void> pumpOnboarding(WidgetTester tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: OnboardingScreen(onComplete: () {}),
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: OnboardingScreen(onComplete: () {}),
+        ),
       ),
     );
   }
@@ -66,10 +69,12 @@ void main() {
   testWidgets('calls onComplete when Get Started is tapped', (tester) async {
     var completed = false;
     await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: OnboardingScreen(onComplete: () => completed = true),
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: OnboardingScreen(onComplete: () => completed = true),
+        ),
       ),
     );
     for (var i = 0; i < 3; i++) {
@@ -83,10 +88,12 @@ void main() {
   testWidgets('calls onComplete when Skip is tapped', (tester) async {
     var completed = false;
     await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: OnboardingScreen(onComplete: () => completed = true),
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: OnboardingScreen(onComplete: () => completed = true),
+        ),
       ),
     );
     await tester.tap(find.text('Skip'));

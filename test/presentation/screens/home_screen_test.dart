@@ -89,7 +89,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.checklist), findsOneWidget);
+      expect(find.byIcon(Icons.checklist_outlined), findsOneWidget);
     });
 
     testWidgets('filters documents by search query', (tester) async {

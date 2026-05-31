@@ -28,6 +28,20 @@ IconData themeIcon(AppTheme theme) => switch (theme) {
   AppTheme.professional => Icons.work_outline,
 };
 
+enum IconStyle { outlined, rounded, sharp }
+
+IconStyle iconStyleFor(AppTheme theme) => switch (theme) {
+  AppTheme.arcade      => IconStyle.sharp,
+  AppTheme.kawaii      => IconStyle.rounded,
+  AppTheme.professional => IconStyle.outlined,
+};
+
+IconData scanIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.document_scanner_outlined,
+  IconStyle.rounded  => Icons.document_scanner_rounded,
+  IconStyle.sharp    => Icons.document_scanner,
+};
+
 // ─────────────────────────────────────────────────────────────────
 //  ARCADE — neon retro gaming
 // ─────────────────────────────────────────────────────────────────

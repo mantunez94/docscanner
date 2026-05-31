@@ -1,18 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <clipPath id="lens">
-      <circle cx="460" cy="440" r="280"/>
-    </clipPath>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A5276"/>
+      <stop offset="100%" stop-color="#0D1B2A"/>
+    </linearGradient>
+    <linearGradient id="focusGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
   </defs>
-  <g clip-path="url(#lens)">
-    <rect x="220" y="220" width="340" height="440" rx="20" fill="none" stroke="white" stroke-width="18"/>
-    <line x1="260" y1="300" x2="500" y2="300" stroke="white" stroke-width="14" stroke-linecap="round"/>
-    <line x1="260" y1="360" x2="460" y2="360" stroke="white" stroke-width="14" stroke-linecap="round"/>
-    <line x1="260" y1="420" x2="480" y2="420" stroke="white" stroke-width="14" stroke-linecap="round"/>
-    <line x1="260" y1="480" x2="440" y2="480" stroke="white" stroke-width="14" stroke-linecap="round"/>
-    <line x1="260" y1="540" x2="470" y2="540" stroke="white" stroke-width="14" stroke-linecap="round"/>
-    <line x1="260" y1="600" x2="490" y2="600" stroke="white" stroke-width="14" stroke-linecap="round"/>
+  <rect width="1024" height="1024" rx="224" fill="url(#bgGrad)"/>
+  <g transform="translate(512,512) rotate(-4) translate(-462,-562)">
+    <rect x="0" y="0" width="700" height="900" rx="32" fill="#FFFFFF" filter="url(#shadow)"/>
+    <path d="M0 0 L224 0 L224 224 Q224 260 260 260 L700 260" fill="#FFFFFF" filter="url(#shadow)"/>
+    <path d="M0 0 L224 0 L224 224 Q224 260 260 260 L700 260 L700 900 L0 900 Z" fill="#FFFFFF"/>
+    <path d="M224 0 L224 224 Q224 260 260 260" fill="#F0F0F5"/>
+    <path d="M224 0 L224 224 Q224 242 242 254 L448 0 Z" fill="#E8EDF2"/>
+    <rect x="72" y="180" width="360" height="16" rx="8" fill="#D0D5DD"/>
+    <rect x="72" y="232" width="480" height="16" rx="8" fill="#D0D5DD"/>
+    <rect x="72" y="284" width="320" height="16" rx="8" fill="#D0D5DD"/>
+    <rect x="72" y="336" width="440" height="16" rx="8" fill="#D0D5DD"/>
+    <rect x="72" y="388" width="280" height="16" rx="8" fill="#D0D5DD"/>
   </g>
-  <circle cx="460" cy="440" r="280" fill="none" stroke="white" stroke-width="22"/>
-  <line x1="680" y1="660" x2="830" y2="810" stroke="white" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="460" cy="440" r="200" fill="url(#focusGlow)"/>
+  <circle cx="460" cy="440" r="160" fill="none" stroke="#00E5FF" stroke-width="8" stroke-opacity="0.4"/>
+  <circle cx="460" cy="440" r="80" fill="none" stroke="#00E5FF" stroke-width="12"/>
+  <circle cx="460" cy="440" r="8" fill="#00E5FF"/>
+  <line x1="460" y1="300" x2="460" y2="360" stroke="#00E5FF" stroke-width="4" stroke-opacity="0.6"/>
+  <line x1="460" y1="520" x2="460" y2="580" stroke="#00E5FF" stroke-width="4" stroke-opacity="0.6"/>
+  <line x1="320" y1="440" x2="380" y2="440" stroke="#00E5FF" stroke-width="4" stroke-opacity="0.6"/>
+  <line x1="540" y1="440" x2="600" y2="440" stroke="#00E5FF" stroke-width="4" stroke-opacity="0.6"/>
 </svg>

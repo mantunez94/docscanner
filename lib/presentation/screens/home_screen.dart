@@ -294,7 +294,7 @@ class HomeScreen extends ConsumerWidget {
             : FloatingActionButton.extended(
                 key: const ValueKey('scan'),
                 onPressed: () => _openScanner(context, ref, null),
-                icon: const Icon(Icons.camera_alt),
+                icon: Icon(scanIcon(currentTheme)),
                 label: Text(l10n.scan),
                 tooltip: l10n.scanADocument,
               ),

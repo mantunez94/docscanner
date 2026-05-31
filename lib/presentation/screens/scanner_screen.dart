@@ -329,7 +329,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         ),
         actions: [
           Semantics(
-            label: _torchOn ? 'Turn off torch' : 'Turn on torch',
+            label: _torchOn ? AppLocalizations.of(context)!.torchOn : AppLocalizations.of(context)!.torchOff,
             child: Tooltip(
               message: _torchOn ? AppLocalizations.of(context)!.torchOn : AppLocalizations.of(context)!.torchOff,
               child: IconButton(
@@ -339,7 +339,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             ),
           ),
           Semantics(
-            label: _colorMode ? 'Switch to black and white' : 'Switch to color',
+            label: _colorMode ? AppLocalizations.of(context)!.bwMode : AppLocalizations.of(context)!.colorMode,
             child: Tooltip(
               message: _colorMode ? AppLocalizations.of(context)!.bwMode : AppLocalizations.of(context)!.colorMode,
               child: IconButton(

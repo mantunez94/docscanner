@@ -139,6 +139,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   void _startImageStream() {
     if (_controller == null || !_controller!.value.isInitialized) return;
+    _frameCount = 0;
     _streamActive = true;
     _controller!.startImageStream(_onImage);
   }
@@ -155,12 +156,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   void _onImage(CameraImage image) {
     if (!_streamActive) return;
+    _imageWidth = image.width;
+    _imageHeight = image.height;
     _frameCount++;
-    if (_frameCount % 10 != 0) return;
+    const warmupFrames = 30;
+    if (_frameCount <= warmupFrames) return;
+    final cycleFrame = _frameCount - warmupFrames;
+    if (cycleFrame % 10 != 0) return;
 
     try {
-      _imageWidth = image.width;
-      _imageHeight = image.height;
 
       final yPlane = image.planes[0];
       final newCorners = _boundaryDetector.detectBoundary(
@@ -415,8 +419,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
           paintW = paintH * camAspect;
         }
 
-        final offsetX = (bodyW - paintW) / 2;
-        final offsetY = (bodyH - paintH) / 2;
+        final offsetX = 0.0;
+        final offsetY = 0.0;
 
         return Semantics(
           label: 'Document boundary overlay',

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:docscanner/l10n/app_localizations.dart';
 import 'package:docscanner/presentation/screens/onboarding_screen.dart';
 
 void main() {
@@ -11,6 +12,8 @@ void main() {
   Future<void> pumpOnboarding(WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: OnboardingScreen(onComplete: () {}),
       ),
     );
@@ -64,6 +67,8 @@ void main() {
     var completed = false;
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: OnboardingScreen(onComplete: () => completed = true),
       ),
     );
@@ -79,6 +84,8 @@ void main() {
     var completed = false;
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: OnboardingScreen(onComplete: () => completed = true),
       ),
     );

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart' show Share, XFile;
+import 'package:docscanner/l10n/app_localizations.dart';
 import '../../domain/entities/scanned_document.dart';
 import '../providers/document_provider.dart';
 import '../providers/document_admin_provider.dart';
@@ -30,6 +31,7 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final documentsAsync = ref.watch(documentListProvider);
     final currentTheme = ref.watch(themeProvider);
     final currentMode = ref.watch(themeModeProvider);
@@ -49,13 +51,13 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: batchMode
-            ? Text(selectedIds.isEmpty ? 'Select documents' : '${selectedIds.length} selected')
-            : const Text('DocScanner'),
+            ? Text(selectedIds.isEmpty ? l10n.selectDocuments : l10n.nSelected(selectedIds.length))
+            : Text(l10n.appTitle),
         centerTitle: true,
         leading: batchMode
             ? IconButton(
                 icon: const Icon(Icons.close),
-                tooltip: 'Cancel selection',
+                tooltip: l10n.cancelSelection,
                 onPressed: () {
                   ref.read(batchModeProvider.notifier).state = false;
                   ref.read(selectedIdsProvider.notifier).state = {};
@@ -68,14 +70,14 @@ class HomeScreen extends ConsumerWidget {
               icon: Icon(Icons.delete_outline,
                   color: Theme.of(context).colorScheme.error),
               onPressed: () => _deleteSelected(context, ref, selectedIds),
-              tooltip: 'Delete selected',
+              tooltip: l10n.deleteSelected,
             ),
           if (batchMode)
             IconButton(
               icon: const Icon(Icons.select_all),
               tooltip: selectedIds.length == filtered.length
-                  ? 'Deselect all'
-                  : 'Select all',
+                  ? l10n.deselectAll
+                  : l10n.selectAll,
               onPressed: () {
                 if (selectedIds.length == filtered.length) {
                   ref.read(selectedIdsProvider.notifier).state = {};
@@ -88,7 +90,7 @@ class HomeScreen extends ConsumerWidget {
           if (!batchMode) ...[
             PopupMenuButton<AppTheme>(
               icon: Icon(themeIcon(currentTheme)),
-              tooltip: 'Change theme',
+              tooltip: l10n.changeTheme,
               onSelected: (t) => ref.read(themeProvider.notifier).setTheme(t),
               itemBuilder: (_) => [
                 for (final t in AppTheme.values)
@@ -118,7 +120,7 @@ class HomeScreen extends ConsumerWidget {
                     : currentMode == ThemeMode.light ? Icons.light_mode_outlined
                     : Icons.brightness_auto_outlined,
               ),
-              tooltip: 'Theme mode',
+              tooltip: l10n.themeMode,
               onSelected: (m) => ref.read(themeModeProvider.notifier).setThemeMode(m),
               itemBuilder: (_) => [
                 for (final m in ThemeMode.values)
@@ -128,7 +130,7 @@ class HomeScreen extends ConsumerWidget {
                       children: [
                         Icon(_themeModeIcon(m), size: 20),
                         const SizedBox(width: 10),
-                        Text(_themeModeLabel(m)),
+                        Text(_themeModeLabel(m, context)),
                         if (m == currentMode) ...[
                           const Spacer(),
                           const Icon(Icons.check, size: 16),
@@ -142,13 +144,13 @@ class HomeScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.checklist),
                 onPressed: () => ref.read(batchModeProvider.notifier).state = true,
-                tooltip: 'Select documents',
+                tooltip: l10n.selectDocuments,
               ),
             if (documents.isNotEmpty)
               IconButton(
                 icon: const Icon(Icons.picture_as_pdf),
                 onPressed: () => _exportPdf(context, ref),
-                tooltip: 'Export PDF',
+                tooltip: l10n.exportPdf,
               ),
             IconButton(
               icon: const Icon(Icons.help_outline),
@@ -162,7 +164,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 );
               },
-              tooltip: 'Show onboarding',
+              tooltip: l10n.showOnboarding,
             ),
           ],
         ],
@@ -177,7 +179,7 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 Icon(Icons.error_outline, size: 64, color: Theme.of(context).colorScheme.error),
                 const SizedBox(height: 16),
-                Text('Something went wrong', style: Theme.of(context).textTheme.titleMedium),
+                Text(l10n.somethingWentWrong, style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Text('$e', textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurface.withAlpha(150))),
@@ -193,16 +195,16 @@ class HomeScreen extends ConsumerWidget {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
                       child: Semantics(
-                        label: 'Search documents',
+                        label: l10n.searchDocuments,
                         child: TextField(
                         onChanged: (v) => ref.read(searchQueryProvider.notifier).state = v,
                         decoration: InputDecoration(
-                          hintText: 'Search documents...',
+                          hintText: l10n.searchDocuments,
                           prefixIcon: const Icon(Icons.search, size: 20),
                           suffixIcon: searchQuery.isNotEmpty
                               ? IconButton(
                                   icon: const Icon(Icons.clear, size: 18),
-                                  tooltip: 'Clear search',
+                                  tooltip: l10n.clearSearch,
                                   onPressed: () => ref.read(searchQueryProvider.notifier).state = '',
                                 )
                               : null,
@@ -224,7 +226,7 @@ class HomeScreen extends ConsumerWidget {
                                   Icon(Icons.search_off, size: 64,
                                     color: Theme.of(context).colorScheme.onSurface.withAlpha(80)),
                                   const SizedBox(height: 16),
-                                  Text('No documents match',
+                                  Text(l10n.noDocumentsMatch,
                                     style: Theme.of(context).textTheme.titleMedium),
                                   const SizedBox(height: 4),
                                   Text('"$searchQuery"',
@@ -275,7 +277,7 @@ class HomeScreen extends ConsumerWidget {
                               },
                             ),
                           ),
-                  ),
+                      ),
                 ],
               ),
       ),
@@ -287,8 +289,8 @@ class HomeScreen extends ConsumerWidget {
                 key: const ValueKey('scan'),
                 onPressed: () => _openScanner(context, ref, null),
                 icon: const Icon(Icons.camera_alt),
-                label: const Text('Scan'),
-                tooltip: 'Scan a document',
+                label: Text(l10n.scan),
+                tooltip: l10n.scanADocument,
               ),
       ),
     );
@@ -300,46 +302,49 @@ class HomeScreen extends ConsumerWidget {
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: Theme.of(context).colorScheme.error, size: 24),
-            const SizedBox(width: 8),
-            const Text('Delete documents'),
-          ],
-        ),
-        content: Text('Delete ${ids.length} document${ids.length > 1 ? 's' : ''}? This cannot be undone.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              for (final id in ids) {
-                ref.read(documentAdminProvider).delete(id);
-              }
-              ref.read(batchModeProvider.notifier).state = false;
-              ref.read(selectedIdsProvider.notifier).state = {};
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${ids.length} document${ids.length > 1 ? 's' : ''} deleted'),
-                    duration: const Duration(seconds: 4),
-                    action: SnackBarAction(
-                      label: 'Undo',
-                      onPressed: () {
-                        for (final doc in deletedDocs) {
-                          ref.read(documentAdminProvider).restore(doc);
-                        }
-                      },
-                    ),
-                  ),
-                );
-              }
-            },
-            child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+      builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx)!;
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Theme.of(ctx).colorScheme.error, size: 24),
+              const SizedBox(width: 8),
+              Text(l10n.deleteDocuments),
+            ],
           ),
-        ],
-      ),
+          content: Text(l10n.deleteNDocuments(ids.length)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                for (final id in ids) {
+                  ref.read(documentAdminProvider).delete(id);
+                }
+                ref.read(batchModeProvider.notifier).state = false;
+                ref.read(selectedIdsProvider.notifier).state = {};
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(AppLocalizations.of(context)!.nDocumentsDeleted(ids.length)),
+                      duration: const Duration(seconds: 4),
+                      action: SnackBarAction(
+                        label: AppLocalizations.of(context)!.undo,
+                        onPressed: () {
+                          for (final doc in deletedDocs) {
+                            ref.read(documentAdminProvider).restore(doc);
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                }
+              },
+              child: Text(l10n.delete, style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -376,7 +381,7 @@ class HomeScreen extends ConsumerWidget {
     if (result == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(documentId != null ? 'Pages added' : 'Document saved'),
+          content: Text(documentId != null ? AppLocalizations.of(context)!.pagesAdded : AppLocalizations.of(context)!.documentSaved),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -430,74 +435,80 @@ class HomeScreen extends ConsumerWidget {
     final controller = TextEditingController(text: doc.name);
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Rename document'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Document name',
-            border: OutlineInputBorder(),
-          ),
-          onSubmitted: (value) {
-            final trimmed = value.trim();
-            if (trimmed.isNotEmpty) {
-              ref.read(documentAdminProvider).rename(doc.id, trimmed);
-            }
-            Navigator.pop(ctx);
-          },
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              final trimmed = controller.text.trim();
+      builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx)!;
+        return AlertDialog(
+          title: Text(l10n.renameDocument),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: l10n.documentName,
+              border: const OutlineInputBorder(),
+            ),
+            onSubmitted: (value) {
+              final trimmed = value.trim();
               if (trimmed.isNotEmpty) {
                 ref.read(documentAdminProvider).rename(doc.id, trimmed);
               }
               Navigator.pop(ctx);
             },
-            child: const Text('Rename'),
           ),
-        ],
-      ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
+            TextButton(
+              onPressed: () {
+                final trimmed = controller.text.trim();
+                if (trimmed.isNotEmpty) {
+                  ref.read(documentAdminProvider).rename(doc.id, trimmed);
+                }
+                Navigator.pop(ctx);
+              },
+              child: Text(l10n.rename),
+            ),
+          ],
+        );
+      },
     );
   }
 
   void _deleteOne(BuildContext context, WidgetRef ref, ScannedDocument doc) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete document'),
-        content: Text('Are you sure you want to delete "${doc.name}"?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              ref.read(documentAdminProvider).delete(doc.id);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('"${doc.name}" deleted'),
-                  duration: const Duration(seconds: 4),
-                  action: SnackBarAction(
-                    label: 'Undo',
-                    onPressed: () => ref.read(documentAdminProvider).restore(doc),
+      builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx)!;
+        return AlertDialog(
+          title: Text(l10n.deleteDocument),
+          content: Text(l10n.deleteDocumentConfirm(doc.name)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                ref.read(documentAdminProvider).delete(doc.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(AppLocalizations.of(context)!.nameDeleted(doc.name)),
+                    duration: const Duration(seconds: 4),
+                    action: SnackBarAction(
+                      label: AppLocalizations.of(context)!.undo,
+                      onPressed: () => ref.read(documentAdminProvider).restore(doc),
+                    ),
                   ),
-                ),
-              );
-            },
-            child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          ),
-        ],
-      ),
+                );
+              },
+              child: Text(l10n.delete, style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
+            ),
+          ],
+        );
+      },
     );
   }
 
   Future<void> _exportPdf(BuildContext context, WidgetRef ref) async {
     try {
       final messenger = ScaffoldMessenger.of(context);
-      messenger.showSnackBar(const SnackBar(content: Text('Generating PDF...')));
+      messenger.showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.generatingPdf)));
       final pdfFile = await ref.read(documentExportProvider).exportToPdf();
       if (context.mounted) {
         messenger.hideCurrentSnackBar();
@@ -507,7 +518,7 @@ class HomeScreen extends ConsumerWidget {
     } catch (_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to export PDF. Please try again.')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.failedExportPdf)),
         );
       }
     }
@@ -522,11 +533,12 @@ IconData _themeModeIcon(ThemeMode mode) {
   };
 }
 
-String _themeModeLabel(ThemeMode mode) {
+String _themeModeLabel(ThemeMode mode, BuildContext context) {
+  final l10n = AppLocalizations.of(context)!;
   return switch (mode) {
-    ThemeMode.system => 'Auto',
-    ThemeMode.light => 'Light',
-    ThemeMode.dark => 'Dark',
+    ThemeMode.system => l10n.auto,
+    ThemeMode.light => l10n.light,
+    ThemeMode.dark => l10n.dark,
   };
 }
 
@@ -538,6 +550,7 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -557,10 +570,10 @@ class _EmptyState extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            Text('No documents yet', style: theme.textTheme.titleLarge),
+            Text(l10n.noDocumentsYet, style: theme.textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(
-              'Scan your first document\nto get started',
+              l10n.scanFirstDocument,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withAlpha(150)),
             ),
@@ -568,7 +581,7 @@ class _EmptyState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onScan,
               icon: const Icon(Icons.camera_alt),
-              label: const Text('Scan Document'),
+              label: Text(l10n.scanDocument),
             ),
           ],
         ),

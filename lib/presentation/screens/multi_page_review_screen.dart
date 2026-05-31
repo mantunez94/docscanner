@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:docscanner/l10n/app_localizations.dart';
 import 'preview_screen.dart';
 
 class MultiPageReviewScreen extends StatefulWidget {
@@ -35,20 +36,21 @@ class _MultiPageReviewScreenState extends State<MultiPageReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Review (${_pages.length} page${_pages.length == 1 ? '' : 's'})'),
+        title: Text(l10n.reviewNPages(_pages.length)),
         actions: [
           if (_pages.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_outline),
-              tooltip: 'Delete all',
+              tooltip: l10n.deleteAll,
               onPressed: _confirmDeleteAll,
             ),
         ],
       ),
       body: _pages.isEmpty
-          ? const Center(child: Text('No pages'))
+          ? Center(child: Text(l10n.noPages))
           : ReorderableListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: _pages.length,
@@ -83,7 +85,7 @@ class _MultiPageReviewScreenState extends State<MultiPageReviewScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
                       : const Icon(Icons.save),
-                  label: Text(_saving ? 'Saving...' : 'Save as document'),
+                  label: Text(_saving ? l10n.saving : l10n.saveAsDocument),
                 ),
               ),
             )
@@ -115,19 +117,20 @@ class _MultiPageReviewScreenState extends State<MultiPageReviewScreen> {
   }
 
   Future<void> _confirmDeleteAll() async {
+    final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete all pages?'),
-        content: const Text('All captured pages will be discarded.'),
+        title: Text(l10n.deleteAllPages),
+        content: Text(l10n.deleteAllPagesBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete all'),
+            child: Text(l10n.deleteAll),
           ),
         ],
       ),
@@ -138,10 +141,11 @@ class _MultiPageReviewScreenState extends State<MultiPageReviewScreen> {
   }
 
   String _defaultName() {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    final months = [
+      l10n.jan, l10n.feb, l10n.mar, l10n.apr, l10n.may, l10n.jun,
+      l10n.jul, l10n.aug, l10n.sep, l10n.oct, l10n.nov, l10n.dec,
     ];
     return '${months[now.month - 1]} ${now.day}, ${now.year}';
   }
@@ -167,8 +171,9 @@ class _MultiPageReviewScreenState extends State<MultiPageReviewScreen> {
       debugPrint('Save failed: $e');
       if (context.mounted) {
         setState(() => _saving = false);
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to save document. Please try again.')),
+          SnackBar(content: Text(l10n.failedSaveDocument)),
         );
       }
     }
@@ -198,7 +203,7 @@ class _SaveAsDialogState extends State<_SaveAsDialog> {
   void _submit() {
     final name = _sanitize(widget.controller.text);
     if (widget.existingNames.contains(name)) {
-      setState(() => _error = 'A document named "$name" already exists.');
+      setState(() => _error = AppLocalizations.of(context)!.documentAlreadyExists(name));
       return;
     }
     Navigator.pop(context, name);
@@ -206,8 +211,9 @@ class _SaveAsDialogState extends State<_SaveAsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('Save as'),
+      title: Text(l10n.saveAs),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -215,7 +221,7 @@ class _SaveAsDialogState extends State<_SaveAsDialog> {
             controller: widget.controller,
             autofocus: true,
             decoration: InputDecoration(
-              hintText: 'Document name',
+              hintText: l10n.documentName,
               border: const OutlineInputBorder(),
               errorText: _error,
             ),
@@ -226,11 +232,11 @@ class _SaveAsDialogState extends State<_SaveAsDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: _submit,
-          child: const Text('Save'),
+          child: Text(l10n.save),
         ),
       ],
     );
@@ -258,6 +264,7 @@ class _PageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       key: ValueKey(path),
       margin: const EdgeInsets.only(bottom: 8),
@@ -272,19 +279,19 @@ class _PageTile extends StatelessWidget {
             cacheWidth: 120,
           ),
         ),
-        title: Text('Page ${index + 1}'),
-        subtitle: Text('${(File(path).lengthSync() / 1024).round()} KB'),
+        title: Text(l10n.pageN(index + 1)),
+        subtitle: Text(l10n.nKb((File(path).lengthSync() / 1024).round())),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
               icon: const Icon(Icons.edit_outlined),
-              tooltip: 'Edit page',
+              tooltip: l10n.editPage,
               onPressed: onTap,
             ),
             IconButton(
               icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
-              tooltip: 'Delete page',
+              tooltip: l10n.deletePage,
               onPressed: onDelete,
             ),
             ReorderableDragStartListener(

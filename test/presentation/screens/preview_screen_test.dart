@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 import 'package:docscanner/core/image_processing_service.dart';
+import 'package:docscanner/l10n/app_localizations.dart';
 import 'package:docscanner/presentation/screens/preview_screen.dart';
 
 void main() {
@@ -97,8 +98,10 @@ void main() {
   group('PreviewScreen widget', () {
     testWidgets('shows loading state initially', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: PreviewScreen(imagePath: '/nonexistent/test.jpg'),
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const PreviewScreen(imagePath: '/nonexistent/test.jpg'),
         ),
       );
       await tester.pump();

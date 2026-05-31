@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:docscanner/domain/entities/scanned_document.dart';
+import 'package:docscanner/l10n/app_localizations.dart';
 import 'package:docscanner/presentation/widgets/document_card.dart';
 
 ScannedDocument _testDoc({String name = 'Test Doc', int pages = 1}) {
@@ -15,6 +16,8 @@ ScannedDocument _testDoc({String name = 'Test Doc', int pages = 1}) {
 
 Widget createTestApp(ScannedDocument doc, {bool? selected, VoidCallback? onTap}) {
   return MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(
       body: Center(
         child: SizedBox(

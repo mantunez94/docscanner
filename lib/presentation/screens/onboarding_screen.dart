@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:docscanner/l10n/app_localizations.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -14,28 +15,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _currentPage = 0;
 
-  final _pages = [
-    _OnboardingPage(
-      icon: Icons.document_scanner_outlined,
-      title: 'Scan Documents',
-      description: 'Capture documents with your camera. Auto-crop and enhance them for a clean result.',
-    ),
-    _OnboardingPage(
-      icon: Icons.tune_outlined,
-      title: 'Adjust & Refine',
-      description: 'Fine-tune corners, adjust perspective, and enhance the image for a crisp, clean scan.',
-    ),
-    _OnboardingPage(
-      icon: Icons.text_snippet_outlined,
-      title: 'Extract Text',
-      description: 'Extract text from any scanned document. Just tap and copy the result.',
-    ),
-    _OnboardingPage(
-      icon: Icons.picture_as_pdf_outlined,
-      title: 'Export & Share',
-      description: 'Export documents as PDF, rename, or share them directly from the app.',
-    ),
-  ];
+  List<_OnboardingPage> _buildPages(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      _OnboardingPage(
+        icon: Icons.document_scanner_outlined,
+        title: l10n.onboardingScanTitle,
+        description: l10n.onboardingScanDesc,
+      ),
+      _OnboardingPage(
+        icon: Icons.tune_outlined,
+        title: l10n.onboardingAdjustTitle,
+        description: l10n.onboardingAdjustDesc,
+      ),
+      _OnboardingPage(
+        icon: Icons.text_snippet_outlined,
+        title: l10n.onboardingOcrTitle,
+        description: l10n.onboardingOcrDesc,
+      ),
+      _OnboardingPage(
+        icon: Icons.picture_as_pdf_outlined,
+        title: l10n.onboardingExportTitle,
+        description: l10n.onboardingExportDesc,
+      ),
+    ];
+  }
 
   @override
   void dispose() {
@@ -52,6 +56,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final pages = _buildPages(context);
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -64,22 +70,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   minimumSize: const Size(48, 48),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
-                child: const Text('Skip'),
+                child: Text(l10n.skip),
               ),
             ),
             Expanded(
               child: PageView(
                 controller: _controller,
                 onPageChanged: (i) => setState(() => _currentPage = i),
-                children: _pages,
+                children: pages,
               ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_pages.length, (i) {
-                final isLast = i == _pages.length - 1;
+              children: List.generate(pages.length, (i) {
+                final isLast = i == pages.length - 1;
                 return Semantics(
-                  label: 'Page ${i + 1} of ${_pages.length}',
+                  label: 'Page ${i + 1} of ${pages.length}',
                   selected: _currentPage == i,
                   child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
@@ -105,13 +111,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: _currentPage == _pages.length - 1
+                  onPressed: _currentPage == pages.length - 1
                       ? _complete
                       : () => _controller.nextPage(
                           duration: const Duration(milliseconds: 300),
                           curve: Curves.easeInOut,
                         ),
-                  child: Text(_currentPage == _pages.length - 1 ? 'Get Started' : 'Next'),
+                  child: Text(_currentPage == pages.length - 1 ? l10n.getStarted : l10n.next),
                 ),
               ),
             ),

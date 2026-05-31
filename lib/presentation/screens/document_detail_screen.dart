@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:docscanner/l10n/app_localizations.dart';
 import '../../domain/entities/scanned_document.dart';
 import '../providers/document_admin_provider.dart';
 import '../providers/document_page_provider.dart';
@@ -40,18 +41,20 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
   }
 
   Future<void> _saveReorder() async {
+    final l10n = AppLocalizations.of(context)!;
     await ref.read(documentPageProvider).reorderPages(
       widget.document.id,
       _reorderablePages,
     );
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Pages reordered')),
+      SnackBar(content: Text(l10n.pagesReordered)),
     );
     setState(() => _reorderMode = false);
   }
 
   void _cancelReorder() {
+    final l10n = AppLocalizations.of(context)!;
     if (listEquals(_reorderablePages, widget.document.pages)) {
       setState(() {
         _reorderablePages = List.from(widget.document.pages);
@@ -62,12 +65,12 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Discard changes?'),
-        content: const Text('You have unsaved changes to the page order.'),
+        title: Text(l10n.discardChanges),
+        content: Text(l10n.discardChangesBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Keep editing'),
+            child: Text(l10n.keepEditing),
           ),
           TextButton(
             onPressed: () {
@@ -77,7 +80,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                 _reorderMode = false;
               });
             },
-            child: const Text('Discard'),
+            child: Text(l10n.discard),
           ),
         ],
       ),
@@ -87,30 +90,31 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final pages = _reorderMode ? _reorderablePages : widget.document.pages;
     final hasSelection = _selectedIndices.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_reorderMode ? 'Reorder pages' : widget.document.name),
+        title: Text(_reorderMode ? l10n.reorderPages : widget.document.name),
         actions: [
           if (_reorderMode) ...[
             IconButton(
               icon: const Icon(Icons.check),
-              tooltip: 'Done',
+              tooltip: l10n.done,
               onPressed: _saveReorder,
             ),
           ] else ...[
             if (pages.length > 1 && !_batchMode)
               IconButton(
                 icon: const Icon(Icons.checklist),
-                tooltip: 'Select pages',
+                tooltip: l10n.selectPages,
                 onPressed: () => setState(() => _batchMode = true),
               ),
             if (_batchMode)
               IconButton(
                 icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
-                tooltip: 'Delete selected',
+                tooltip: l10n.deleteSelected,
                 onPressed: hasSelection ? _deleteSelected : null,
               ),
           ],
@@ -118,7 +122,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
         leading: _batchMode
             ? IconButton(
                 icon: const Icon(Icons.close),
-                tooltip: 'Cancel selection',
+                tooltip: l10n.cancelSelection,
                 onPressed: () => setState(() {
                   _batchMode = false;
                   _selectedIndices.clear();
@@ -127,7 +131,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
             : _reorderMode
                 ? IconButton(
                     icon: const Icon(Icons.close),
-                    tooltip: 'Cancel reorder',
+                    tooltip: l10n.cancelReorder,
                     onPressed: _cancelReorder,
                   )
                 : null,
@@ -140,9 +144,9 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                   Icon(Icons.photo_library_outlined, size: 64,
                     color: theme.colorScheme.onSurface.withAlpha(80)),
                   const SizedBox(height: 16),
-                  Text('No pages', style: theme.textTheme.titleMedium),
+                  Text(l10n.noPages, style: theme.textTheme.titleMedium),
                   const SizedBox(height: 4),
-                  Text('This document has no pages', style: theme.textTheme.bodyMedium?.copyWith(
+                  Text(l10n.noPagesBody, style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurface.withAlpha(150))),
                 ],
               ),
@@ -153,7 +157,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
       floatingActionButton: !_reorderMode && !_batchMode
           ? FloatingActionButton(
               onPressed: () => _openScanner(context),
-              tooltip: 'Add page',
+              tooltip: l10n.addPage,
               child: const Icon(Icons.add_a_photo_outlined),
             )
           : null,
@@ -219,6 +223,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
   }
 
   Widget _buildPageCard(List<String> pages, int index, ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     final path = pages[index];
     final selected = _selectedIndices.contains(index);
     return GestureDetector(
@@ -250,7 +255,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
               File(path),
               cacheWidth: 400,
               fit: BoxFit.cover,
-              semanticLabel: 'Page ${index + 1} thumbnail',
+              semanticLabel: '${l10n.pageN(index + 1)} thumbnail',
               errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 48),
             ),
             if (_batchMode)
@@ -280,7 +285,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                 color: Colors.black54,
                 child: Text(
-                  'Page ${index + 1}',
+                  l10n.pageN(index + 1),
                   style: const TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ),
@@ -292,6 +297,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
   }
 
   Widget _buildReorderableList(List<String> pages, ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return ReorderableListView.builder(
       padding: const EdgeInsets.all(12),
       itemCount: pages.length,
@@ -313,7 +319,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
               ReorderableDragStartListener(
                 index: index,
                 child: Semantics(
-                  label: 'Drag to reorder page ${index + 1}',
+                  label: 'Drag to reorder ${l10n.pageN(index + 1)}',
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     child: Icon(Icons.drag_handle, color: theme.colorScheme.onSurface.withAlpha(120)),
@@ -326,12 +332,12 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                   width: 60,
                   height: 60,
               child: Image.file(File(path), cacheWidth: 120, fit: BoxFit.cover,
-                  semanticLabel: 'Page ${index + 1} thumbnail',
+                  semanticLabel: '${l10n.pageN(index + 1)} thumbnail',
                   errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 24)),
                 ),
               ),
               const SizedBox(width: 12),
-              Text('Page ${index + 1}',
+              Text(l10n.pageN(index + 1),
                   style: theme.textTheme.bodyMedium),
             ],
           ),
@@ -341,18 +347,19 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
   }
 
   void _deleteSelected() {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final count = _selectedIndices.length;
     if (count == 0 || count >= widget.document.pages.length) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(count >= widget.document.pages.length
-              ? 'Cannot delete all pages. Delete the document instead.'
-              : 'No pages selected'),
+              ? l10n.cannotDeleteAllPages
+              : l10n.noPagesSelected),
           duration: const Duration(seconds: 4),
           action: count >= widget.document.pages.length
               ? SnackBarAction(
-                  label: 'Delete document',
+                  label: l10n.deleteDocument,
                   onPressed: () {
                     ref.read(documentAdminProvider).delete(widget.document.id);
                     Navigator.pop(context);
@@ -367,12 +374,12 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete pages'),
-        content: Text('Delete $count page${count > 1 ? 's' : ''}?'),
+        title: Text(l10n.deletePages),
+        content: Text(l10n.deleteNPages(count)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -397,10 +404,10 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                 _selectedIndices.clear();
               });
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$count page${count > 1 ? 's' : ''} deleted')),
+                SnackBar(content: Text(l10n.nPagesDeleted(count))),
               );
             },
-            child: Text('Delete', style: TextStyle(color: theme.colorScheme.error)),
+            child: Text(l10n.delete, style: TextStyle(color: theme.colorScheme.error)),
           ),
         ],
       ),

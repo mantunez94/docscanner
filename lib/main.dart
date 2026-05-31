@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'l10n/app_localizations.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/screens/home_screen.dart';
 import 'presentation/screens/onboarding_screen.dart';
@@ -28,6 +29,17 @@ class DocScannerApp extends ConsumerWidget {
       theme: theme,
       darkTheme: darkTheme,
       themeMode: themeMode,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localeResolutionCallback: (locale, supportedLocales) {
+        if (locale == null) return const Locale('en');
+        for (final supported in supportedLocales) {
+          if (supported.languageCode == locale.languageCode) {
+            return locale;
+          }
+        }
+        return const Locale('en');
+      },
       builder: (context, child) {
         return Semantics(
           label: 'DocScanner app',

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:docscanner/data/di/providers.dart';
 import 'package:docscanner/domain/entities/scanned_document.dart';
 import 'package:docscanner/domain/repositories/document_repository.dart';
+import 'package:docscanner/l10n/app_localizations.dart';
 import 'package:docscanner/presentation/screens/home_screen.dart';
 
 class MockDocumentRepository extends Mock implements DocumentRepository {}
@@ -20,7 +21,11 @@ Widget createTestApp({
     overrides: [
       repositoryProvider.overrideWithValue(repository),
     ],
-    child: const MaterialApp(home: HomeScreen()),
+    child: MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const HomeScreen(),
+    ),
   );
 }
 

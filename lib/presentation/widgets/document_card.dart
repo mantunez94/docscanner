@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../domain/entities/scanned_document.dart';
+import 'package:docscanner/l10n/app_localizations.dart';
 
 class DocumentCard extends StatelessWidget {
   final ScannedDocument document;
@@ -19,6 +20,7 @@ class DocumentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isSelected = selected == true;
 
     return Card(
@@ -53,7 +55,7 @@ class DocumentCard extends StatelessWidget {
                         children: [
                           Icon(Icons.broken_image, size: 32, color: theme.colorScheme.onSurface.withAlpha(100)),
                           const SizedBox(height: 4),
-                          Text('Tap to reload', style: theme.textTheme.labelSmall?.copyWith(
+                          Text(l10n.tapToReload, style: theme.textTheme.labelSmall?.copyWith(
                             color: theme.colorScheme.onSurface.withAlpha(80))),
                         ],
                       ),
@@ -98,7 +100,9 @@ class DocumentCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Flexible(
                         child: Text(
-                          '${document.pageCount} page${document.pageCount > 1 ? 's' : ''}',
+                          document.pageCount == 1
+                              ? l10n.nPages(document.pageCount)
+                              : l10n.nPages_plural(document.pageCount),
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: theme.colorScheme.onSurface.withAlpha(150),
                           ),

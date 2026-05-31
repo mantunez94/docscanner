@@ -96,10 +96,13 @@ class DocumentCard extends StatelessWidget {
                     children: [
                       Icon(Icons.description, size: 12, color: theme.colorScheme.onSurface.withAlpha(120)),
                       const SizedBox(width: 4),
-                      Text(
-                        '${document.pageCount} page${document.pageCount > 1 ? 's' : ''}',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withAlpha(150),
+                      Flexible(
+                        child: Text(
+                          '${document.pageCount} page${document.pageCount > 1 ? 's' : ''}',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withAlpha(150),
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

@@ -17,6 +17,14 @@ class ScannedDocument {
   static String _formatDate(DateTime date) =>
     '${_months[date.month - 1]} ${date.day}, ${date.year}';
 
+  static String? validateName(String? name) {
+    if (name == null || name.trim().isEmpty) return 'Name cannot be empty';
+    if (name.trim().length > 255) return 'Name is too long';
+    final invalidChars = RegExp(r'[<>:"/\\|?*]');
+    if (invalidChars.hasMatch(name)) return 'Name contains invalid characters';
+    return null;
+  }
+
   ScannedDocument({
     required this.id,
     required this.pages,
@@ -43,4 +51,26 @@ class ScannedDocument {
       pdfPath: pdfPath ?? this.pdfPath,
     );
   }
+
+  ScannedDocument addPage(String pagePath) =>
+    copyWith(pages: [...pages, pagePath]);
+
+  ScannedDocument removePage(String pagePath) {
+    final updated = pages.where((p) => p != pagePath).toList();
+    return copyWith(pages: updated);
+  }
+
+  ScannedDocument replacePage(int index, String newPath) {
+    final updated = List<String>.from(pages);
+    if (index >= 0 && index < updated.length) {
+      updated[index] = newPath;
+    }
+    return copyWith(pages: updated);
+  }
+
+  ScannedDocument reorderPages(List<String> reordered) =>
+    copyWith(pages: reordered);
+
+  ScannedDocument updatePdfPath(String path) =>
+    copyWith(pdfPath: path);
 }

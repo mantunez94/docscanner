@@ -75,5 +75,79 @@ void main() {
       expect(copy.pages, doc.pages);
       expect(copy.thumbnailPath, doc.thumbnailPath);
     });
+
+    group('validateName', () {
+      test('returns null for valid name', () {
+        expect(ScannedDocument.validateName('My Document'), isNull);
+      });
+
+      test('returns error for empty name', () {
+        expect(ScannedDocument.validateName(''), isNotEmpty);
+        expect(ScannedDocument.validateName('   '), isNotEmpty);
+        expect(ScannedDocument.validateName(null), isNotEmpty);
+      });
+
+      test('returns error for name with invalid characters', () {
+        expect(ScannedDocument.validateName('file<1'), isNotEmpty);
+        expect(ScannedDocument.validateName('file>1'), isNotEmpty);
+        expect(ScannedDocument.validateName('file:1'), isNotEmpty);
+        expect(ScannedDocument.validateName('file"1'), isNotEmpty);
+      });
+
+      test('returns error for overly long name', () {
+        expect(ScannedDocument.validateName('a' * 256), isNotEmpty);
+      });
+    });
+
+    group('page operations', () {
+      test('addPage appends page path', () {
+        final doc = ScannedDocument(
+          id: '1', pages: ['/a.jpg'], thumbnailPath: '/t.jpg', createdAt: DateTime(2026, 5, 21),
+        );
+        final updated = doc.addPage('/b.jpg');
+        expect(updated.pages, ['/a.jpg', '/b.jpg']);
+        expect(doc.pages, ['/a.jpg']);
+      });
+
+      test('removePage removes matching path', () {
+        final doc = ScannedDocument(
+          id: '1', pages: ['/a.jpg', '/b.jpg', '/c.jpg'], thumbnailPath: '/t.jpg', createdAt: DateTime(2026, 5, 21),
+        );
+        final updated = doc.removePage('/b.jpg');
+        expect(updated.pages, ['/a.jpg', '/c.jpg']);
+      });
+
+      test('removePage does nothing if path not found', () {
+        final doc = ScannedDocument(
+          id: '1', pages: ['/a.jpg'], thumbnailPath: '/t.jpg', createdAt: DateTime(2026, 5, 21),
+        );
+        final updated = doc.removePage('/nonexistent.jpg');
+        expect(updated.pages, ['/a.jpg']);
+      });
+
+      test('replacePage replaces at index', () {
+        final doc = ScannedDocument(
+          id: '1', pages: ['/a.jpg', '/b.jpg'], thumbnailPath: '/t.jpg', createdAt: DateTime(2026, 5, 21),
+        );
+        final updated = doc.replacePage(0, '/new.jpg');
+        expect(updated.pages, ['/new.jpg', '/b.jpg']);
+      });
+
+      test('reorderPages replaces page list', () {
+        final doc = ScannedDocument(
+          id: '1', pages: ['/a.jpg', '/b.jpg'], thumbnailPath: '/t.jpg', createdAt: DateTime(2026, 5, 21),
+        );
+        final updated = doc.reorderPages(['/b.jpg', '/a.jpg']);
+        expect(updated.pages, ['/b.jpg', '/a.jpg']);
+      });
+
+      test('updatePdfPath sets pdf path', () {
+        final doc = ScannedDocument(
+          id: '1', pages: ['/a.jpg'], thumbnailPath: '/t.jpg', createdAt: DateTime(2026, 5, 21),
+        );
+        final updated = doc.updatePdfPath('/doc.pdf');
+        expect(updated.pdfPath, '/doc.pdf');
+      });
+    });
   });
 }

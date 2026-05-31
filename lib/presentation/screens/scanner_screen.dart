@@ -213,7 +213,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
     _stopImageStream();
     try {
       _controller?.setFlashMode(FlashMode.off);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('setFlashMode failed on dispose: $e');
+    }
     _controller?.dispose();
     _cleanupTempFiles();
     _pageScrollController.dispose();
@@ -224,7 +226,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
     for (final path in _capturedPages) {
       try {
         File(path).deleteSync();
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Failed to delete temp file $path: $e');
+      }
     }
   }
 

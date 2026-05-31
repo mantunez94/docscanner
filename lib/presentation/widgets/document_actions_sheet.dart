@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/scanned_document.dart';
+import 'package:docscanner/l10n/app_localizations.dart';
 
 Future<void> showDocumentActionsSheet(
   BuildContext context,
@@ -11,6 +12,7 @@ Future<void> showDocumentActionsSheet(
   VoidCallback? onViewPages,
   VoidCallback? onReorderPages,
 }) {
+  final l10n = AppLocalizations.of(context)!;
   return showModalBottomSheet(
     context: context,
     builder: (ctx) => SafeArea(
@@ -34,34 +36,34 @@ Future<void> showDocumentActionsSheet(
           const Divider(height: 1),
           _ActionTile(
             icon: Icons.edit_outlined,
-            label: 'Rename',
+            label: l10n.renameLabel,
             onTap: () { Navigator.pop(ctx); onRename(); },
           ),
           _ActionTile(
             icon: Icons.add_circle_outline,
-            label: 'Add page',
+            label: l10n.addPage,
             onTap: () { Navigator.pop(ctx); onAddPage(); },
           ),
           if (onViewPages != null)
             _ActionTile(
               icon: Icons.pages_outlined,
-              label: 'View pages (${doc.pageCount})',
+              label: l10n.viewPages(doc.pageCount),
               onTap: () { Navigator.pop(ctx); onViewPages(); },
             ),
           if (onReorderPages != null && doc.pages.length > 1)
             _ActionTile(
               icon: Icons.swap_vert_outlined,
-              label: 'Reorder pages',
+              label: l10n.reorderPages,
               onTap: () { Navigator.pop(ctx); onReorderPages(); },
             ),
           _ActionTile(
             icon: Icons.share_outlined,
-            label: 'Share',
+            label: l10n.share,
             onTap: () { Navigator.pop(ctx); onShare(); },
           ),
           _ActionTile(
             icon: Icons.delete_outline,
-            label: 'Delete',
+            label: l10n.delete,
             isDestructive: true,
             onTap: () { Navigator.pop(ctx); onDelete(); },
           ),

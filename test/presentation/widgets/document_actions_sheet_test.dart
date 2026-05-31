@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:docscanner/domain/entities/scanned_document.dart';
+import 'package:docscanner/l10n/app_localizations.dart';
 import 'package:docscanner/presentation/widgets/document_actions_sheet.dart';
 
 ScannedDocument _testDoc({int pageCount = 3}) {
@@ -19,6 +20,8 @@ Future<void> openSheet(WidgetTester tester, ScannedDocument doc, {
 }) async {
   await tester.pumpWidget(
     MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: Builder(
           builder: (ctx) => ElevatedButton(
@@ -90,6 +93,8 @@ void main() {
     var called = false;
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: Builder(
             builder: (ctx) => ElevatedButton(

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
+import 'package:docscanner/l10n/app_localizations.dart';
 import '../../core/image_processing_service.dart';
 import '../../domain/entities/ocr_result.dart';
 import '../providers/ocr_provider.dart';
@@ -134,7 +135,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       },
       error: (e, _) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Text extraction failed. Please try again.')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.textExtractionFailed)),
         );
       },
     );
@@ -170,9 +171,9 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Text('Extracted Text', style: Theme.of(context).textTheme.titleMedium),
+                  Text(AppLocalizations.of(ctx)!.extractedText, style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 4),
-                  Text('${result.blocks.length} text blocks found',
+                  Text(AppLocalizations.of(ctx)!.nTextBlocksFound(result.blocks.length),
                       style: Theme.of(context).textTheme.bodySmall),
                   const Divider(),
                   Expanded(
@@ -193,7 +194,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                         if (ctx.mounted) Navigator.pop(ctx);
                       },
                       icon: const Icon(Icons.copy, size: 18),
-                      label: const Text('Copy to Clipboard'),
+                      label: Text(AppLocalizations.of(ctx)!.copyToClipboard),
                     ),
                   ),
                 ],
@@ -209,7 +210,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     await Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Text copied to clipboard')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.textCopiedToClipboard)),
       );
     }
   }
@@ -228,7 +229,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   Widget build(BuildContext context) {
     if (_displayBytes == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Preview')),
+        appBar: AppBar(title: Text(AppLocalizations.of(context)!.preview)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -240,16 +241,16 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Discard changes?'),
-            content: const Text('You have made adjustments to the crop area. Do you want to discard them?'),
+            title: Text(AppLocalizations.of(ctx)!.discardChanges),
+            content: Text(AppLocalizations.of(ctx)!.discardCropChanges),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Keep editing'),
+                child: Text(AppLocalizations.of(ctx)!.keepEditing),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Discard'),
+                child: Text(AppLocalizations.of(ctx)!.discard),
               ),
             ],
           ),
@@ -259,7 +260,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
         }
       },
       child: Scaffold(
-      appBar: AppBar(title: const Text('Adjust & Confirm')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.adjustAndConfirm)),
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (_imgW > 0 && _imgH > 0) {
@@ -387,9 +388,9 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Semantics(
-                label: 'Reset corners',
+                label: AppLocalizations.of(context)!.resetCorners,
                 child: Tooltip(
-                  message: 'Reset corners',
+                  message: AppLocalizations.of(context)!.resetCorners,
                   child: IconButton(
                     onPressed: _originalCorners != null
                         ? () => setState(() => _corners = List<cv.Point>.from(_originalCorners!))
@@ -399,9 +400,9 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                 ),
               ),
               Semantics(
-                label: 'Extract text from this page',
+                label: AppLocalizations.of(context)!.extractTextFromPage,
                 child: Tooltip(
-                  message: 'Extract text from this page',
+                  message: AppLocalizations.of(context)!.extractTextFromPage,
                   child: IconButton(
                     onPressed: ref.watch(ocrProvider).isLoading ? null : _runOcr,
                     icon: ref.watch(ocrProvider).isLoading
@@ -415,9 +416,9 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                 ),
               ),
               Semantics(
-                label: 'Take photo again',
+                label: AppLocalizations.of(context)!.takePhotoAgain,
                 child: Tooltip(
-                  message: 'Take photo again',
+                  message: AppLocalizations.of(context)!.takePhotoAgain,
                   child: IconButton(
                     onPressed: () => Navigator.pop(context, 'retake'),
                     icon: const Icon(Icons.camera_alt, color: Colors.white, size: 26),
@@ -425,9 +426,9 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                 ),
               ),
               Semantics(
-                label: 'Save scan',
+                label: AppLocalizations.of(context)!.saveScan,
                 child: Tooltip(
-                  message: 'Save scan',
+                  message: AppLocalizations.of(context)!.saveScan,
                   child: IconButton(
                     icon: _saving
                         ? const SizedBox(
@@ -468,13 +469,13 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
         final bytes = _displayBytes;
         if (bytes != null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Processing failed. Using original image.')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.processingFailedUsingOriginal)),
           );
           Navigator.pop(context, bytes);
         } else {
           setState(() => _saving = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to process image. Please try again.')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.failedProcessImage)),
           );
         }
       } else {

@@ -1,0 +1,460 @@
+{
+  "@@locale": "en",
+  "@@last_modified": "2026-05-31",
+
+  "appTitle": "DocScanner",
+  "@appTitle": {"description": "The title of the application"},
+
+  "scanDocument": "Scan Document",
+  "@scanDocument": {"description": "AppBar title for the scanner screen"},
+
+  "scan": "Scan",
+  "@scan": {"description": "Scan button label"},
+
+  "scanNPages": "Scan ({count} page)",
+  "@scanNPages": {
+    "description": "AppBar title when scanning with pages",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "scanNPages_plural": "Scan ({count} pages)",
+  "@scanNPages_plural": {
+    "description": "AppBar title when scanning with pages (plural)",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "back": "Back",
+  "@back": {"description": "Back tooltip"},
+
+  "torchOn": "Torch on",
+  "@torchOn": {"description": "Torch on tooltip"},
+  "torchOff": "Torch off",
+  "@torchOff": {"description": "Torch off tooltip"},
+  "torchNotAvailable": "Torch not available on this device",
+  "@torchNotAvailable": {"description": "SnackBar when torch not available"},
+
+  "bwMode": "B&W mode",
+  "@bwMode": {"description": "Black and white mode tooltip"},
+  "colorMode": "Color mode",
+  "@colorMode": {"description": "Color mode tooltip"},
+
+  "doneScanning": "Done scanning",
+  "@doneScanning": {"description": "Done scanning tooltip"},
+
+  "capturePhoto": "Capture photo",
+  "@capturePhoto": {"description": "Capture photo tooltip"},
+
+  "cameraPermissionDenied": "Camera permission is permanently denied. Please enable it in app settings.",
+  "@cameraPermissionDenied": {"description": "Error message when camera permission permanently denied"},
+  "cameraPermissionNeeded": "Camera permission needed",
+  "@cameraPermissionNeeded": {"description": "Dialog title for camera permission"},
+  "cameraPermissionRationale": "DocScanner needs access to your camera to scan documents. No photos are taken without your action.",
+  "@cameraPermissionRationale": {"description": "Permission rationale text"},
+  "deny": "Deny",
+  "@deny": {"description": "Deny button"},
+  "allow": "Allow",
+  "@allow": {"description": "Allow button"},
+  "cameraPermissionRequired": "Camera permission is required to scan documents.",
+  "@cameraPermissionRequired": {"description": "Error when permission not granted"},
+  "noCameraFound": "No camera found",
+  "@noCameraFound": {"description": "Error when no camera available"},
+  "failedOpenCamera": "Failed to open camera. Please try again.",
+  "@failedOpenCamera": {"description": "Error when camera fails to open"},
+  "openSettings": "Open Settings",
+  "@openSettings": {"description": "Button to open system settings"},
+  "goBack": "Go back",
+  "@goBack": {"description": "Button to go back"},
+  "retry": "Retry",
+  "@retry": {"description": "Retry button"},
+
+  "discardPages": "Discard pages?",
+  "@discardPages": {"description": "Dialog title for discarding pages"},
+  "discardPagesBody": "You have {count} page in progress. Discard them?",
+  "@discardPagesBody": {
+    "description": "Body text for discard pages dialog",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "discardPagesBody_plural": "You have {count} pages in progress. Discard them?",
+  "@discardPagesBody_plural": {
+    "description": "Body text for discard pages dialog (plural)",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "stay": "Stay",
+  "@stay": {"description": "Stay button"},
+  "discard": "Discard",
+  "@discard": {"description": "Discard button"},
+
+  "failedProcessPage": "Failed to process page. Please try again.",
+  "@failedProcessPage": {"description": "Error processing page"},
+  "failedCapture": "Something went wrong while capturing. Please try again.",
+  "@failedCapture": {"description": "Error during capture"},
+
+  "pagesReordered": "Pages reordered",
+  "@pagesReordered": {"description": "SnackBar after reordering pages"},
+  "discardChanges": "Discard changes?",
+  "@discardChanges": {"description": "Dialog title"},
+  "discardChangesBody": "You have unsaved changes to the page order.",
+  "@discardChangesBody": {"description": "Dialog body"},
+  "keepEditing": "Keep editing",
+  "@keepEditing": {"description": "Button to keep editing"},
+  "reorderPages": "Reorder pages",
+  "@reorderPages": {"description": "Reorder pages title"},
+  "done": "Done",
+  "@done": {"description": "Done button/tooltip"},
+  "selectPages": "Select pages",
+  "@selectPages": {"description": "Select pages tooltip"},
+  "deleteSelected": "Delete selected",
+  "@deleteSelected": {"description": "Delete selected tooltip"},
+  "cancelSelection": "Cancel selection",
+  "@cancelSelection": {"description": "Cancel selection tooltip"},
+  "cancelReorder": "Cancel reorder",
+  "@cancelReorder": {"description": "Cancel reorder tooltip"},
+  "noPages": "No pages",
+  "@noPages": {"description": "No pages text"},
+  "noPagesBody": "This document has no pages",
+  "@noPagesBody": {"description": "No pages body text"},
+  "addPage": "Add page",
+  "@addPage": {"description": "Add page tooltip"},
+  "pageN": "Page {index}",
+  "@pageN": {
+    "description": "Page number label",
+    "placeholders": {
+      "index": {"type": "int"}
+    }
+  },
+  "cannotDeleteAllPages": "Cannot delete all pages. Delete the document instead.",
+  "@cannotDeleteAllPages": {"description": "SnackBar when trying to delete all pages"},
+  "noPagesSelected": "No pages selected",
+  "@noPagesSelected": {"description": "SnackBar when no pages selected"},
+  "deleteDocument": "Delete document",
+  "@deleteDocument": {"description": "Delete document action"},
+  "deletePages": "Delete pages",
+  "@deletePages": {"description": "Dialog title"},
+  "deleteNPages": "Delete {count} page?",
+  "@deleteNPages": {
+    "description": "Confirmation text",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "deleteNPages_plural": "Delete {count} pages?",
+  "@deleteNPages_plural": {
+    "description": "Confirmation text (plural)",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "cancel": "Cancel",
+  "@cancel": {"description": "Cancel button"},
+  "nPagesDeleted": "{count} page deleted",
+  "@nPagesDeleted": {
+    "description": "Deletion confirmation",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "nPagesDeleted_plural": "{count} pages deleted",
+  "@nPagesDeleted_plural": {
+    "description": "Deletion confirmation (plural)",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "delete": "Delete",
+  "@delete": {"description": "Delete button"},
+
+  "selectDocuments": "Select documents",
+  "@selectDocuments": {"description": "Select documents text"},
+  "nSelected": "{count} selected",
+  "@nSelected": {
+    "description": "Number of items selected",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "deselectAll": "Deselect all",
+  "@deselectAll": {"description": "Deselect all tooltip"},
+  "selectAll": "Select all",
+  "@selectAll": {"description": "Select all tooltip"},
+  "changeTheme": "Change theme",
+  "@changeTheme": {"description": "Change theme tooltip"},
+  "themeMode": "Theme mode",
+  "@themeMode": {"description": "Theme mode tooltip"},
+  "exportPdf": "Export PDF",
+  "@exportPdf": {"description": "Export PDF tooltip"},
+  "showOnboarding": "Show onboarding",
+  "@showOnboarding": {"description": "Show onboarding tooltip"},
+  "somethingWentWrong": "Something went wrong",
+  "@somethingWentWrong": {"description": "Error text"},
+  "searchDocuments": "Search documents...",
+  "@searchDocuments": {"description": "Search hint text"},
+  "clearSearch": "Clear search",
+  "@clearSearch": {"description": "Clear search tooltip"},
+  "noDocumentsMatch": "No documents match",
+  "@noDocumentsMatch": {"description": "No results text"},
+  "scanADocument": "Scan a document",
+  "@scanADocument": {"description": "Scan tooltip"},
+
+  "deleteDocuments": "Delete documents",
+  "@deleteDocuments": {"description": "Dialog title"},
+  "deleteNDocuments": "Delete {count} document? This cannot be undone.",
+  "@deleteNDocuments": {
+    "description": "Delete confirmation",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "deleteNDocuments_plural": "Delete {count} documents? This cannot be undone.",
+  "@deleteNDocuments_plural": {
+    "description": "Delete confirmation (plural)",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "nDocumentsDeleted": "{count} document deleted",
+  "@nDocumentsDeleted": {
+    "description": "Deletion confirmation",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "nDocumentsDeleted_plural": "{count} documents deleted",
+  "@nDocumentsDeleted_plural": {
+    "description": "Deletion confirmation (plural)",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "undo": "Undo",
+  "@undo": {"description": "Undo action"},
+  "pagesAdded": "Pages added",
+  "@pagesAdded": {"description": "SnackBar for added pages"},
+  "documentSaved": "Document saved",
+  "@documentSaved": {"description": "SnackBar for saved document"},
+  "renameDocument": "Rename document",
+  "@renameDocument": {"description": "Dialog title"},
+  "documentName": "Document name",
+  "@documentName": {"description": "Field label"},
+  "rename": "Rename",
+  "@rename": {"description": "Rename button"},
+  "deleteDocumentConfirm": "Are you sure you want to delete \"{name}\"?",
+  "@deleteDocumentConfirm": {
+    "description": "Delete document confirmation",
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "nameDeleted": "\"{name}\" deleted",
+  "@nameDeleted": {
+    "description": "Deletion confirmation with name",
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "generatingPdf": "Generating PDF...",
+  "@generatingPdf": {"description": "SnackBar while generating PDF"},
+  "failedExportPdf": "Failed to export PDF. Please try again.",
+  "@failedExportPdf": {"description": "Export error"},
+
+  "auto": "Auto",
+  "@auto": {"description": "Auto theme mode"},
+  "light": "Light",
+  "@light": {"description": "Light theme mode"},
+  "dark": "Dark",
+  "@dark": {"description": "Dark theme mode"},
+
+  "noDocumentsYet": "No documents yet",
+  "@noDocumentsYet": {"description": "Empty state title"},
+  "scanFirstDocument": "Scan your first document\nto get started",
+  "@scanFirstDocument": {"description": "Empty state body"},
+
+  "arcade": "Arcade",
+  "@arcade": {"description": "Arcade theme name"},
+  "kawaii": "Kawaii",
+  "@kawaii": {"description": "Kawaii theme name"},
+  "professional": "Professional",
+  "@professional": {"description": "Professional theme name"},
+
+  "textExtractionFailed": "Text extraction failed. Please try again.",
+  "@textExtractionFailed": {"description": "OCR error"},
+  "extractedText": "Extracted Text",
+  "@extractedText": {"description": "OCR header"},
+  "nTextBlocksFound": "{count} text block found",
+  "@nTextBlocksFound": {
+    "description": "Text blocks count",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "nTextBlocksFound_plural": "{count} text blocks found",
+  "@nTextBlocksFound_plural": {
+    "description": "Text blocks count (plural)",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "copyToClipboard": "Copy to Clipboard",
+  "@copyToClipboard": {"description": "Copy button"},
+  "textCopiedToClipboard": "Text copied to clipboard",
+  "@textCopiedToClipboard": {"description": "Copy confirmation"},
+
+  "preview": "Preview",
+  "@preview": {"description": "Preview loading title"},
+  "discardCropChanges": "You have made adjustments to the crop area. Do you want to discard them?",
+  "@discardCropChanges": {"description": "Discard crop changes body"},
+  "adjustAndConfirm": "Adjust & Confirm",
+  "@adjustAndConfirm": {"description": "AppBar title"},
+  "resetCorners": "Reset corners",
+  "@resetCorners": {"description": "Tooltip"},
+  "extractTextFromPage": "Extract text from this page",
+  "@extractTextFromPage": {"description": "Tooltip"},
+  "takePhotoAgain": "Take photo again",
+  "@takePhotoAgain": {"description": "Tooltip"},
+  "saveScan": "Save scan",
+  "@saveScan": {"description": "Tooltip"},
+  "processingFailedUsingOriginal": "Processing failed. Using original image.",
+  "@processingFailedUsingOriginal": {"description": "Fallback message"},
+  "failedProcessImage": "Failed to process image. Please try again.",
+  "@failedProcessImage": {"description": "Processing error"},
+
+  "reviewNPages": "Review ({count} page)",
+  "@reviewNPages": {
+    "description": "Review title",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "reviewNPages_plural": "Review ({count} pages)",
+  "@reviewNPages_plural": {
+    "description": "Review title (plural)",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "deleteAll": "Delete all",
+  "@deleteAll": {"description": "Delete all tooltip"},
+  "saving": "Saving...",
+  "@saving": {"description": "Saving state"},
+  "saveAsDocument": "Save as document",
+  "@saveAsDocument": {"description": "Save button"},
+  "deleteAllPages": "Delete all pages?",
+  "@deleteAllPages": {"description": "Dialog title"},
+  "deleteAllPagesBody": "All captured pages will be discarded.",
+  "@deleteAllPagesBody": {"description": "Dialog body"},
+  "saveAs": "Save as",
+  "@saveAs": {"description": "Dialog title"},
+  "documentAlreadyExists": "A document named \"{name}\" already exists.",
+  "@documentAlreadyExists": {
+    "description": "Duplicate name error",
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "save": "Save",
+  "@save": {"description": "Save button"},
+  "nKb": "{size} KB",
+  "@nKb": {
+    "description": "File size in KB",
+    "placeholders": {
+      "size": {"type": "int"}
+    }
+  },
+  "editPage": "Edit page",
+  "@editPage": {"description": "Tooltip"},
+  "deletePage": "Delete page",
+  "@deletePage": {"description": "Tooltip"},
+  "failedSaveDocument": "Failed to save document. Please try again.",
+  "@failedSaveDocument": {"description": "Save error"},
+
+  "onboardingScanTitle": "Scan Documents",
+  "@onboardingScanTitle": {"description": "Onboarding page 1 title"},
+  "onboardingScanDesc": "Capture documents with your camera. Auto-crop and enhance them for a clean result.",
+  "@onboardingScanDesc": {"description": "Onboarding page 1 description"},
+  "onboardingAdjustTitle": "Adjust & Refine",
+  "@onboardingAdjustTitle": {"description": "Onboarding page 2 title"},
+  "onboardingAdjustDesc": "Fine-tune corners, adjust perspective, and enhance the image for a crisp, clean scan.",
+  "@onboardingAdjustDesc": {"description": "Onboarding page 2 description"},
+  "onboardingOcrTitle": "Extract Text",
+  "@onboardingOcrTitle": {"description": "Onboarding page 3 title"},
+  "onboardingOcrDesc": "Extract text from any scanned document. Just tap and copy the result.",
+  "@onboardingOcrDesc": {"description": "Onboarding page 3 description"},
+  "onboardingExportTitle": "Export & Share",
+  "@onboardingExportTitle": {"description": "Onboarding page 4 title"},
+  "onboardingExportDesc": "Export documents as PDF, rename, or share them directly from the app.",
+  "@onboardingExportDesc": {"description": "Onboarding page 4 description"},
+
+  "skip": "Skip",
+  "@skip": {"description": "Skip button"},
+  "getStarted": "Get Started",
+  "@getStarted": {"description": "Finish button"},
+  "next": "Next",
+  "@next": {"description": "Next button"},
+
+  "tapToReload": "Tap to reload",
+  "@tapToReload": {"description": "Broken image hint"},
+  "nPages": "{count} page",
+  "@nPages": {
+    "description": "Document page count",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "nPages_plural": "{count} pages",
+  "@nPages_plural": {
+    "description": "Document page count (plural)",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+
+  "renameLabel": "Rename",
+  "@renameLabel": {"description": "Rename action"},
+  "viewPages": "View pages ({count})",
+  "@viewPages": {
+    "description": "View pages action",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "share": "Share",
+  "@share": {"description": "Share action"},
+
+  "nameCannotBeEmpty": "Name cannot be empty",
+  "@nameCannotBeEmpty": {"description": "Validation error"},
+  "nameTooLong": "Name is too long",
+  "@nameTooLong": {"description": "Validation error"},
+  "nameInvalidChars": "Name contains invalid characters",
+  "@nameInvalidChars": {"description": "Validation error"},
+
+  "jan": "Jan",
+  "@jan": {"description": "January abbreviation"},
+  "feb": "Feb",
+  "@feb": {"description": "February abbreviation"},
+  "mar": "Mar",
+  "@mar": {"description": "March abbreviation"},
+  "apr": "Apr",
+  "@apr": {"description": "April abbreviation"},
+  "may": "May",
+  "@may": {"description": "May abbreviation"},
+  "jun": "Jun",
+  "@jun": {"description": "June abbreviation"},
+  "jul": "Jul",
+  "@jul": {"description": "July abbreviation"},
+  "aug": "Aug",
+  "@aug": {"description": "August abbreviation"},
+  "sep": "Sep",
+  "@sep": {"description": "September abbreviation"},
+  "oct": "Oct",
+  "@oct": {"description": "October abbreviation"},
+  "nov": "Nov",
+  "@nov": {"description": "November abbreviation"},
+  "dec": "Dec",
+  "@dec": {"description": "December abbreviation"}
+}

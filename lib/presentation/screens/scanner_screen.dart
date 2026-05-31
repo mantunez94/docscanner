@@ -7,6 +7,7 @@ import 'package:flutter/services.dart' show DeviceOrientation;
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:docscanner/l10n/app_localizations.dart';
 import '../../core/document_boundary_detector.dart';
 import '../../core/image_processing_service.dart';
 import 'multi_page_review_screen.dart';
@@ -62,7 +63,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     if (status.isPermanentlyDenied) {
       if (mounted) {
         setState(() {
-          _error = 'Camera permission is permanently denied. Please enable it in app settings.';
+          _error = AppLocalizations.of(context)!.cameraPermissionDenied;
           _permissionDenied = true;
         });
       }
@@ -73,26 +74,25 @@ class _ScannerScreenState extends State<ScannerScreen> {
       final rationale = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Camera permission needed'),
-          content: const Text(
-            'DocScanner needs access to your camera to scan documents. '
-            'No photos are taken without your action.',
+          title: Text(AppLocalizations.of(ctx)!.cameraPermissionNeeded),
+          content: Text(
+            AppLocalizations.of(ctx)!.cameraPermissionRationale,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Deny'),
+              child: Text(AppLocalizations.of(ctx)!.deny),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Allow'),
+              child: Text(AppLocalizations.of(ctx)!.allow),
             ),
           ],
         ),
       );
 
       if (rationale != true || !mounted) {
-        setState(() => _error = 'Camera permission is required to scan documents.');
+        setState(() => _error = AppLocalizations.of(context)!.cameraPermissionRequired);
         return;
       }
     }
@@ -104,11 +104,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
       await _initCamera();
     } else if (result.isPermanentlyDenied) {
       setState(() {
-        _error = 'Camera permission is permanently denied. Please enable it in app settings.';
+        _error = AppLocalizations.of(context)!.cameraPermissionDenied;
         _permissionDenied = true;
       });
     } else {
-      setState(() => _error = 'Camera permission is required to scan documents.');
+      setState(() => _error = AppLocalizations.of(context)!.cameraPermissionRequired);
     }
   }
 
@@ -116,7 +116,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
-        if (mounted) setState(() => _error = 'No camera found');
+        if (mounted) setState(() => _error = AppLocalizations.of(context)!.noCameraFound);
         return;
       }
       final controller = CameraController(
@@ -133,7 +133,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       });
       _startImageStream();
     } catch (_) {
-      if (mounted) setState(() => _error = 'Failed to open camera. Please try again.');
+      if (mounted) setState(() => _error = AppLocalizations.of(context)!.failedOpenCamera);
     }
   }
 
@@ -202,7 +202,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Torch not available on this device')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.torchNotAvailable)),
         );
       }
     }
@@ -236,7 +236,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   Widget build(BuildContext context) {
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Scan Document')),
+        appBar: AppBar(title: Text(AppLocalizations.of(context)!.scanDocument)),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
@@ -257,7 +257,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                       await openAppSettings();
                     },
                     icon: const Icon(Icons.settings, size: 18),
-                    label: const Text('Open Settings'),
+                    label: Text(AppLocalizations.of(context)!.openSettings),
                   ),
                 if (_permissionDenied) const SizedBox(height: 12),
                 Row(
@@ -265,7 +265,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Go back'),
+                      child: Text(AppLocalizations.of(context)!.goBack),
                     ),
                     if (!_permissionDenied) ...[
                       const SizedBox(width: 12),
@@ -277,7 +277,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                           });
                           _requestCameraPermission();
                         },
-                        child: const Text('Retry'),
+                        child: Text(AppLocalizations.of(context)!.retry),
                       ),
                     ],
                   ],
@@ -297,18 +297,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
         final confirm = await showDialog<bool>(
           context: ctx,
           builder: (ctx) => AlertDialog(
-            title: const Text('Discard pages?'),
+            title: Text(AppLocalizations.of(ctx)!.discardPages),
             content: Text(
-              'You have ${_capturedPages.length} page${_capturedPages.length == 1 ? '' : 's'} in progress. Discard them?',
+              AppLocalizations.of(ctx)!.discardPagesBody(_capturedPages.length),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Stay'),
+                child: Text(AppLocalizations.of(ctx)!.stay),
               ),
               FilledButton(
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Discard'),
+                child: Text(AppLocalizations.of(ctx)!.discard),
               ),
             ],
           ),
@@ -319,17 +319,19 @@ class _ScannerScreenState extends State<ScannerScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(_capturedPages.isEmpty ? 'Scan Document' : 'Scan (${_capturedPages.length} page${_capturedPages.length == 1 ? '' : 's'})'),
+          title: Text(_capturedPages.isEmpty
+              ? AppLocalizations.of(context)!.scanDocument
+              : AppLocalizations.of(context)!.scanNPages(_capturedPages.length)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Back',
+          tooltip: AppLocalizations.of(context)!.back,
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           Semantics(
             label: _torchOn ? 'Turn off torch' : 'Turn on torch',
             child: Tooltip(
-              message: _torchOn ? 'Torch on' : 'Torch off',
+              message: _torchOn ? AppLocalizations.of(context)!.torchOn : AppLocalizations.of(context)!.torchOff,
               child: IconButton(
                 onPressed: _toggleTorch,
                 icon: Icon(_torchOn ? Icons.flash_on : Icons.flash_off),
@@ -339,7 +341,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           Semantics(
             label: _colorMode ? 'Switch to black and white' : 'Switch to color',
             child: Tooltip(
-              message: _colorMode ? 'B&W mode' : 'Color mode',
+              message: _colorMode ? AppLocalizations.of(context)!.bwMode : AppLocalizations.of(context)!.colorMode,
               child: IconButton(
                 onPressed: () => setState(() => _colorMode = !_colorMode),
                 icon: Icon(_colorMode ? Icons.filter_b_and_w : Icons.color_lens),
@@ -355,14 +357,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   FloatingActionButton.small(
                     heroTag: 'done',
                     onPressed: _reviewPages,
-                    tooltip: 'Done scanning',
+                    tooltip: AppLocalizations.of(context)!.doneScanning,
                     child: const Icon(Icons.check),
                   ),
                   const SizedBox(height: 12),
                   FloatingActionButton.large(
                     heroTag: 'capture',
                     onPressed: _capture,
-                    tooltip: 'Capture photo',
+                    tooltip: AppLocalizations.of(context)!.capturePhoto,
                     child: const Icon(Icons.camera_alt),
                   ),
                 ],
@@ -370,7 +372,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             : FloatingActionButton.large(
                 heroTag: 'capture',
                 onPressed: _capture,
-                tooltip: 'Capture photo',
+                tooltip: AppLocalizations.of(context)!.capturePhoto,
                 child: _processing
                     ? const SizedBox(
                         width: 28, height: 28,
@@ -584,7 +586,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         if (context.mounted) {
           setState(() => _processing = false);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to process page. Please try again.')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.failedProcessPage)),
           );
         }
       }
@@ -593,7 +595,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       if (mounted) setState(() => _processing = false);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Something went wrong while capturing. Please try again.')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.failedCapture)),
         );
       }
     }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:docscanner/l10n/app_localizations.dart';
 import 'package:docscanner/presentation/screens/scanner_screen.dart';
 
 Widget createTestApp() {
-  return const MaterialApp(
-    home: ScannerScreen(),
+  return MaterialApp(
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: const ScannerScreen(),
   );
 }
 

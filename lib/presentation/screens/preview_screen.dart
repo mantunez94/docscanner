@@ -291,7 +291,11 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
             key: _stackKey,
             children: [
               Center(
-                child: Image.memory(_displayBytes!, fit: BoxFit.contain, semanticLabel: 'Document preview'),
+                child: InteractiveViewer(
+                  minScale: 1.0,
+                  maxScale: 4.0,
+                  child: Image.memory(_displayBytes!, fit: BoxFit.contain, semanticLabel: 'Document preview'),
+                ),
               ),
               if (_imageRect != Rect.zero)
                 Positioned.fill(

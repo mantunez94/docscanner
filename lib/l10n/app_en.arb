@@ -456,5 +456,17 @@
   "nov": "Nov",
   "@nov": {"description": "November abbreviation"},
   "dec": "Dec",
-  "@dec": {"description": "December abbreviation"}
+  "@dec": {"description": "December abbreviation"},
+
+  "about": "About",
+  "@about": {"description": "About dialog title"},
+
+  "privacyPolicy": "Privacy Policy",
+  "@privacyPolicy": {"description": "Privacy Policy link label"},
+
+  "aboutBody": "DocScanner is a 100% offline document scanner. Your data never leaves your device.",
+  "@aboutBody": {"description": "About dialog body text"},
+
+  "contactEmail": "m.antunez94@hotmail.com",
+  "@contactEmail": {"description": "Contact email address"}
 }

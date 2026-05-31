@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart' show Share, XFile;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:docscanner/l10n/app_localizations.dart';
 import '../../domain/entities/scanned_document.dart';
 import '../providers/document_provider.dart';
@@ -152,20 +153,25 @@ class HomeScreen extends ConsumerWidget {
                 onPressed: () => _exportPdf(context, ref),
                 tooltip: l10n.exportPdf,
               ),
-            IconButton(
-              icon: const Icon(Icons.help_outline),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => OnboardingScreen(
-                      onComplete: () => Navigator.pop(context),
+              IconButton(
+                icon: const Icon(Icons.help_outline),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => OnboardingScreen(
+                        onComplete: () => Navigator.pop(context),
+                      ),
                     ),
-                  ),
-                );
-              },
-              tooltip: l10n.showOnboarding,
-            ),
+                  );
+                },
+                tooltip: l10n.showOnboarding,
+              ),
+              IconButton(
+                icon: const Icon(Icons.info_outline),
+                onPressed: () => _showAboutDialog(context, l10n),
+                tooltip: l10n.about,
+              ),
           ],
         ],
       ),
@@ -345,6 +351,56 @@ class HomeScreen extends ConsumerWidget {
           ],
         );
       },
+    );
+  }
+
+  static void _showAboutDialog(BuildContext context, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.info_outline, color: Theme.of(ctx).colorScheme.primary),
+            const SizedBox(width: 8),
+            Text(l10n.about),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.aboutBody),
+            const SizedBox(height: 16),
+            Text('${l10n.privacyPolicy}:',
+              style: Theme.of(ctx).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () async {
+                final url = Uri.parse(
+                  'https://raw.githubusercontent.com/mantunez94/docscanner/main/PRIVACY_POLICY.md');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+              child: Text(
+                'raw.githubusercontent.com/mantunez94/docscanner/main/PRIVACY_POLICY.md',
+                style: TextStyle(
+                  color: Theme.of(ctx).colorScheme.primary,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text('${l10n.contactEmail}: m.antunez94@hotmail.com'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancel),
+          ),
+        ],
+      ),
     );
   }
 

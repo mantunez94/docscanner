@@ -526,4 +526,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dec => 'Dec';
+
+  @override
+  String get about => 'About';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get aboutBody =>
+      'DocScanner is a 100% offline document scanner. Your data never leaves your device.';
+
+  @override
+  String get contactEmail => 'm.antunez94@hotmail.com';
 }

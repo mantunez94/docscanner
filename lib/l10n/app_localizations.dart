@@ -1009,6 +1009,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dec'**
   String get dec;
+
+  /// About dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// Privacy Policy link label
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// About dialog body text
+  ///
+  /// In en, this message translates to:
+  /// **'DocScanner is a 100% offline document scanner. Your data never leaves your device.'**
+  String get aboutBody;
+
+  /// Contact email address
+  ///
+  /// In en, this message translates to:
+  /// **'m.antunez94@hotmail.com'**
+  String get contactEmail;
 }
 
 class _AppLocalizationsDelegate

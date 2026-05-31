@@ -13,6 +13,7 @@ import '../providers/theme_provider.dart';
 import '../theme/themes.dart';
 import '../widgets/document_actions_sheet.dart';
 import '../widgets/document_card.dart';
+import '../widgets/responsive_utils.dart';
 import '../widgets/shimmer_grid.dart';
 import 'document_detail_screen.dart';
 import 'onboarding_screen.dart';
@@ -239,8 +240,8 @@ class HomeScreen extends ConsumerWidget {
                             child: GridView.builder(
                               padding: const EdgeInsets.all(12),
                               physics: const AlwaysScrollableScrollPhysics(),
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: responsiveCrossAxisCount(context),
                                 crossAxisSpacing: 10,
                                 mainAxisSpacing: 10,
                                 childAspectRatio: 0.7,

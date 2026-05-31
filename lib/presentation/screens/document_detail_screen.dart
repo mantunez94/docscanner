@@ -6,6 +6,7 @@ import '../../domain/entities/scanned_document.dart';
 import '../providers/document_admin_provider.dart';
 import '../providers/document_page_provider.dart';
 import '../providers/document_provider.dart';
+import '../widgets/responsive_utils.dart';
 import 'preview_screen.dart';
 import 'scanner_screen.dart';
 
@@ -166,8 +167,8 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
       },
       child: GridView.builder(
         padding: const EdgeInsets.all(12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: responsiveCrossAxisCount(context),
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
           childAspectRatio: 0.7,

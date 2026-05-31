@@ -68,7 +68,7 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           if (batchMode && selectedIds.isNotEmpty)
             IconButton(
-              icon: Icon(Icons.delete_outline,
+              icon: Icon(deleteIcon(currentTheme),
                   color: Theme.of(context).colorScheme.error),
               onPressed: () => _deleteSelected(context, ref, selectedIds),
               tooltip: l10n.deleteSelected,
@@ -143,18 +143,18 @@ class HomeScreen extends ConsumerWidget {
             ),
             if (documents.isNotEmpty)
               IconButton(
-                icon: const Icon(Icons.checklist),
+                icon: Icon(checklistIcon(currentTheme)),
                 onPressed: () => ref.read(batchModeProvider.notifier).state = true,
                 tooltip: l10n.selectDocuments,
               ),
             if (documents.isNotEmpty)
               IconButton(
-                icon: const Icon(Icons.picture_as_pdf),
+                icon: Icon(pdfIcon(currentTheme)),
                 onPressed: () => _exportPdf(context, ref),
                 tooltip: l10n.exportPdf,
               ),
               IconButton(
-                icon: const Icon(Icons.help_outline),
+                icon: Icon(helpIcon(currentTheme)),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -168,7 +168,7 @@ class HomeScreen extends ConsumerWidget {
                 tooltip: l10n.showOnboarding,
               ),
               IconButton(
-                icon: const Icon(Icons.info_outline),
+                icon: Icon(infoIcon(currentTheme)),
                 onPressed: () => _showAboutDialog(context, l10n),
                 tooltip: l10n.about,
               ),
@@ -194,7 +194,7 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
         data: (_) => documents.isEmpty && searchQuery.isEmpty
-            ? _EmptyState(onScan: () => _openScanner(context, ref, null))
+            ? _EmptyState(currentTheme: currentTheme, onScan: () => _openScanner(context, ref, null))
             : Column(
                 children: [
                   if (documents.isNotEmpty)
@@ -599,9 +599,10 @@ String _themeModeLabel(ThemeMode mode, BuildContext context) {
 }
 
 class _EmptyState extends StatelessWidget {
+  final AppTheme currentTheme;
   final VoidCallback onScan;
 
-  const _EmptyState({required this.onScan});
+  const _EmptyState({required this.currentTheme, required this.onScan});
 
   @override
   Widget build(BuildContext context) {
@@ -620,7 +621,7 @@ class _EmptyState extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.description_outlined,
+                descriptionIcon(currentTheme),
                 size: 64,
                 color: theme.colorScheme.onPrimaryContainer,
               ),

@@ -42,6 +42,84 @@ IconData scanIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
   IconStyle.sharp    => Icons.document_scanner,
 };
 
+IconData helpIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.help_outline,
+  IconStyle.rounded  => Icons.help_rounded,
+  IconStyle.sharp    => Icons.help,
+};
+
+IconData infoIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.info_outline,
+  IconStyle.rounded  => Icons.info_rounded,
+  IconStyle.sharp    => Icons.info,
+};
+
+IconData checklistIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.checklist_outlined,
+  IconStyle.rounded  => Icons.checklist_rounded,
+  IconStyle.sharp    => Icons.checklist,
+};
+
+IconData pdfIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.picture_as_pdf_outlined,
+  IconStyle.rounded  => Icons.picture_as_pdf_rounded,
+  IconStyle.sharp    => Icons.picture_as_pdf,
+};
+
+IconData descriptionIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.description_outlined,
+  IconStyle.rounded  => Icons.description_rounded,
+  IconStyle.sharp    => Icons.description,
+};
+
+IconData editIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.edit_outlined,
+  IconStyle.rounded  => Icons.edit_rounded,
+  IconStyle.sharp    => Icons.edit,
+};
+
+IconData deleteIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.delete_outline,
+  IconStyle.rounded  => Icons.delete_rounded,
+  IconStyle.sharp    => Icons.delete,
+};
+
+IconData addIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.add_circle_outline,
+  IconStyle.rounded  => Icons.add_circle_rounded,
+  IconStyle.sharp    => Icons.add_circle,
+};
+
+IconData pagesIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.pages_outlined,
+  IconStyle.rounded  => Icons.pages_rounded,
+  IconStyle.sharp    => Icons.pages,
+};
+
+IconData reorderIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.swap_vert_outlined,
+  IconStyle.rounded  => Icons.swap_vert_rounded,
+  IconStyle.sharp    => Icons.swap_vert,
+};
+
+IconData shareIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.share_outlined,
+  IconStyle.rounded  => Icons.share_rounded,
+  IconStyle.sharp    => Icons.share,
+};
+
+IconData photoLibraryIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.photo_library_outlined,
+  IconStyle.rounded  => Icons.photo_library_rounded,
+  IconStyle.sharp    => Icons.photo_library,
+};
+
+IconData addPhotoIcon(AppTheme theme) => switch (iconStyleFor(theme)) {
+  IconStyle.outlined => Icons.add_a_photo_outlined,
+  IconStyle.rounded  => Icons.add_a_photo_rounded,
+  IconStyle.sharp    => Icons.add_a_photo,
+};
+
 // ─────────────────────────────────────────────────────────────────
 //  ARCADE — neon retro gaming
 // ─────────────────────────────────────────────────────────────────

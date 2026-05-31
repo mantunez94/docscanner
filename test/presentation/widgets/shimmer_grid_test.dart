@@ -41,13 +41,13 @@ void main() {
     expect(grid.physics, isA<NeverScrollableScrollPhysics>());
   });
 
-  testWidgets('renders 2-column grid layout', (tester) async {
+  testWidgets('renders responsive grid layout', (tester) async {
     await tester.pumpWidget(createTestApp());
     await tester.pump();
 
     final grid = tester.widget<GridView>(find.byType(GridView));
     final delegate = grid.gridDelegate;
     expect(delegate, isA<SliverGridDelegateWithFixedCrossAxisCount>());
-    expect((delegate as SliverGridDelegateWithFixedCrossAxisCount).crossAxisCount, 2);
+    expect((delegate as SliverGridDelegateWithFixedCrossAxisCount).crossAxisCount, greaterThanOrEqualTo(2));
   });
 }

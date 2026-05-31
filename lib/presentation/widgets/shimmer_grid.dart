@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'responsive_utils.dart';
 
 class ShimmerGrid extends StatefulWidget {
   const ShimmerGrid({super.key});
@@ -39,8 +40,8 @@ class _ShimmerGridState extends State<ShimmerGrid>
         return GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.all(12),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: responsiveCrossAxisCount(context),
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
             childAspectRatio: 0.7,

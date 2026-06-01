@@ -304,9 +304,8 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
     return ReorderableListView.builder(
       padding: const EdgeInsets.all(12),
       itemCount: pages.length,
-      onReorder: (oldIndex, newIndex) {
+      onReorderItem: (oldIndex, newIndex) {
         setState(() {
-          if (newIndex > oldIndex) newIndex -= 1;
           final item = _reorderablePages.removeAt(oldIndex);
           _reorderablePages.insert(newIndex, item);
         });

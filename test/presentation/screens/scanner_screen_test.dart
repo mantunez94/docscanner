@@ -32,26 +32,6 @@ void _mockPermissionChannel({int status = 1}) {
   );
 }
 
-void _mockCameraChannel({bool noCameras = false}) {
-  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-      .setMockMethodCallHandler(
-    const MethodChannel('plugins.flutter.io/camera_android'),
-    (MethodCall call) async {
-      if (call.method == 'availableCameras') {
-        if (noCameras) return [];
-        return [
-          {
-            'name': '0',
-            'lensDirection': 'back',
-            'sensorOrientation': 90,
-          },
-        ];
-      }
-      return null;
-    },
-  );
-}
-
 void main() {
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

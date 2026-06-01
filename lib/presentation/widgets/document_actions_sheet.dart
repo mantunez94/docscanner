@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/scanned_document.dart';
 import 'package:docscanner/l10n/app_localizations.dart';
+import '../providers/theme_provider.dart';
+import '../theme/themes.dart';
 
 Future<void> showDocumentActionsSheet(
   BuildContext context,
@@ -13,6 +16,7 @@ Future<void> showDocumentActionsSheet(
   VoidCallback? onReorderPages,
 }) {
   final l10n = AppLocalizations.of(context)!;
+  final appTheme = ProviderScope.containerOf(context).read(themeProvider);
   return showModalBottomSheet(
     context: context,
     builder: (ctx) => SafeArea(
@@ -22,7 +26,7 @@ Future<void> showDocumentActionsSheet(
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 12),
-            child: Icon(Icons.description_outlined, size: 32,
+            child: Icon(descriptionIcon(appTheme), size: 32,
               color: Theme.of(context).colorScheme.primary),
           ),
           Padding(
@@ -35,34 +39,34 @@ Future<void> showDocumentActionsSheet(
           ),
           const Divider(height: 1),
           _ActionTile(
-            icon: Icons.edit_outlined,
+            icon: editIcon(appTheme),
             label: l10n.renameLabel,
             onTap: () { Navigator.pop(ctx); onRename(); },
           ),
           _ActionTile(
-            icon: Icons.add_circle_outline,
+            icon: addIcon(appTheme),
             label: l10n.addPage,
             onTap: () { Navigator.pop(ctx); onAddPage(); },
           ),
           if (onViewPages != null)
             _ActionTile(
-              icon: Icons.pages_outlined,
+              icon: pagesIcon(appTheme),
               label: l10n.viewPages(doc.pageCount),
               onTap: () { Navigator.pop(ctx); onViewPages(); },
             ),
           if (onReorderPages != null && doc.pages.length > 1)
             _ActionTile(
-              icon: Icons.swap_vert_outlined,
+              icon: reorderIcon(appTheme),
               label: l10n.reorderPages,
               onTap: () { Navigator.pop(ctx); onReorderPages(); },
             ),
           _ActionTile(
-            icon: Icons.share_outlined,
+            icon: shareIcon(appTheme),
             label: l10n.share,
             onTap: () { Navigator.pop(ctx); onShare(); },
           ),
           _ActionTile(
-            icon: Icons.delete_outline,
+            icon: deleteIcon(appTheme),
             label: l10n.delete,
             isDestructive: true,
             onTap: () { Navigator.pop(ctx); onDelete(); },

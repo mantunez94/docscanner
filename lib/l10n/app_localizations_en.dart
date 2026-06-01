@@ -539,4 +539,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contactEmail => 'Report issues on GitHub';
+
+  @override
+  String get howToUse => 'How to Use';
+
+  @override
+  String get helpScanner => 'Document Scanner';
+
+  @override
+  String get helpScannerDesc =>
+      'Scan documents in Color or Black & White mode. Toggle modes before capturing. The app automatically detects document boundaries in real-time.';
+
+  @override
+  String get helpBoundary => 'Boundary Detection & Crop';
+
+  @override
+  String get helpBoundaryDesc =>
+      'Green corners show detected document edges. Drag them to adjust the crop area manually. A magnifier helps with precise corner placement.';
+
+  @override
+  String get helpMultiPage => 'Multi-Page Scanning';
+
+  @override
+  String get helpMultiPageDesc =>
+      'Capture multiple pages in one session without leaving the scanner. Review, reorder, edit, or delete pages before saving as a single document.';
+
+  @override
+  String get helpOcr => 'Text Extraction (OCR)';
+
+  @override
+  String get helpOcrDesc =>
+      'Extract text from any scanned page using Google ML Kit. Copy the recognized text to your clipboard with one tap.';
+
+  @override
+  String get helpPdf => 'PDF Export & Share';
+
+  @override
+  String get helpPdfDesc =>
+      'Export any document as a PDF file. Share it directly from the app via email, messaging apps, or save to cloud storage.';
+
+  @override
+  String get helpSearch => 'Search & Batch Operations';
+
+  @override
+  String get helpSearchDesc =>
+      'Search documents by name. Select multiple documents to delete them in batch or export as PDF.';
+
+  @override
+  String get helpThemes => 'Custom Themes';
+
+  @override
+  String get helpThemesDesc =>
+      'Choose between 3 themes: Arcade (neon retro), Kawaii (pastel cute), or Professional (clean minimal).';
 }

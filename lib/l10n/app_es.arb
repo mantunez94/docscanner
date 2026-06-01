@@ -180,5 +180,28 @@
   "about": "Acerca de",
   "privacyPolicy": "Política de privacidad",
   "aboutBody": "DocScanner es un escáner de documentos 100% offline. Tus datos nunca salen de tu dispositivo.",
-  "contactEmail": "Reportar problemas en GitHub"
+  "contactEmail": "Reportar problemas en GitHub",
+
+  "howToUse": "Cómo usar",
+
+  "helpScanner": "Escáner de documentos",
+  "helpScannerDesc": "Escanea documentos en modo Color o Blanco y Negro. Cambia el modo antes de capturar. La app detecta los bordes automáticamente en tiempo real.",
+
+  "helpBoundary": "Detección de bordes y recorte",
+  "helpBoundaryDesc": "Las esquinas verdes muestran los bordes detectados. Ajústalas manualmente para recortar. Una lupa ayuda a colocar las esquinas con precisión.",
+
+  "helpMultiPage": "Escaneo multipágina",
+  "helpMultiPageDesc": "Captura varias páginas en una sola sesión sin salir del escáner. Revisa, reordena, edita o elimina páginas antes de guardar como un solo documento.",
+
+  "helpOcr": "Extracción de texto (OCR)",
+  "helpOcrDesc": "Extrae texto de cualquier página escaneada usando Google ML Kit. Copia el texto reconocido al portapapeles con un toque.",
+
+  "helpPdf": "Exportar PDF y compartir",
+  "helpPdfDesc": "Exporta cualquier documento como PDF. Compártelo directamente desde la app por correo, mensajería o guárdalo en la nube.",
+
+  "helpSearch": "Búsqueda y operaciones por lote",
+  "helpSearchDesc": "Busca documentos por nombre. Selecciona varios para eliminarlos en lote o exportarlos como PDF.",
+
+  "helpThemes": "Temas personalizados",
+  "helpThemesDesc": "Elige entre 3 temas: Arcade (neón retro), Kawaii (pastel adorable) o Professional (minimalista limpio)."
 }

@@ -163,7 +163,9 @@ class HomeScreen extends ConsumerWidget {
           ],
         ],
       ),
-      body: documentsAsync.when(
+      body: Stack(
+        children: [
+          documentsAsync.when(
         loading: () => const ShimmerGrid(),
         error: (e, _) => Center(
           child: Padding(
@@ -213,11 +215,6 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     ),
                   ),
-              if (ref.watch(showPostSaveAdProvider))
-                PostSaveAdCard(
-                  adService: ref.watch(adServiceProvider),
-                  onDismissed: () => ref.read(showPostSaveAdProvider.notifier).state = false,
-                ),
               Expanded(
                 child: filtered.isEmpty && isSearching
                     ? Center(
@@ -291,6 +288,18 @@ class HomeScreen extends ConsumerWidget {
           );
         },
       ),
+      if (ref.watch(showPostSaveAdProvider))
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: PostSaveAdCard(
+            adService: ref.watch(adServiceProvider),
+            onDismissed: () => ref.read(showPostSaveAdProvider.notifier).state = false,
+          ),
+        ),
+    ],
+  ),
       bottomNavigationBar: BannerAdWidget(
         adService: ref.watch(adServiceProvider),
         visible: ref.watch(showAdBannerProvider),

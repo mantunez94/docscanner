@@ -39,29 +39,32 @@ class _PostSaveAdCardState extends State<PostSaveAdCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final loaded = widget.adService.nativeAdLoaded;
     final nativeAd = widget.adService.nativeAd;
+    final ready = loaded && nativeAd != null;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-      child: Material(
-        elevation: 2,
-        borderRadius: BorderRadius.circular(12),
-        color: theme.colorScheme.surfaceContainerLow,
+    return GestureDetector(
+      onTap: () {},
+      child: Container(
+        height: ready ? 280 : 60,
+        margin: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
+        ),
         child: Stack(
           children: [
-            if (nativeAd != null && widget.adService.nativeAdLoaded)
+            if (ready)
               Padding(
-                padding: const EdgeInsets.all(8),
-                child: SizedBox(
-                  width: double.infinity,
+                padding: const EdgeInsets.only(top: 8, bottom: 8, right: 40),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
                   child: AdWidget(ad: nativeAd),
                 ),
               )
             else
-              const SizedBox(
-                height: 250,
-                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-              ),
+              const Center(child: CircularProgressIndicator(strokeWidth: 2)),
             Positioned(
               top: 4,
               right: 4,
@@ -76,15 +79,6 @@ class _PostSaveAdCardState extends State<PostSaveAdCard> {
                 ),
               ),
             ),
-            if (nativeAd == null || !widget.adService.nativeAdLoaded)
-              Positioned(
-                bottom: 8,
-                right: 8,
-                child: TextButton(
-                  onPressed: widget.onDismissed,
-                  child: const Text('Cerrar'),
-                ),
-              ),
           ],
         ),
       ),

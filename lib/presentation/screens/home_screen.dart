@@ -12,9 +12,12 @@ import '../providers/document_page_provider.dart';
 import '../providers/document_scan_provider.dart';
 import '../providers/theme_provider.dart';
 import '../theme/themes.dart';
+import '../services/ad_service.dart';
 import 'help_screen.dart';
 import '../widgets/document_actions_sheet.dart';
 import '../widgets/document_card.dart';
+import '../widgets/banner_ad_widget.dart';
+import '../widgets/native_ad_card.dart';
 import '../widgets/responsive_utils.dart';
 import '../widgets/shimmer_grid.dart';
 import 'document_detail_screen.dart';
@@ -178,100 +181,120 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
         ),
-        data: (_) => documents.isEmpty && searchQuery.isEmpty
-            ? _EmptyState(currentTheme: currentTheme, onScan: () => _openScanner(context, ref, null))
-            : Column(
-                children: [
-                  if (documents.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                      child: Semantics(
-                        label: l10n.searchDocuments,
-                        child: TextField(
-                        onChanged: (v) => ref.read(searchQueryProvider.notifier).state = v,
-                        decoration: InputDecoration(
-                          hintText: l10n.searchDocuments,
-                          prefixIcon: const Icon(Icons.search, size: 20),
-                          suffixIcon: searchQuery.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear, size: 18),
-                                  tooltip: l10n.clearSearch,
-                                  onPressed: () => ref.read(searchQueryProvider.notifier).state = '',
-                                )
-                              : null,
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        ),
-                        ),
-                      ),
-                      Expanded(
-                      child: filtered.isEmpty && isSearching
-                          ? Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.search_off, size: 64,
-                                    color: Theme.of(context).colorScheme.onSurface.withAlpha(80)),
-                                  const SizedBox(height: 16),
-                                  Text(l10n.noDocumentsMatch,
-                                    style: Theme.of(context).textTheme.titleMedium),
-                                  const SizedBox(height: 4),
-                                  Text('"$searchQuery"',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface.withAlpha(150))),
-                                ],
-                              ),
+        data: (_) {
+          if (documents.isEmpty && searchQuery.isEmpty) {
+            return _EmptyState(currentTheme: currentTheme, onScan: () => _openScanner(context, ref, null));
+          }
+          final adService = ref.watch(adServiceProvider);
+          return Column(
+            children: [
+              if (documents.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                  child: Semantics(
+                    label: l10n.searchDocuments,
+                    child: TextField(
+                    onChanged: (v) => ref.read(searchQueryProvider.notifier).state = v,
+                    decoration: InputDecoration(
+                      hintText: l10n.searchDocuments,
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      suffixIcon: searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              tooltip: l10n.clearSearch,
+                              onPressed: () => ref.read(searchQueryProvider.notifier).state = '',
                             )
-                          : RefreshIndicator(
-                            onRefresh: () async {
-                              ref.invalidate(documentListProvider);
-                            },
-                            child: GridView.builder(
-                              padding: const EdgeInsets.all(12),
-                              physics: const AlwaysScrollableScrollPhysics(),
+                          : null,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    ),
+                    ),
+                  ),
+              Expanded(
+                child: filtered.isEmpty && isSearching
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.search_off, size: 64,
+                              color: Theme.of(context).colorScheme.onSurface.withAlpha(80)),
+                            const SizedBox(height: 16),
+                            Text(l10n.noDocumentsMatch,
+                              style: Theme.of(context).textTheme.titleMedium),
+                            const SizedBox(height: 4),
+                            Text('"$searchQuery"',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface.withAlpha(150))),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                      onRefresh: () async {
+                        ref.invalidate(documentListProvider);
+                      },
+                      child: CustomScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          if (filtered.length >= 2 && adService.nativeAdLoaded)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                child: NativeAdCard(adService: adService),
+                              ),
+                            ),
+                          SliverPadding(
+                            padding: const EdgeInsets.all(12),
+                            sliver: SliverGrid(
                               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: responsiveCrossAxisCount(context),
                                 crossAxisSpacing: 10,
                                 mainAxisSpacing: 10,
                                 childAspectRatio: 0.7,
                               ),
-                              itemCount: filtered.length,
-                              itemBuilder: (_, index) {
-                                final doc = filtered[index];
-                                return DocumentCard(
-                                  document: doc,
-                                  selected: batchMode ? selectedIds.contains(doc.id) : null,
-                                  onTap: () {
-                                    if (batchMode) {
-                                      final ids = {...ref.read(selectedIdsProvider)};
-                                      if (ids.contains(doc.id)) {
-                                        ids.remove(doc.id);
-                                      } else {
-                                        ids.add(doc.id);
-                                      }
-                                      ref.read(selectedIdsProvider.notifier).state = ids;
-                                    } else {
-                                      _showActions(context, ref, doc);
-                                    }
-                                  },
-                                  onLongPress: !batchMode
-                                      ? () {
-                                          ref.read(batchModeProvider.notifier).state = true;
-                                          ref.read(selectedIdsProvider.notifier).state = {doc.id};
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final doc = filtered[index];
+                                  return DocumentCard(
+                                    document: doc,
+                                    selected: batchMode ? selectedIds.contains(doc.id) : null,
+                                    onTap: () {
+                                      if (batchMode) {
+                                        final ids = {...ref.read(selectedIdsProvider)};
+                                        if (ids.contains(doc.id)) {
+                                          ids.remove(doc.id);
+                                        } else {
+                                          ids.add(doc.id);
                                         }
-                                      : null,
-                                );
-                              },
+                                        ref.read(selectedIdsProvider.notifier).state = ids;
+                                      } else {
+                                        _showActions(context, ref, doc);
+                                      }
+                                    },
+                                    onLongPress: !batchMode
+                                        ? () {
+                                            ref.read(batchModeProvider.notifier).state = true;
+                                            ref.read(selectedIdsProvider.notifier).state = {doc.id};
+                                          }
+                                        : null,
+                                  );
+                                },
+                                childCount: filtered.length,
+                              ),
                             ),
                           ),
+                        ],
                       ),
-                ],
+                    ),
               ),
+            ],
+          );
+        },
       ),
+      bottomNavigationBar: BannerAdWidget(adService: ref.watch(adServiceProvider)),
       floatingActionButton: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
         child: batchMode

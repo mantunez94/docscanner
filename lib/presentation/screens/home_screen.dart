@@ -315,10 +315,12 @@ class HomeScreen extends ConsumerWidget {
             children: [
               Icon(Icons.warning_amber_rounded, color: Theme.of(ctx).colorScheme.error, size: 24),
               const SizedBox(width: 8),
-              Text(l10n.deleteDocuments),
+              Expanded(child: Text(l10n.deleteDocuments)),
             ],
           ),
-          content: Text(l10n.deleteNDocuments(ids.length)),
+          content: SingleChildScrollView(
+            child: Text(l10n.deleteNDocuments(ids.length)),
+          ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
             TextButton(
@@ -362,7 +364,7 @@ class HomeScreen extends ConsumerWidget {
           children: [
             Icon(Icons.info_outline, color: Theme.of(ctx).colorScheme.primary),
             const SizedBox(width: 8),
-            Text(l10n.about),
+            Expanded(child: Text(l10n.about)),
           ],
         ),
         content: Column(
@@ -550,7 +552,9 @@ class HomeScreen extends ConsumerWidget {
         final l10n = AppLocalizations.of(ctx)!;
         return AlertDialog(
           title: Text(l10n.deleteDocument),
-          content: Text(l10n.deleteDocumentConfirm(doc.name)),
+          content: SingleChildScrollView(
+            child: Text(l10n.deleteDocumentConfirm(doc.name)),
+          ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
             TextButton(

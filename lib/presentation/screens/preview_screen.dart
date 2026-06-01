@@ -242,7 +242,9 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: Text(AppLocalizations.of(ctx)!.discardChanges),
-            content: Text(AppLocalizations.of(ctx)!.discardCropChanges),
+            content: SingleChildScrollView(
+              child: Text(AppLocalizations.of(ctx)!.discardCropChanges),
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),

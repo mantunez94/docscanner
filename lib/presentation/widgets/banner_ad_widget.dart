@@ -40,13 +40,14 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.visible) return const SizedBox.shrink();
+    if (!widget.visible) return const SizedBox(height: 50);
 
     final ad = widget.adService.bannerAd;
     if (ad == null || !widget.adService.bannerAdLoaded) {
       return const SizedBox(height: 50);
     }
     return Container(
+      height: ad.size.height.toDouble() + 8,
       color: Theme.of(context).colorScheme.surfaceContainerLow,
       child: Stack(
         alignment: Alignment.topRight,

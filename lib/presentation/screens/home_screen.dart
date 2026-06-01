@@ -18,7 +18,6 @@ import '../widgets/document_card.dart';
 import '../widgets/responsive_utils.dart';
 import '../widgets/shimmer_grid.dart';
 import 'document_detail_screen.dart';
-import 'onboarding_screen.dart';
 import 'scanner_screen.dart';
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
@@ -152,20 +151,6 @@ class HomeScreen extends ConsumerWidget {
                 icon: Icon(pdfIcon(currentTheme)),
                 onPressed: () => _exportPdf(context, ref),
                 tooltip: l10n.exportPdf,
-              ),
-              IconButton(
-                icon: Icon(helpIcon(currentTheme)),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => OnboardingScreen(
-                        onComplete: () => Navigator.pop(context),
-                      ),
-                    ),
-                  );
-                },
-                tooltip: l10n.showOnboarding,
               ),
               IconButton(
                 icon: Icon(infoIcon(currentTheme)),

@@ -55,3 +55,4 @@ PRODUCTION_AUDIT.md
 
 # Git hooks
 hooks/
+test/presentation/golden/failures/

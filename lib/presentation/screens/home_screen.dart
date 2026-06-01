@@ -17,7 +17,7 @@ import 'help_screen.dart';
 import '../widgets/document_actions_sheet.dart';
 import '../widgets/document_card.dart';
 import '../widgets/banner_ad_widget.dart';
-import '../widgets/native_ad_card.dart';
+import '../widgets/post_save_ad_card.dart';
 import '../widgets/responsive_utils.dart';
 import '../widgets/shimmer_grid.dart';
 import 'document_detail_screen.dart';
@@ -185,7 +185,6 @@ class HomeScreen extends ConsumerWidget {
           if (documents.isEmpty && searchQuery.isEmpty) {
             return _EmptyState(currentTheme: currentTheme, onScan: () => _openScanner(context, ref, null));
           }
-          final adService = ref.watch(adServiceProvider);
           return Column(
             children: [
               if (documents.isNotEmpty)
@@ -214,6 +213,11 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     ),
                   ),
+              if (ref.watch(showPostSaveAdProvider))
+                PostSaveAdCard(
+                  adService: ref.watch(adServiceProvider),
+                  onDismissed: () => ref.read(showPostSaveAdProvider.notifier).state = false,
+                ),
               Expanded(
                 child: filtered.isEmpty && isSearching
                     ? Center(
@@ -239,13 +243,6 @@ class HomeScreen extends ConsumerWidget {
                       child: CustomScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         slivers: [
-                          if (filtered.length >= 2 && adService.nativeAdLoaded)
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                child: NativeAdCard(adService: adService),
-                              ),
-                            ),
                           SliverPadding(
                             padding: const EdgeInsets.all(12),
                             sliver: SliverGrid(
@@ -294,7 +291,11 @@ class HomeScreen extends ConsumerWidget {
           );
         },
       ),
-      bottomNavigationBar: BannerAdWidget(adService: ref.watch(adServiceProvider)),
+      bottomNavigationBar: BannerAdWidget(
+        adService: ref.watch(adServiceProvider),
+        visible: ref.watch(showAdBannerProvider),
+        onDismissed: () => ref.read(showAdBannerProvider.notifier).state = false,
+      ),
       floatingActionButton: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
         child: batchMode
@@ -394,6 +395,8 @@ class HomeScreen extends ConsumerWidget {
     );
     if (!context.mounted) return;
     ref.invalidate(documentListProvider);
+    ref.read(showAdBannerProvider.notifier).state = true;
+    ref.read(showPostSaveAdProvider.notifier).state = true;
     if (result == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

@@ -228,9 +228,9 @@ All 16 of 22 actionable production-readiness issues resolved:
 flutter test
 ```
 
-81 tests (4 skipped on host — require native OpenCV lib present on device):
+93 tests (4 skipped on host — require native OpenCV lib present on device):
 - 33 domain + data layer tests (entities, models, repositories, use cases)
-- 47 presentation widget tests (5 screens, 3 widgets)
+- 59 presentation widget tests (6 screens, 4 widgets)
 - 0 flutter analyze errors
 
 > New features should include widget and unit tests.

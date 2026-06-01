@@ -350,18 +350,26 @@ class HomeScreen extends ConsumerWidget {
                 ref.read(batchModeProvider.notifier).state = false;
                 ref.read(selectedIdsProvider.notifier).state = {};
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  final messenger = ScaffoldMessenger.of(context);
+                  messenger.hideCurrentSnackBar();
+                  messenger.showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context)!.nDocumentsDeleted(ids.length)),
                       duration: const Duration(seconds: 3),
-                      behavior: SnackBarBehavior.floating,
-                      action: SnackBarAction(
-                        label: AppLocalizations.of(context)!.undo,
-                        onPressed: () {
-                          for (final doc in deletedDocs) {
-                            ref.read(documentAdminProvider).restore(doc);
-                          }
-                        },
+                      dismissDirection: DismissDirection.horizontal,
+                      content: Row(
+                        children: [
+                          Expanded(
+                            child: Text(AppLocalizations.of(context)!.nDocumentsDeleted(ids.length)),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              for (final doc in deletedDocs) {
+                                ref.read(documentAdminProvider).restore(doc);
+                              }
+                            },
+                            child: Text(AppLocalizations.of(context)!.undo),
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -412,7 +420,6 @@ class HomeScreen extends ConsumerWidget {
         SnackBar(
           content: Text(documentId != null ? AppLocalizations.of(context)!.pagesAdded : AppLocalizations.of(context)!.documentSaved),
           duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -518,14 +525,22 @@ class HomeScreen extends ConsumerWidget {
               onPressed: () {
                 Navigator.pop(ctx);
                 ref.read(documentAdminProvider).delete(doc.id);
-                ScaffoldMessenger.of(context).showSnackBar(
+                final messenger = ScaffoldMessenger.of(context);
+                messenger.hideCurrentSnackBar();
+                messenger.showSnackBar(
                   SnackBar(
-                    content: Text(AppLocalizations.of(context)!.nameDeleted(doc.name)),
                     duration: const Duration(seconds: 3),
-                    behavior: SnackBarBehavior.floating,
-                    action: SnackBarAction(
-                      label: AppLocalizations.of(context)!.undo,
-                      onPressed: () => ref.read(documentAdminProvider).restore(doc),
+                    dismissDirection: DismissDirection.horizontal,
+                    content: Row(
+                      children: [
+                        Expanded(
+                          child: Text(AppLocalizations.of(context)!.nameDeleted(doc.name)),
+                        ),
+                        TextButton(
+                          onPressed: () => ref.read(documentAdminProvider).restore(doc),
+                          child: Text(AppLocalizations.of(context)!.undo),
+                        ),
+                      ],
                     ),
                   ),
                 );

@@ -1,7 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:docscanner/l10n/app_localizations.dart';
+import '../providers/theme_provider.dart';
+import '../theme/themes.dart';
 import 'preview_screen.dart';
 
 class MultiPageReviewScreen extends StatefulWidget {
@@ -37,13 +40,14 @@ class _MultiPageReviewScreenState extends State<MultiPageReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final appTheme = ProviderScope.containerOf(context).read(themeProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.reviewNPages(_pages.length)),
         actions: [
           if (_pages.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: Icon(deleteIcon(appTheme)),
               tooltip: l10n.deleteAll,
               onPressed: _confirmDeleteAll,
             ),
@@ -66,6 +70,7 @@ class _MultiPageReviewScreenState extends State<MultiPageReviewScreen> {
                   key: ValueKey(page.path),
                   index: index,
                   path: page.path,
+                  appTheme: appTheme,
                   onTap: () => _editPage(index),
                   onDelete: () => _deletePage(index),
                 );
@@ -251,6 +256,7 @@ class _PageItem {
 class _PageTile extends StatelessWidget {
   final int index;
   final String path;
+  final AppTheme appTheme;
   final VoidCallback onTap;
   final VoidCallback onDelete;
 
@@ -258,6 +264,7 @@ class _PageTile extends StatelessWidget {
     super.key,
     required this.index,
     required this.path,
+    required this.appTheme,
     required this.onTap,
     required this.onDelete,
   });
@@ -285,12 +292,12 @@ class _PageTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Icons.edit_outlined),
+              icon: Icon(editIcon(appTheme)),
               tooltip: l10n.editPage,
               onPressed: onTap,
             ),
             IconButton(
-              icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
+              icon: Icon(deleteIcon(appTheme), color: Theme.of(context).colorScheme.error),
               tooltip: l10n.deletePage,
               onPressed: onDelete,
             ),

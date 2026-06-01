@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:docscanner/domain/entities/scanned_document.dart';
 import 'package:docscanner/l10n/app_localizations.dart';
 import 'package:docscanner/presentation/widgets/document_actions_sheet.dart';
@@ -19,23 +21,25 @@ Future<void> openSheet(WidgetTester tester, ScannedDocument doc, {
   VoidCallback? onReorderPages,
 }) async {
   await tester.pumpWidget(
-    MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: Builder(
-          builder: (ctx) => ElevatedButton(
-            onPressed: () => showDocumentActionsSheet(
-              ctx,
-              doc,
-              onRename: () {},
-              onAddPage: () {},
-              onShare: () {},
-              onDelete: () {},
-              onViewPages: onViewPages,
-              onReorderPages: onReorderPages,
+    ProviderScope(
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Builder(
+            builder: (ctx) => ElevatedButton(
+              onPressed: () => showDocumentActionsSheet(
+                ctx,
+                doc,
+                onRename: () {},
+                onAddPage: () {},
+                onShare: () {},
+                onDelete: () {},
+                onViewPages: onViewPages,
+                onReorderPages: onReorderPages,
+              ),
+              child: const Text('Open'),
             ),
-            child: const Text('Open'),
           ),
         ),
       ),
@@ -46,6 +50,10 @@ Future<void> openSheet(WidgetTester tester, ScannedDocument doc, {
 }
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   testWidgets('shows document name in header', (tester) async {
     await openSheet(tester, _testDoc());
     expect(find.text('My Document'), findsOneWidget);
@@ -92,21 +100,23 @@ void main() {
   testWidgets('calls add page callback', (tester) async {
     var called = false;
     await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: Builder(
-            builder: (ctx) => ElevatedButton(
-              onPressed: () => showDocumentActionsSheet(
-                ctx,
-                _testDoc(),
-                onRename: () {},
-                onAddPage: () => called = true,
-                onShare: () {},
-                onDelete: () {},
+      ProviderScope(
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Builder(
+              builder: (ctx) => ElevatedButton(
+                onPressed: () => showDocumentActionsSheet(
+                  ctx,
+                  _testDoc(),
+                  onRename: () {},
+                  onAddPage: () => called = true,
+                  onShare: () {},
+                  onDelete: () {},
+                ),
+                child: const Text('Open'),
               ),
-              child: const Text('Open'),
             ),
           ),
         ),

@@ -7,6 +7,8 @@ import '../../domain/entities/scanned_document.dart';
 import '../providers/document_admin_provider.dart';
 import '../providers/document_page_provider.dart';
 import '../providers/document_provider.dart';
+import '../providers/theme_provider.dart';
+import '../theme/themes.dart';
 import '../widgets/responsive_utils.dart';
 import 'preview_screen.dart';
 import 'scanner_screen.dart';
@@ -90,6 +92,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appTheme = ref.watch(themeProvider);
     final l10n = AppLocalizations.of(context)!;
     final pages = _reorderMode ? _reorderablePages : widget.document.pages;
     final hasSelection = _selectedIndices.isNotEmpty;
@@ -107,13 +110,13 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
           ] else ...[
             if (pages.length > 1 && !_batchMode)
               IconButton(
-                icon: const Icon(Icons.checklist),
+                icon: Icon(checklistIcon(appTheme)),
                 tooltip: l10n.selectPages,
                 onPressed: () => setState(() => _batchMode = true),
               ),
             if (_batchMode)
               IconButton(
-                icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+                icon: Icon(deleteIcon(appTheme), color: theme.colorScheme.error),
                 tooltip: l10n.deleteSelected,
                 onPressed: hasSelection ? _deleteSelected : null,
               ),
@@ -141,7 +144,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.photo_library_outlined, size: 64,
+                  Icon(photoLibraryIcon(appTheme), size: 64,
                     color: theme.colorScheme.onSurface.withAlpha(80)),
                   const SizedBox(height: 16),
                   Text(l10n.noPages, style: theme.textTheme.titleMedium),
@@ -158,7 +161,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
           ? FloatingActionButton(
               onPressed: () => _openScanner(context),
               tooltip: l10n.addPage,
-              child: const Icon(Icons.add_a_photo_outlined),
+              child: Icon(addPhotoIcon(appTheme)),
             )
           : null,
     );

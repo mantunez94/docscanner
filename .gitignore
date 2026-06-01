@@ -43,3 +43,15 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# opencode AI coding assistant
+.opencode/
+opencode.json
+
+# Internal / planning docs
+AGENTS.md
+docs/
+PRODUCTION_AUDIT.md
+
+# Git hooks
+hooks/

@@ -513,5 +513,10 @@
   "@helpThemes": {"description": "Themes feature title in help"},
 
   "helpThemesDesc": "Choose between 3 themes: Arcade (neon retro), Kawaii (pastel cute), or Professional (clean minimal).",
-  "@helpThemesDesc": {"description": "Themes feature description in help"}
+  "@helpThemesDesc": {"description": "Themes feature description in help"},
+
+  "helpUndo": "Undo Actions",
+  "@helpUndo": {"description": "Undo feature title in help"},
+  "helpUndoDesc": "After deleting a document, a snackbar appears with an Undo button. You have 4 seconds to restore the document before it is permanently deleted.",
+  "@helpUndoDesc": {"description": "Undo feature description in help"}
 }

@@ -591,4 +591,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get helpThemesDesc =>
       'Choose between 3 themes: Arcade (neon retro), Kawaii (pastel cute), or Professional (clean minimal).';
+
+  @override
+  String get helpUndo => 'Undo Actions';
+
+  @override
+  String get helpUndoDesc =>
+      'After deleting a document, a snackbar appears with an Undo button. You have 4 seconds to restore the document before it is permanently deleted.';
 }

@@ -596,4 +596,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get helpThemesDesc =>
       'Elige entre 3 temas: Arcade (neón retro), Kawaii (pastel adorable) o Professional (minimalista limpio).';
+
+  @override
+  String get helpUndo => 'Deshacer acciones';
+
+  @override
+  String get helpUndoDesc =>
+      'Después de eliminar un documento, aparece un mensaje con un botón Deshacer. Tienes 4 segundos para restaurar el documento antes de que se elimine permanentemente.';
 }

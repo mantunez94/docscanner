@@ -353,7 +353,8 @@ class HomeScreen extends ConsumerWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(AppLocalizations.of(context)!.nDocumentsDeleted(ids.length)),
-                      duration: const Duration(seconds: 4),
+                      duration: const Duration(seconds: 3),
+                      behavior: SnackBarBehavior.floating,
                       action: SnackBarAction(
                         label: AppLocalizations.of(context)!.undo,
                         onPressed: () {
@@ -411,6 +412,7 @@ class HomeScreen extends ConsumerWidget {
         SnackBar(
           content: Text(documentId != null ? AppLocalizations.of(context)!.pagesAdded : AppLocalizations.of(context)!.documentSaved),
           duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -519,7 +521,8 @@ class HomeScreen extends ConsumerWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(AppLocalizations.of(context)!.nameDeleted(doc.name)),
-                    duration: const Duration(seconds: 4),
+                    duration: const Duration(seconds: 3),
+                    behavior: SnackBarBehavior.floating,
                     action: SnackBarAction(
                       label: AppLocalizations.of(context)!.undo,
                       onPressed: () => ref.read(documentAdminProvider).restore(doc),

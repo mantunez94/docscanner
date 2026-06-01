@@ -46,9 +46,14 @@ class HelpScreen extends StatelessWidget {
             description: l10n.helpSearchDesc,
           ),
           _FeatureCard(
-            icon: Icons.palette_outlined,
+            icon: Icons.color_lens_outlined,
             title: l10n.helpThemes,
             description: l10n.helpThemesDesc,
+          ),
+          _FeatureCard(
+            icon: Icons.restore_outlined,
+            title: l10n.helpUndo,
+            description: l10n.helpUndoDesc,
           ),
           const SizedBox(height: 24),
           const Divider(),

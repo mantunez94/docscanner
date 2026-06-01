@@ -1033,6 +1033,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report issues on GitHub'**
   String get contactEmail;
+
+  /// Help screen title
+  ///
+  /// In en, this message translates to:
+  /// **'How to Use'**
+  String get howToUse;
+
+  /// Scanner feature title in help
+  ///
+  /// In en, this message translates to:
+  /// **'Document Scanner'**
+  String get helpScanner;
+
+  /// Scanner feature description in help
+  ///
+  /// In en, this message translates to:
+  /// **'Scan documents in Color or Black & White mode. Toggle modes before capturing. The app automatically detects document boundaries in real-time.'**
+  String get helpScannerDesc;
+
+  /// Boundary detection feature title in help
+  ///
+  /// In en, this message translates to:
+  /// **'Boundary Detection & Crop'**
+  String get helpBoundary;
+
+  /// Boundary detection feature description in help
+  ///
+  /// In en, this message translates to:
+  /// **'Green corners show detected document edges. Drag them to adjust the crop area manually. A magnifier helps with precise corner placement.'**
+  String get helpBoundaryDesc;
+
+  /// Multi-page feature title in help
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-Page Scanning'**
+  String get helpMultiPage;
+
+  /// Multi-page feature description in help
+  ///
+  /// In en, this message translates to:
+  /// **'Capture multiple pages in one session without leaving the scanner. Review, reorder, edit, or delete pages before saving as a single document.'**
+  String get helpMultiPageDesc;
+
+  /// OCR feature title in help
+  ///
+  /// In en, this message translates to:
+  /// **'Text Extraction (OCR)'**
+  String get helpOcr;
+
+  /// OCR feature description in help
+  ///
+  /// In en, this message translates to:
+  /// **'Extract text from any scanned page using Google ML Kit. Copy the recognized text to your clipboard with one tap.'**
+  String get helpOcrDesc;
+
+  /// PDF feature title in help
+  ///
+  /// In en, this message translates to:
+  /// **'PDF Export & Share'**
+  String get helpPdf;
+
+  /// PDF feature description in help
+  ///
+  /// In en, this message translates to:
+  /// **'Export any document as a PDF file. Share it directly from the app via email, messaging apps, or save to cloud storage.'**
+  String get helpPdfDesc;
+
+  /// Search feature title in help
+  ///
+  /// In en, this message translates to:
+  /// **'Search & Batch Operations'**
+  String get helpSearch;
+
+  /// Search feature description in help
+  ///
+  /// In en, this message translates to:
+  /// **'Search documents by name. Select multiple documents to delete them in batch or export as PDF.'**
+  String get helpSearchDesc;
+
+  /// Themes feature title in help
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Themes'**
+  String get helpThemes;
+
+  /// Themes feature description in help
+  ///
+  /// In en, this message translates to:
+  /// **'Choose between 3 themes: Arcade (neon retro), Kawaii (pastel cute), or Professional (clean minimal).'**
+  String get helpThemesDesc;
 }
 
 class _AppLocalizationsDelegate

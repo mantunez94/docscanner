@@ -468,5 +468,50 @@
   "@aboutBody": {"description": "About dialog body text"},
 
   "contactEmail": "Report issues on GitHub",
-  "@contactEmail": {"description": "Contact / report issues link"}
+  "@contactEmail": {"description": "Contact / report issues link"},
+
+  "howToUse": "How to Use",
+  "@howToUse": {"description": "Help screen title"},
+
+  "helpScanner": "Document Scanner",
+  "@helpScanner": {"description": "Scanner feature title in help"},
+
+  "helpScannerDesc": "Scan documents in Color or Black & White mode. Toggle modes before capturing. The app automatically detects document boundaries in real-time.",
+  "@helpScannerDesc": {"description": "Scanner feature description in help"},
+
+  "helpBoundary": "Boundary Detection & Crop",
+  "@helpBoundary": {"description": "Boundary detection feature title in help"},
+
+  "helpBoundaryDesc": "Green corners show detected document edges. Drag them to adjust the crop area manually. A magnifier helps with precise corner placement.",
+  "@helpBoundaryDesc": {"description": "Boundary detection feature description in help"},
+
+  "helpMultiPage": "Multi-Page Scanning",
+  "@helpMultiPage": {"description": "Multi-page feature title in help"},
+
+  "helpMultiPageDesc": "Capture multiple pages in one session without leaving the scanner. Review, reorder, edit, or delete pages before saving as a single document.",
+  "@helpMultiPageDesc": {"description": "Multi-page feature description in help"},
+
+  "helpOcr": "Text Extraction (OCR)",
+  "@helpOcr": {"description": "OCR feature title in help"},
+
+  "helpOcrDesc": "Extract text from any scanned page using Google ML Kit. Copy the recognized text to your clipboard with one tap.",
+  "@helpOcrDesc": {"description": "OCR feature description in help"},
+
+  "helpPdf": "PDF Export & Share",
+  "@helpPdf": {"description": "PDF feature title in help"},
+
+  "helpPdfDesc": "Export any document as a PDF file. Share it directly from the app via email, messaging apps, or save to cloud storage.",
+  "@helpPdfDesc": {"description": "PDF feature description in help"},
+
+  "helpSearch": "Search & Batch Operations",
+  "@helpSearch": {"description": "Search feature title in help"},
+
+  "helpSearchDesc": "Search documents by name. Select multiple documents to delete them in batch or export as PDF.",
+  "@helpSearchDesc": {"description": "Search feature description in help"},
+
+  "helpThemes": "Custom Themes",
+  "@helpThemes": {"description": "Themes feature title in help"},
+
+  "helpThemesDesc": "Choose between 3 themes: Arcade (neon retro), Kawaii (pastel cute), or Professional (clean minimal).",
+  "@helpThemesDesc": {"description": "Themes feature description in help"}
 }

@@ -544,4 +544,56 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get contactEmail => 'Reportar problemas en GitHub';
+
+  @override
+  String get howToUse => 'Cómo usar';
+
+  @override
+  String get helpScanner => 'Escáner de documentos';
+
+  @override
+  String get helpScannerDesc =>
+      'Escanea documentos en modo Color o Blanco y Negro. Cambia el modo antes de capturar. La app detecta los bordes automáticamente en tiempo real.';
+
+  @override
+  String get helpBoundary => 'Detección de bordes y recorte';
+
+  @override
+  String get helpBoundaryDesc =>
+      'Las esquinas verdes muestran los bordes detectados. Ajústalas manualmente para recortar. Una lupa ayuda a colocar las esquinas con precisión.';
+
+  @override
+  String get helpMultiPage => 'Escaneo multipágina';
+
+  @override
+  String get helpMultiPageDesc =>
+      'Captura varias páginas en una sola sesión sin salir del escáner. Revisa, reordena, edita o elimina páginas antes de guardar como un solo documento.';
+
+  @override
+  String get helpOcr => 'Extracción de texto (OCR)';
+
+  @override
+  String get helpOcrDesc =>
+      'Extrae texto de cualquier página escaneada usando Google ML Kit. Copia el texto reconocido al portapapeles con un toque.';
+
+  @override
+  String get helpPdf => 'Exportar PDF y compartir';
+
+  @override
+  String get helpPdfDesc =>
+      'Exporta cualquier documento como PDF. Compártelo directamente desde la app por correo, mensajería o guárdalo en la nube.';
+
+  @override
+  String get helpSearch => 'Búsqueda y operaciones por lote';
+
+  @override
+  String get helpSearchDesc =>
+      'Busca documentos por nombre. Selecciona varios para eliminarlos en lote o exportarlos como PDF.';
+
+  @override
+  String get helpThemes => 'Temas personalizados';
+
+  @override
+  String get helpThemesDesc =>
+      'Elige entre 3 temas: Arcade (neón retro), Kawaii (pastel adorable) o Professional (minimalista limpio).';
 }

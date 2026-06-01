@@ -467,6 +467,6 @@
   "aboutBody": "DocScanner is a 100% offline document scanner. Your data never leaves your device.",
   "@aboutBody": {"description": "About dialog body text"},
 
-  "contactEmail": "m.antunez94@hotmail.com",
-  "@contactEmail": {"description": "Contact email address"}
+  "contactEmail": "Report issues on GitHub",
+  "@contactEmail": {"description": "Contact / report issues link"}
 }

@@ -1028,10 +1028,10 @@ abstract class AppLocalizations {
   /// **'DocScanner is a 100% offline document scanner. Your data never leaves your device.'**
   String get aboutBody;
 
-  /// Contact email address
+  /// Contact / report issues link
   ///
   /// In en, this message translates to:
-  /// **'m.antunez94@hotmail.com'**
+  /// **'Report issues on GitHub'**
   String get contactEmail;
 }
 

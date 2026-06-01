@@ -184,7 +184,7 @@ lib/
 
 ## Issues Fixed
 
-All 16 of 22 actionable production-readiness issues resolved:
+24 actionable production-readiness issues resolved:
 
 | # | Issue | Status |
 |---|-------|--------|
@@ -219,7 +219,7 @@ All 16 of 22 actionable production-readiness issues resolved:
 |---|-------|----------|
 | #93 | Pinch-to-zoom, page re-scan | 🟡 MEDIUM |
 | #52 | Adaptive tablet/landscape layout | 🟡 MEDIUM |
-| #49 | Integration / golden tests | 🟡 MEDIUM |
+| #49 | Golden tests (2 pending on-device regeneration); camera integration test mocked but skipped (needs native test harness) | 🟡 MEDIUM |
 | #48 | Anemic domain model (business logic in UI) | 🟡 MEDIUM |
 
 ## Testing
@@ -228,9 +228,10 @@ All 16 of 22 actionable production-readiness issues resolved:
 flutter test
 ```
 
-93 tests (4 skipped on host — require native OpenCV lib present on device):
-- 33 domain + data layer tests (entities, models, repositories, use cases)
-- 59 presentation widget tests (6 screens, 4 widgets)
+105 tests (5 skipped on host — require native OpenCV lib or camera hardware):
+- 40 domain + data layer tests (entities, models, repositories, use cases)
+- 7 core infrastructure tests (OCR + OpenCV auto-enhance)
+- 58 presentation tests (6 screens, 4 widgets, golden)
 - 0 flutter analyze errors
 
 > New features should include widget and unit tests.

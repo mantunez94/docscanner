@@ -432,7 +432,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           label: 'Document boundary overlay',
           excludeSemantics: true,
           child: CustomPaint(
-            painter: _BoundaryOverlayPainter(
+                      painter: BoundaryOverlayPainter(
             corners: _corners,
             previewWidth: preview.width,
             previewHeight: preview.height,
@@ -602,7 +602,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 }
 
-class _BoundaryOverlayPainter extends CustomPainter {
+class BoundaryOverlayPainter extends CustomPainter {
   final List<cv.Point>? corners;
   final double previewWidth;
   final double previewHeight;
@@ -614,7 +614,7 @@ class _BoundaryOverlayPainter extends CustomPainter {
   final int imageWidth;
   final int imageHeight;
 
-  _BoundaryOverlayPainter({
+  const BoundaryOverlayPainter({
     this.corners,
     required this.previewWidth,
     required this.previewHeight,
@@ -728,7 +728,7 @@ class _BoundaryOverlayPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _BoundaryOverlayPainter oldDelegate) {
+  bool shouldRepaint(covariant BoundaryOverlayPainter oldDelegate) {
     return oldDelegate.corners != corners ||
         oldDelegate.previewOffsetX != previewOffsetX ||
         oldDelegate.previewOffsetY != previewOffsetY ||

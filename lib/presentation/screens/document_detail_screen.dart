@@ -378,7 +378,9 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.deletePages),
-        content: Text(l10n.deleteNPages(count)),
+        content: SingleChildScrollView(
+          child: Text(l10n.deleteNPages(count)),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),

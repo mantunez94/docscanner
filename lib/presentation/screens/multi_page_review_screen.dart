@@ -127,7 +127,9 @@ class _MultiPageReviewScreenState extends State<MultiPageReviewScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.deleteAllPages),
-        content: Text(l10n.deleteAllPagesBody),
+        content: SingleChildScrollView(
+          child: Text(l10n.deleteAllPagesBody),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),

@@ -543,5 +543,5 @@ class AppLocalizationsEs extends AppLocalizations {
       'DocScanner es un escáner de documentos 100% offline. Tus datos nunca salen de tu dispositivo.';
 
   @override
-  String get contactEmail => 'm.antunez94@hotmail.com';
+  String get contactEmail => 'Reportar problemas en GitHub';
 }

@@ -16,7 +16,7 @@ class HelpScreen extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: [
           _FeatureCard(
-            icon: Icons.document_scanner_outlined,
+            icon: Icons.color_lens_outlined,
             title: l10n.helpScanner,
             description: l10n.helpScannerDesc,
           ),
@@ -46,7 +46,7 @@ class HelpScreen extends StatelessWidget {
             description: l10n.helpSearchDesc,
           ),
           _FeatureCard(
-            icon: Icons.color_lens_outlined,
+            icon: Icons.palette_outlined,
             title: l10n.helpThemes,
             description: l10n.helpThemesDesc,
           ),

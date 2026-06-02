@@ -476,7 +476,7 @@
   "helpScanner": "Document Scanner",
   "@helpScanner": {"description": "Scanner feature title in help"},
 
-  "helpScannerDesc": "Scan documents in Color or Black & White mode. Toggle modes before capturing. The app automatically detects document boundaries in real-time.",
+  "helpScannerDesc": "Scan documents in Color or Black & White mode. Tap the color icon before capturing to switch modes. Color mode preserves original colors; B&W mode enhances text clarity. The app automatically detects document boundaries in real-time.",
   "@helpScannerDesc": {"description": "Scanner feature description in help"},
 
   "helpBoundary": "Boundary Detection & Crop",

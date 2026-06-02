@@ -185,7 +185,7 @@
   "howToUse": "Cómo usar",
 
   "helpScanner": "Escáner de documentos",
-  "helpScannerDesc": "Escanea documentos en modo Color o Blanco y Negro. Cambia el modo antes de capturar. La app detecta los bordes automáticamente en tiempo real.",
+  "helpScannerDesc": "Escanea documentos en modo Color o Blanco y Negro. Toca el icono de color antes de capturar para cambiar de modo. El modo Color conserva los colores originales; el modo B/N mejora la claridad del texto. La app detecta los bordes automáticamente en tiempo real.",
 
   "helpBoundary": "Detección de bordes y recorte",
   "helpBoundaryDesc": "Las esquinas verdes muestran los bordes detectados. Ajústalas manualmente para recortar. Una lupa ayuda a colocar las esquinas con precisión.",

@@ -5,6 +5,9 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 const String testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 const String testNativeAdUnitId = 'ca-app-pub-3940256099942544/2247696110';
 
+final showAdBannerProvider = StateProvider<bool>((ref) => true);
+final showPostSaveAdProvider = StateProvider<bool>((ref) => false);
+
 class AdService extends ChangeNotifier {
   BannerAd? _bannerAd;
   NativeAd? _nativeAd;

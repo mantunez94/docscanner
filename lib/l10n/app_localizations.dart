@@ -1123,6 +1123,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose between 3 themes: Arcade (neon retro), Kawaii (pastel cute), or Professional (clean minimal).'**
   String get helpThemesDesc;
+
+  /// Undo feature title in help
+  ///
+  /// In en, this message translates to:
+  /// **'Undo Actions'**
+  String get helpUndo;
+
+  /// Undo feature description in help
+  ///
+  /// In en, this message translates to:
+  /// **'After deleting a document, a snackbar appears with an Undo button. You have 4 seconds to restore the document before it is permanently deleted.'**
+  String get helpUndoDesc;
 }
 
 class _AppLocalizationsDelegate

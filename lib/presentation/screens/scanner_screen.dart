@@ -10,6 +10,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:docscanner/l10n/app_localizations.dart';
 import '../../core/document_boundary_detector.dart';
 import '../../core/image_processing_service.dart';
+import '../../core/logger.dart';
+import '../widgets/boundary_overlay_painter.dart';
+import '../widgets/captured_page_strip.dart';
 import 'multi_page_review_screen.dart';
 import 'preview_screen.dart';
 
@@ -150,7 +153,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     try {
       _controller?.stopImageStream();
     } catch (e) {
-      debugPrint('Failed to stop image stream: $e');
+      appLogger.e('Failed to stop image stream: $e');
     }
   }
 
@@ -180,7 +183,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         if (mounted) setState(() {});
       }
     } catch (e) {
-      debugPrint('Error processing frame: $e');
+      appLogger.e('Error processing frame: $e');
     }
   }
 
@@ -214,7 +217,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     try {
       _controller?.setFlashMode(FlashMode.off);
     } catch (e) {
-      debugPrint('setFlashMode failed on dispose: $e');
+      appLogger.e('setFlashMode failed on dispose: $e');
     }
     _controller?.dispose();
     _cleanupTempFiles();
@@ -227,7 +230,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       try {
         File(path).deleteSync();
       } catch (e) {
-        debugPrint('Failed to delete temp file $path: $e');
+        appLogger.e('Failed to delete temp file $path: $e');
       }
     }
   }
@@ -451,52 +454,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   Widget _buildPageStrip() {
-    return Container(
-      height: 80,
-      color: Colors.black87,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      child: Row(
-        children: [
-          Semantics(
-            label: '${_capturedPages.length} pages captured',
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              alignment: Alignment.center,
-              child: Text(
-                '${_capturedPages.length}',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-            ),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: ListView.separated(
-              controller: _pageScrollController,
-              scrollDirection: Axis.horizontal,
-              itemCount: _capturedPages.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 6),
-              itemBuilder: (context, index) {
-                return Semantics(
-                  label: 'Page ${index + 1} thumbnail',
-                  child: GestureDetector(
-                    onTap: () => _editPage(index),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: Image.file(
-                        File(_capturedPages[index]),
-                        width: 56,
-                        height: 72,
-                        fit: BoxFit.cover,
-                        cacheWidth: 120,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+    return CapturedPageStrip(
+      capturedPages: _capturedPages,
+      onEditPage: _editPage,
+      scrollController: _pageScrollController,
     );
   }
 
@@ -582,7 +543,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           );
         }
       } catch (e) {
-        debugPrint('Processing failed: $e');
+        appLogger.e('Processing failed: $e');
         if (context.mounted) {
           setState(() => _processing = false);
           ScaffoldMessenger.of(context).showSnackBar(
@@ -591,7 +552,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
         }
       }
     } catch (e) {
-      debugPrint('Capture failed: $e');
+      appLogger.e('Capture failed: $e');
       if (mounted) setState(() => _processing = false);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -602,137 +563,4 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 }
 
-class BoundaryOverlayPainter extends CustomPainter {
-  final List<cv.Point>? corners;
-  final double previewWidth;
-  final double previewHeight;
-  final double previewOffsetX;
-  final double previewOffsetY;
-  final double previewPaintWidth;
-  final double previewPaintHeight;
-  final int sensorOrientation;
-  final int imageWidth;
-  final int imageHeight;
 
-  const BoundaryOverlayPainter({
-    this.corners,
-    required this.previewWidth,
-    required this.previewHeight,
-    required this.previewOffsetX,
-    required this.previewOffsetY,
-    required this.previewPaintWidth,
-    required this.previewPaintHeight,
-    required this.sensorOrientation,
-    required this.imageWidth,
-    required this.imageHeight,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.black.withAlpha(100)
-      ..style = PaintingStyle.fill;
-
-    final borderPaint = Paint()
-      ..color = Colors.cyanAccent
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-
-    final cornerPaint = Paint()
-      ..color = Colors.cyanAccent
-      ..style = PaintingStyle.fill;
-
-    if (corners != null && corners!.length >= 4) {
-      final pts = _mapCorners(corners!);
-
-      final docPath = Path()..moveTo(pts[0].dx, pts[0].dy);
-      for (var i = 1; i < pts.length; i++) {
-        docPath.lineTo(pts[i].dx, pts[i].dy);
-      }
-      docPath.close();
-
-      canvas.drawPath(
-        Path.combine(
-          PathOperation.difference,
-          Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
-          docPath,
-        ),
-        paint,
-      );
-
-      canvas.drawPath(docPath, borderPaint);
-
-      for (final p in pts) {
-        canvas.drawCircle(p, 6, cornerPaint);
-        canvas.drawCircle(p, 6, Paint()
-          ..color = Colors.white
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2);
-      }
-    } else {
-      final centerX = previewOffsetX + previewPaintWidth / 2;
-      final centerY = previewOffsetY + previewPaintHeight / 2;
-
-      final rect = Rect.fromCenter(
-        center: Offset(centerX, centerY),
-        width: previewPaintWidth * 0.85,
-        height: previewPaintHeight * 0.55,
-      );
-
-      canvas.drawPath(
-        Path.combine(
-          PathOperation.difference,
-          Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
-          Path()..addRRect(RRect.fromRectAndRadius(rect, const Radius.circular(12))),
-        ),
-        paint,
-      );
-
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(rect, const Radius.circular(12)),
-        borderPaint,
-      );
-    }
-  }
-
-  List<Offset> _mapCorners(List<cv.Point> corners) {
-    return corners.map((p) {
-      double x = p.x.toDouble();
-      double y = p.y.toDouble();
-
-      final w = imageWidth.toDouble();
-      final h = imageHeight.toDouble();
-
-      switch (sensorOrientation) {
-        case 90:
-          final tmp = x;
-          x = h - y;
-          y = tmp;
-        case 180:
-          x = w - x;
-          y = h - y;
-        case 270:
-          final tmp = x;
-          x = y;
-          y = w - tmp;
-      }
-
-      final displayW = (sensorOrientation == 90 || sensorOrientation == 270) ? h : w;
-      final displayH = (sensorOrientation == 90 || sensorOrientation == 270) ? w : h;
-
-      return Offset(
-        previewOffsetX + x * previewPaintWidth / displayW,
-        previewOffsetY + y * previewPaintHeight / displayH,
-      );
-    }).toList();
-  }
-
-  @override
-  bool shouldRepaint(covariant BoundaryOverlayPainter oldDelegate) {
-    return oldDelegate.corners != corners ||
-        oldDelegate.previewOffsetX != previewOffsetX ||
-        oldDelegate.previewOffsetY != previewOffsetY ||
-        oldDelegate.previewPaintWidth != previewPaintWidth ||
-        oldDelegate.previewPaintHeight != previewPaintHeight;
-  }
-}

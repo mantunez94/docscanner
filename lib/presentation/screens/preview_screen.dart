@@ -1,15 +1,19 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 import 'package:docscanner/l10n/app_localizations.dart';
 import '../../core/image_processing_service.dart';
+import '../../core/logger.dart';
 import '../../domain/entities/ocr_result.dart';
 import '../providers/ocr_provider.dart';
+import '../widgets/crop_overlay_painter.dart';
+import '../widgets/magnifier_painter.dart';
+import '../widgets/ocr_bottom_sheet.dart';
 
 class PreviewScreen extends ConsumerStatefulWidget {
   final String imagePath;
@@ -148,71 +152,8 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.4,
-          minChildSize: 0.2,
-          maxChildSize: 0.85,
-          expand: false,
-          builder: (_, scrollController) {
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[400],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(AppLocalizations.of(ctx)!.extractedText, style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 4),
-                  Text(AppLocalizations.of(ctx)!.nTextBlocksFound(result.blocks.length),
-                      style: Theme.of(context).textTheme.bodySmall),
-                  const Divider(),
-                  Expanded(
-                    child: ListView(
-                      controller: scrollController,
-                      children: [
-                        SelectableText(result.text,
-                            style: Theme.of(context).textTheme.bodyMedium),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: () async {
-                        await _copyToClipboard(result.text);
-                        if (ctx.mounted) Navigator.pop(ctx);
-                      },
-                      icon: const Icon(Icons.copy, size: 18),
-                      label: Text(AppLocalizations.of(ctx)!.copyToClipboard),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+      builder: (ctx) => OcrBottomSheet(result: result),
     );
-  }
-
-  Future<void> _copyToClipboard(String text) async {
-    await Clipboard.setData(ClipboardData(text: text));
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.textCopiedToClipboard)),
-      );
-    }
   }
 
   bool get _hasChanges {
@@ -306,7 +247,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                     label: 'Crop region overlay',
                     excludeSemantics: true,
                     child: CustomPaint(
-                    painter: _CropOverlayPainter(
+                    painter: CropOverlayPainter(
                       corners: _corners?.map(_imageToScreen).toList(),
                       imageRect: _imageRect,
                       fullOverlay: _draggingIndex < 0,
@@ -364,7 +305,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                     label: 'Magnified view of corner region',
                     excludeSemantics: true,
                     child: CustomPaint(
-                      painter: _MagnifierPainter(
+                      painter: MagnifierPainter(
                           image: _uiImage!,
                           focalX: _corners![_draggingIndex].x.toDouble(),
                           focalY: _corners![_draggingIndex].y.toDouble(),
@@ -466,7 +407,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
       );
       if (mounted) Navigator.pop(context, encoded);
     } catch (e) {
-      debugPrint('Processing failed: $e');
+      appLogger.e('Processing failed: $e');
       if (mounted) {
         final bytes = _displayBytes;
         if (bytes != null) {
@@ -487,106 +428,4 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
   }
 }
 
-class _CropOverlayPainter extends CustomPainter {
-  final List<Offset>? corners;
-  final Rect imageRect;
-  final bool fullOverlay;
 
-  _CropOverlayPainter({
-    required this.corners,
-    required this.imageRect,
-    this.fullOverlay = true,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (corners == null || corners!.length < 4) {
-      final paint = Paint()
-        ..color = Colors.cyan.withAlpha(80)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2;
-      final rect = Rect.fromCenter(
-        center: imageRect.center,
-        width: imageRect.width * 0.8,
-        height: imageRect.height * 0.8,
-      );
-      canvas.drawRect(rect, paint);
-      return;
-    }
-
-    final cropPath = Path()
-      ..moveTo(corners![0].dx, corners![0].dy)
-      ..lineTo(corners![1].dx, corners![1].dy)
-      ..lineTo(corners![2].dx, corners![2].dy)
-      ..lineTo(corners![3].dx, corners![3].dy)
-      ..close();
-
-    if (fullOverlay) {
-      final overlayPaint = Paint()
-        ..color = Colors.black.withAlpha(100);
-      final path = Path()..addRect(Offset.zero & size);
-      path.addPath(cropPath, Offset.zero);
-      canvas.drawPath(path, overlayPaint);
-    }
-
-    final linePaint = Paint()
-      ..color = Colors.cyan
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    canvas.drawPath(cropPath, linePaint);
-
-    final gridPaint = Paint()
-      ..color = Colors.white.withAlpha(40)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.5;
-    for (var i = 1; i < 10; i++) {
-      final t = i / 10;
-      final top = Offset.lerp(corners![0], corners![3], t)!;
-      final bottom = Offset.lerp(corners![1], corners![2], t)!;
-      canvas.drawLine(top, bottom, gridPaint);
-
-      final left = Offset.lerp(corners![0], corners![1], t)!;
-      final right = Offset.lerp(corners![3], corners![2], t)!;
-      canvas.drawLine(left, right, gridPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_CropOverlayPainter old) =>
-      old.corners != corners || old.fullOverlay != fullOverlay;
-}
-
-class _MagnifierPainter extends CustomPainter {
-  final ui.Image image;
-  final double focalX;
-  final double focalY;
-  final double zoom;
-  final double imgW;
-  final double imgH;
-
-  _MagnifierPainter({
-    required this.image,
-    required this.focalX,
-    required this.focalY,
-    required this.zoom,
-    required this.imgW,
-    required this.imgH,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final halfW = size.width / (2 * zoom);
-    final halfH = size.height / (2 * zoom);
-    final srcRect = Rect.fromLTWH(
-      (focalX - halfW).clamp(0, imgW - 1),
-      (focalY - halfH).clamp(0, imgH - 1),
-      (halfW * 2).clamp(1, imgW),
-      (halfH * 2).clamp(1, imgH),
-    );
-    canvas.drawImageRect(image, srcRect, Offset.zero & size, Paint());
-  }
-
-  @override
-  bool shouldRepaint(_MagnifierPainter old) =>
-      old.focalX != focalX || old.focalY != focalY || old.zoom != zoom;
-}

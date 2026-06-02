@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'data/di/providers.dart';
 import 'l10n/app_localizations.dart';
 import 'presentation/providers/theme_provider.dart';
 import 'presentation/screens/home_screen.dart';
@@ -57,7 +58,7 @@ class DocScannerApp extends ConsumerWidget {
         );
       },
       home: FutureBuilder<bool>(
-        future: shouldShowOnboarding(),
+        future: shouldShowOnboarding(ref.read(preferencesRepositoryProvider)),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Scaffold(

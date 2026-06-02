@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/logger.dart';
 import '../../data/di/providers.dart';
 import '../../domain/entities/scanned_document.dart';
 
@@ -37,7 +37,7 @@ Future<void> cleanupFiles(List<String> paths) async {
     try {
       await File(p).delete();
     } catch (e) {
-      debugPrint('Failed to cleanup file $p: $e');
+      appLogger.e('Failed to cleanup file $p: $e');
     }
   }
 }

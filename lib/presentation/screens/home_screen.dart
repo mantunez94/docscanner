@@ -13,6 +13,7 @@ import '../providers/document_scan_provider.dart';
 import '../providers/theme_provider.dart';
 import '../theme/themes.dart';
 import '../services/ad_service.dart';
+import '../services/undo_service.dart';
 import 'help_screen.dart';
 import '../widgets/document_actions_sheet.dart';
 import '../widgets/document_card.dart';
@@ -155,6 +156,18 @@ class HomeScreen extends ConsumerWidget {
                 onPressed: () => _exportPdf(context, ref),
                 tooltip: l10n.exportPdf,
               ),
+            if (ref.watch(undoActionProvider) != null)
+              IconButton(
+                icon: const Icon(Icons.undo),
+                onPressed: () {
+                  final action = ref.read(undoActionProvider);
+                  if (action != null) {
+                    action.onUndo();
+                    ref.read(undoActionProvider.notifier).state = null;
+                  }
+                },
+                tooltip: l10n.undo,
+              ),
               IconButton(
                 icon: Icon(infoIcon(currentTheme)),
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())),
@@ -283,12 +296,12 @@ class HomeScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-              ),
-            ],
-          );
-        },
-      ),
-      if (ref.watch(showPostSaveAdProvider))
+                  ),
+                ],
+              );
+            },
+        ),
+        if (ref.watch(showPostSaveAdProvider))
         Positioned(
           top: 0,
           left: 0,
@@ -300,7 +313,7 @@ class HomeScreen extends ConsumerWidget {
         ),
     ],
   ),
-      bottomNavigationBar: BannerAdWidget(
+  bottomNavigationBar: BannerAdWidget(
         adService: ref.watch(adServiceProvider),
         visible: ref.watch(showAdBannerProvider),
         onDismissed: () => ref.read(showAdBannerProvider.notifier).state = false,
@@ -349,6 +362,14 @@ class HomeScreen extends ConsumerWidget {
                 }
                 ref.read(batchModeProvider.notifier).state = false;
                 ref.read(selectedIdsProvider.notifier).state = {};
+                ref.read(undoActionProvider.notifier).state = UndoAction(
+                  label: l10n.nDocumentsDeleted(ids.length),
+                  onUndo: () {
+                    for (final doc in deletedDocs) {
+                      ref.read(documentAdminProvider).restore(doc);
+                    }
+                  },
+                );
                 if (context.mounted) {
                   final messenger = ScaffoldMessenger.of(context);
                   messenger.hideCurrentSnackBar();
@@ -359,15 +380,27 @@ class HomeScreen extends ConsumerWidget {
                       content: Row(
                         children: [
                           Expanded(
-                            child: Text(AppLocalizations.of(context)!.nDocumentsDeleted(ids.length)),
+                            child: Text(l10n.nDocumentsDeleted(ids.length)),
                           ),
-                          TextButton(
-                            onPressed: () {
-                              for (final doc in deletedDocs) {
-                                ref.read(documentAdminProvider).restore(doc);
+                          GestureDetector(
+                            onTap: () {
+                              final action = ref.read(undoActionProvider);
+                              if (action != null) {
+                                action.onUndo();
+                                ref.read(undoActionProvider.notifier).state = null;
                               }
                             },
-                            child: Text(AppLocalizations.of(context)!.undo),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              child: Text(
+                                l10n.undo,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -525,6 +558,10 @@ class HomeScreen extends ConsumerWidget {
               onPressed: () {
                 Navigator.pop(ctx);
                 ref.read(documentAdminProvider).delete(doc.id);
+                ref.read(undoActionProvider.notifier).state = UndoAction(
+                  label: l10n.nameDeleted(doc.name),
+                  onUndo: () => ref.read(documentAdminProvider).restore(doc),
+                );
                 final messenger = ScaffoldMessenger.of(context);
                 messenger.hideCurrentSnackBar();
                 messenger.showSnackBar(
@@ -534,11 +571,27 @@ class HomeScreen extends ConsumerWidget {
                     content: Row(
                       children: [
                         Expanded(
-                          child: Text(AppLocalizations.of(context)!.nameDeleted(doc.name)),
+                          child: Text(l10n.nameDeleted(doc.name)),
                         ),
-                        TextButton(
-                          onPressed: () => ref.read(documentAdminProvider).restore(doc),
-                          child: Text(AppLocalizations.of(context)!.undo),
+                        GestureDetector(
+                          onTap: () {
+                            final action = ref.read(undoActionProvider);
+                            if (action != null) {
+                              action.onUndo();
+                              ref.read(undoActionProvider.notifier).state = null;
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            child: Text(
+                              l10n.undo,
+                              style: TextStyle(
+                                color: Theme.of(ctx).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),

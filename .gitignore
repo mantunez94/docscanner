@@ -50,7 +50,6 @@ opencode.json
 
 # Internal / planning docs
 AGENTS.md
-docs/
 PRODUCTION_AUDIT.md
 
 # Git hooks

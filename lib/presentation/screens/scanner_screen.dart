@@ -534,13 +534,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
             _capturedPages.add(path);
             _processing = false;
           });
-          unawaited(
-            _pageScrollController.animateTo(
-              _pageScrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-            ),
-          );
+          if (_pageScrollController.hasClients) {
+            unawaited(
+              _pageScrollController.animateTo(
+                _pageScrollController.position.maxScrollExtent,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeOut,
+              ),
+            );
+          }
         }
       } catch (e) {
         appLogger.e('Processing failed: $e');

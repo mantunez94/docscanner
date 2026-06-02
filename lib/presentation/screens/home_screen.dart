@@ -13,11 +13,12 @@ import '../providers/document_scan_provider.dart';
 import '../providers/theme_provider.dart';
 import '../theme/themes.dart';
 import '../services/ad_service.dart';
+import '../services/undo_service.dart';
 import 'help_screen.dart';
 import '../widgets/document_actions_sheet.dart';
 import '../widgets/document_card.dart';
 import '../widgets/banner_ad_widget.dart';
-import '../widgets/native_ad_card.dart';
+import '../widgets/post_save_ad_card.dart';
 import '../widgets/responsive_utils.dart';
 import '../widgets/shimmer_grid.dart';
 import 'document_detail_screen.dart';
@@ -155,6 +156,18 @@ class HomeScreen extends ConsumerWidget {
                 onPressed: () => _exportPdf(context, ref),
                 tooltip: l10n.exportPdf,
               ),
+            if (ref.watch(undoActionProvider) != null)
+              IconButton(
+                icon: const Icon(Icons.undo),
+                onPressed: () {
+                  final action = ref.read(undoActionProvider);
+                  if (action != null) {
+                    action.onUndo();
+                    ref.read(undoActionProvider.notifier).state = null;
+                  }
+                },
+                tooltip: l10n.undo,
+              ),
               IconButton(
                 icon: Icon(infoIcon(currentTheme)),
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpScreen())),
@@ -163,7 +176,9 @@ class HomeScreen extends ConsumerWidget {
           ],
         ],
       ),
-      body: documentsAsync.when(
+      body: Stack(
+        children: [
+          documentsAsync.when(
         loading: () => const ShimmerGrid(),
         error: (e, _) => Center(
           child: Padding(
@@ -185,7 +200,6 @@ class HomeScreen extends ConsumerWidget {
           if (documents.isEmpty && searchQuery.isEmpty) {
             return _EmptyState(currentTheme: currentTheme, onScan: () => _openScanner(context, ref, null));
           }
-          final adService = ref.watch(adServiceProvider);
           return Column(
             children: [
               if (documents.isNotEmpty)
@@ -239,13 +253,6 @@ class HomeScreen extends ConsumerWidget {
                       child: CustomScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         slivers: [
-                          if (filtered.length >= 2 && adService.nativeAdLoaded)
-                            SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                child: NativeAdCard(adService: adService),
-                              ),
-                            ),
                           SliverPadding(
                             padding: const EdgeInsets.all(12),
                             sliver: SliverGrid(
@@ -289,12 +296,28 @@ class HomeScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-              ),
-            ],
-          );
-        },
+                  ),
+                ],
+              );
+            },
+        ),
+        if (ref.watch(showPostSaveAdProvider))
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: PostSaveAdCard(
+            adService: ref.watch(adServiceProvider),
+            onDismissed: () => ref.read(showPostSaveAdProvider.notifier).state = false,
+          ),
+        ),
+    ],
+  ),
+  bottomNavigationBar: BannerAdWidget(
+        adService: ref.watch(adServiceProvider),
+        visible: ref.watch(showAdBannerProvider),
+        onDismissed: () => ref.read(showAdBannerProvider.notifier).state = false,
       ),
-      bottomNavigationBar: BannerAdWidget(adService: ref.watch(adServiceProvider)),
       floatingActionButton: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
         child: batchMode
@@ -339,18 +362,47 @@ class HomeScreen extends ConsumerWidget {
                 }
                 ref.read(batchModeProvider.notifier).state = false;
                 ref.read(selectedIdsProvider.notifier).state = {};
+                ref.read(undoActionProvider.notifier).state = UndoAction(
+                  label: l10n.nDocumentsDeleted(ids.length),
+                  onUndo: () {
+                    for (final doc in deletedDocs) {
+                      ref.read(documentAdminProvider).restore(doc);
+                    }
+                  },
+                );
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  final messenger = ScaffoldMessenger.of(context);
+                  messenger.hideCurrentSnackBar();
+                  messenger.showSnackBar(
                     SnackBar(
-                      content: Text(AppLocalizations.of(context)!.nDocumentsDeleted(ids.length)),
-                      duration: const Duration(seconds: 4),
-                      action: SnackBarAction(
-                        label: AppLocalizations.of(context)!.undo,
-                        onPressed: () {
-                          for (final doc in deletedDocs) {
-                            ref.read(documentAdminProvider).restore(doc);
-                          }
-                        },
+                      duration: const Duration(seconds: 3),
+                      dismissDirection: DismissDirection.horizontal,
+                      content: Row(
+                        children: [
+                          Expanded(
+                            child: Text(l10n.nDocumentsDeleted(ids.length)),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              final action = ref.read(undoActionProvider);
+                              if (action != null) {
+                                action.onUndo();
+                                ref.read(undoActionProvider.notifier).state = null;
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              child: Text(
+                                l10n.undo,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -394,6 +446,8 @@ class HomeScreen extends ConsumerWidget {
     );
     if (!context.mounted) return;
     ref.invalidate(documentListProvider);
+    ref.read(showAdBannerProvider.notifier).state = true;
+    ref.read(showPostSaveAdProvider.notifier).state = true;
     if (result == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -504,13 +558,42 @@ class HomeScreen extends ConsumerWidget {
               onPressed: () {
                 Navigator.pop(ctx);
                 ref.read(documentAdminProvider).delete(doc.id);
-                ScaffoldMessenger.of(context).showSnackBar(
+                ref.read(undoActionProvider.notifier).state = UndoAction(
+                  label: l10n.nameDeleted(doc.name),
+                  onUndo: () => ref.read(documentAdminProvider).restore(doc),
+                );
+                final messenger = ScaffoldMessenger.of(context);
+                messenger.hideCurrentSnackBar();
+                messenger.showSnackBar(
                   SnackBar(
-                    content: Text(AppLocalizations.of(context)!.nameDeleted(doc.name)),
-                    duration: const Duration(seconds: 4),
-                    action: SnackBarAction(
-                      label: AppLocalizations.of(context)!.undo,
-                      onPressed: () => ref.read(documentAdminProvider).restore(doc),
+                    duration: const Duration(seconds: 3),
+                    dismissDirection: DismissDirection.horizontal,
+                    content: Row(
+                      children: [
+                        Expanded(
+                          child: Text(l10n.nameDeleted(doc.name)),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            final action = ref.read(undoActionProvider);
+                            if (action != null) {
+                              action.onUndo();
+                              ref.read(undoActionProvider.notifier).state = null;
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            child: Text(
+                              l10n.undo,
+                              style: TextStyle(
+                                color: Theme.of(ctx).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );

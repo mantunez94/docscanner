@@ -476,7 +476,7 @@
   "helpScanner": "Document Scanner",
   "@helpScanner": {"description": "Scanner feature title in help"},
 
-  "helpScannerDesc": "Scan documents in Color or Black & White mode. Toggle modes before capturing. The app automatically detects document boundaries in real-time.",
+  "helpScannerDesc": "Scan documents in Color or Black & White mode. Tap the color icon before capturing to switch modes. Color mode preserves original colors; B&W mode enhances text clarity. The app automatically detects document boundaries in real-time.",
   "@helpScannerDesc": {"description": "Scanner feature description in help"},
 
   "helpBoundary": "Boundary Detection & Crop",
@@ -513,5 +513,10 @@
   "@helpThemes": {"description": "Themes feature title in help"},
 
   "helpThemesDesc": "Choose between 3 themes: Arcade (neon retro), Kawaii (pastel cute), or Professional (clean minimal).",
-  "@helpThemesDesc": {"description": "Themes feature description in help"}
+  "@helpThemesDesc": {"description": "Themes feature description in help"},
+
+  "helpUndo": "Undo Actions",
+  "@helpUndo": {"description": "Undo feature title in help"},
+  "helpUndoDesc": "After deleting a document, a snackbar appears with an Undo button. You have 4 seconds to restore the document before it is permanently deleted.",
+  "@helpUndoDesc": {"description": "Undo feature description in help"}
 }

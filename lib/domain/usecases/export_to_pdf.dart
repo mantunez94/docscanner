@@ -1,16 +1,16 @@
 import '../../domain/entities/scanned_document.dart';
-import '../../domain/repositories/document_repository.dart';
+import '../../domain/repositories/pdf_generator.dart';
 
 class ExportToPdf {
-  final DocumentRepository repository;
+  final PdfGenerator pdfGenerator;
 
-  ExportToPdf(this.repository);
+  ExportToPdf(this.pdfGenerator);
 
-  Future<List<String>> call(List<ScannedDocument> documents) async {
+  Future<String> call(List<ScannedDocument> documents) async {
     final allPaths = <String>[];
     for (final doc in documents) {
       allPaths.addAll(doc.pages);
     }
-    return allPaths;
+    return pdfGenerator.exportPdf(allPaths);
   }
 }

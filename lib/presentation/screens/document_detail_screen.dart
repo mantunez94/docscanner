@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:docscanner/l10n/app_localizations.dart';
+import '../../core/logger.dart';
 import '../../domain/entities/scanned_document.dart';
 import '../providers/document_admin_provider.dart';
 import '../providers/document_page_provider.dart';
@@ -398,7 +399,7 @@ class _DocumentDetailScreenState extends ConsumerState<DocumentDetailScreen> {
                       .read(documentPageProvider)
                       .removePage(widget.document.id, path);
                 } catch (e) {
-                  debugPrint('Failed to remove page $path: $e');
+                  appLogger.e('Failed to remove page $path: $e');
                 }
               }
 

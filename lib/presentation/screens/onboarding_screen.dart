@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:docscanner/l10n/app_localizations.dart';
+import '../../data/di/providers.dart';
+import '../../domain/repositories/preferences_repository.dart';
 import '../providers/theme_provider.dart';
 import '../theme/themes.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
 
   const OnboardingScreen({super.key, required this.onComplete});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _controller = PageController();
   int _currentPage = 0;
 
   List<_OnboardingPage> _buildPages(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = ProviderScope.containerOf(context).read(themeProvider);
+    final theme = ref.read(themeProvider);
     return [
       _OnboardingPage(
         icon: scanIcon(theme),
@@ -52,7 +53,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _complete() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = ref.read(preferencesRepositoryProvider);
     await prefs.setBool('onboarding_complete', true);
     widget.onComplete();
   }
@@ -188,7 +189,7 @@ class _OnboardingPage extends StatelessWidget {
   }
 }
 
-Future<bool> shouldShowOnboarding() async {
-  final prefs = await SharedPreferences.getInstance();
-  return !(prefs.getBool('onboarding_complete') ?? false);
+Future<bool> shouldShowOnboarding(PreferencesRepository prefs) async {
+  final completed = await prefs.getBool('onboarding_complete') ?? false;
+  return !completed;
 }

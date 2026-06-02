@@ -15,10 +15,7 @@ class PdfService implements PdfGenerator {
     return PdfPageFormat(baseWidth, baseWidth / aspect);
   }
 
-  Future<String> generatePdf(String documentId, List<String> pagePaths) async {
-    final dir = await getApplicationDocumentsDirectory();
-    final docDir = Directory('${dir.path}/documents');
-    final path = '${docDir.path}/$documentId.pdf';
+  Future<Uint8List> _buildPdf(List<String> pagePaths) async {
     final pdf = pw.Document();
     for (final pagePath in pagePaths) {
       final imageBytes = await File(pagePath).readAsBytes();
@@ -30,7 +27,15 @@ class PdfService implements PdfGenerator {
         ),
       );
     }
-    await File(path).writeAsBytes(await pdf.save());
+    return pdf.save();
+  }
+
+  Future<String> generatePdf(String documentId, List<String> pagePaths) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final docDir = Directory('${dir.path}/documents');
+    final path = '${docDir.path}/$documentId.pdf';
+    final bytes = await _buildPdf(pagePaths);
+    await File(path).writeAsBytes(bytes);
     return path;
   }
 
@@ -38,19 +43,9 @@ class PdfService implements PdfGenerator {
     final dir = await getApplicationDocumentsDirectory();
     final pdfDir = Directory('${dir.path}/exports');
     if (!await pdfDir.exists()) await pdfDir.create(recursive: true);
-    final pdf = pw.Document();
-    for (final pagePath in allPagePaths) {
-      final imageBytes = await File(pagePath).readAsBytes();
-      final pageFormat = _pageFormatForBytes(imageBytes);
-      pdf.addPage(
-        pw.Page(
-          pageFormat: pageFormat,
-          build: (_) => pw.Image(pw.MemoryImage(imageBytes), fit: pw.BoxFit.fill),
-        ),
-      );
-    }
+    final bytes = await _buildPdf(allPagePaths);
     final outputPath = '${pdfDir.path}/documents_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    await File(outputPath).writeAsBytes(await pdf.save());
+    await File(outputPath).writeAsBytes(bytes);
     return outputPath;
   }
 }

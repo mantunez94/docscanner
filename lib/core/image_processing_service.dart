@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
+import 'logger.dart';
 
 class ImageProcessingService {
   List<cv.Point>? detectDocumentFromMat(cv.Mat src) {
@@ -81,7 +81,7 @@ class ImageProcessingService {
         return orderCorners(corners);
       }
     } catch (e) {
-      debugPrint('ImageProcessingService.detectDocumentFromMat failed: $e');
+      appLogger.e('ImageProcessingService.detectDocumentFromMat failed: $e');
     }
     return null;
   }

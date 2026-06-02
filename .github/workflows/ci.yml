@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+    - cron: '0 6 * * 1'
 
 jobs:
   test:
@@ -23,3 +25,32 @@ jobs:
       - run: flutter analyze
 
       - run: flutter test --exclude-tags=golden
+
+  regenerate-goldens:
+    if: github.event_name == 'schedule'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter pub get
+
+      - name: Regenerate golden test files
+        run: flutter test --update-goldens --tags=golden
+
+      - name: Create PR with updated goldens
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: 'chore: update golden test reference images'
+          title: 'chore: update golden test reference images'
+          body: |
+            Automated golden test regeneration run.
+
+            This PR updates the golden test reference images to match the
+            current rendering output.
+          branch: ci/update-goldens
+          delete-branch: true
+          labels: golden, ci, automated

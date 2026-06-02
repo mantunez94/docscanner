@@ -11,9 +11,7 @@ class DocumentExport {
     final docs = _ref.read(documentListProvider).valueOrNull ?? [];
     if (docs.isEmpty) throw Exception('No documents to export');
     final export = _ref.watch(exportToPdfProvider);
-    final allPagePaths = await export(docs);
-    final pdfService = _ref.read(pdfServiceProvider);
-    final path = await pdfService.exportPdf(allPagePaths);
+    final path = await export(docs);
     return File(path);
   }
 }

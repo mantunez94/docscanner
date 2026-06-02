@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:opencv_dart/opencv_dart.dart' as cv;
 import 'package:docscanner/l10n/app_localizations.dart';
 import 'package:docscanner/presentation/screens/scanner_screen.dart';
+import 'package:docscanner/presentation/widgets/boundary_overlay_painter.dart';
 
 Widget createTestApp() {
   return MaterialApp(

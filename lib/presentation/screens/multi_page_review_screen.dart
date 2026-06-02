@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:docscanner/l10n/app_localizations.dart';
+import '../../core/logger.dart';
 import '../providers/theme_provider.dart';
 import '../theme/themes.dart';
 import 'preview_screen.dart';
@@ -175,7 +176,7 @@ class _MultiPageReviewScreenState extends State<MultiPageReviewScreen> {
       await widget.onSave(paths, name);
       if (context.mounted) Navigator.pop(context, true);
     } catch (e) {
-      debugPrint('Save failed: $e');
+      appLogger.e('Save failed: $e');
       if (context.mounted) {
         setState(() => _saving = false);
         final l10n = AppLocalizations.of(context)!;

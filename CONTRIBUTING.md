@@ -26,6 +26,20 @@ flutter test --exclude-tags=golden
 flutter test test/presentation/screens/home_screen_test.dart
 ```
 
+### Golden Tests
+
+Golden tests are tagged with `@Tags(['golden'])` and excluded from CI PR runs.
+They are regenerated weekly via a scheduled CI workflow.
+
+To regenerate golden files locally:
+
+```sh
+# On a physical device or emulator:
+flutter test --update-goldens --tags=golden
+
+# Commit the updated PNG files in test/presentation/golden/goldens/
+```
+
 ### Linting
 
 ```sh

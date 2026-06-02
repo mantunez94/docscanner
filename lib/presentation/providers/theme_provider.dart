@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/di/providers.dart';
+import '../../domain/repositories/preferences_repository.dart';
 import '../theme/themes.dart';
 
 final themeProvider = StateNotifierProvider<ThemeNotifier, AppTheme>((ref) {
-  return ThemeNotifier();
+  return ThemeNotifier(ref.watch(preferencesRepositoryProvider));
 });
 
 final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
-  return ThemeModeNotifier();
+  return ThemeModeNotifier(ref.watch(preferencesRepositoryProvider));
 });
 
 final appDarkThemeDataProvider = Provider<ThemeData>((ref) {
@@ -22,37 +23,37 @@ final appLightThemeDataProvider = Provider<ThemeData>((ref) {
 });
 
 class ThemeNotifier extends StateNotifier<AppTheme> {
-  ThemeNotifier() : super(AppTheme.professional) {
+  final PreferencesRepository _prefs;
+
+  ThemeNotifier(this._prefs) : super(AppTheme.professional) {
     _load();
   }
 
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final index = prefs.getInt('app_theme') ?? AppTheme.professional.index;
+    final index = await _prefs.getInt('app_theme') ?? AppTheme.professional.index;
     state = AppTheme.values[index];
   }
 
   Future<void> setTheme(AppTheme theme) async {
     state = theme;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('app_theme', theme.index);
+    await _prefs.setInt('app_theme', theme.index);
   }
 }
 
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
-  ThemeModeNotifier() : super(ThemeMode.system) {
+  final PreferencesRepository _prefs;
+
+  ThemeModeNotifier(this._prefs) : super(ThemeMode.system) {
     _load();
   }
 
   Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final index = prefs.getInt('theme_mode') ?? 0;
+    final index = await _prefs.getInt('theme_mode') ?? 0;
     state = ThemeMode.values[index];
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
     state = mode;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('theme_mode', mode.index);
+    await _prefs.setInt('theme_mode', mode.index);
   }
 }

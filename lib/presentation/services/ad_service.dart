@@ -5,6 +5,18 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 const String testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 const String testNativeAdUnitId = 'ca-app-pub-3940256099942544/2247696110';
 
+String get _bannerAdUnitId {
+  const prodId = String.fromEnvironment('AD_BANNER_UNIT_ID');
+  if (prodId.isNotEmpty) return prodId;
+  return testBannerAdUnitId;
+}
+
+String get _nativeAdUnitId {
+  const prodId = String.fromEnvironment('AD_NATIVE_UNIT_ID');
+  if (prodId.isNotEmpty) return prodId;
+  return testNativeAdUnitId;
+}
+
 final showAdBannerProvider = StateProvider<bool>((ref) => true);
 final showPostSaveAdProvider = StateProvider<bool>((ref) => false);
 
@@ -23,7 +35,7 @@ class AdService extends ChangeNotifier {
     if (_bannerAd != null) return;
     _bannerAd = BannerAd(
       size: AdSize.banner,
-      adUnitId: testBannerAdUnitId,
+      adUnitId: _bannerAdUnitId,
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (_) {
@@ -39,7 +51,7 @@ class AdService extends ChangeNotifier {
   void loadNativeAd() {
     if (_nativeAd != null) return;
     _nativeAd = NativeAd(
-      adUnitId: testNativeAdUnitId,
+      adUnitId: _nativeAdUnitId,
       nativeTemplateStyle: NativeTemplateStyle(
         templateType: TemplateType.medium,
       ),
